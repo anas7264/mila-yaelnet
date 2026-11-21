@@ -467,3 +467,10 @@ test("mastery states distinguish new, weak, learning, scheduled and mastered car
   assert.equal(Engine.masteryOf({ attempts: 2, correct: 2, consecutiveCorrect: 2, dueAt: Date.now() + 100000 }), "scheduled");
   assert.equal(Engine.masteryOf({ attempts: 5, correct: 5, consecutiveCorrect: 5, intervalDays: 14 }), "mastered");
 });
+
+
+test("recovered words can leave weak state after sustained correct answers", () => {
+  const state = Engine.createState();
+  state.progress.w1 = { heToAr: { attempts: 7, correct: 5, incorrect: 2, failures: 2, consecutiveCorrect: 5, priority: 0, intervalDays: 14 }, arToHe: {} };
+  assert.equal(Engine.masteryOf(state.progress.w1.heToAr), "mastered");
+});
