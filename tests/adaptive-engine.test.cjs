@@ -203,7 +203,7 @@ test("academic progress bridge is idempotent and persists adaptive attempts", ()
   const values = new Map();
   const context = {
     window: { addEventListener() {} },
-    document: { getElementById() { return null; } },
+    document: { getElementById() { return null; }, addEventListener() {} },
     localStorage: {
       getItem(key) { return values.has(key) ? values.get(key) : null; },
       setItem(key, value) { values.set(key, value); }
