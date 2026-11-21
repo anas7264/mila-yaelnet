@@ -336,6 +336,26 @@ test("adaptive namespace remains inside the existing sync snapshot filter", asyn
   assert.equal(sync.isLearningStorageKey("__mila_sync_meta_v1"), false);
 });
 
+
+test("static release includes every PWA icon and required Flask-free route rewrite", () => {
+  const root = path.join(__dirname, "..");
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "static/manifest.webmanifest"), "utf8"));
+  assert.ok(manifest.icons.length > 0);
+  for (const icon of manifest.icons) {
+    assert.ok(fs.existsSync(path.join(root, icon.src.replace(/^\//, ""))), "missing manifest icon: " + icon.src);
+  }
+  const sw = fs.readFileSync(path.join(root, "static/sw.js"), "utf8");
+  assert.match(sw, /"\/static\/icon\.svg"/);
+  assert.doesNotMatch(sw, /icon-(192|512)\.png/);
+  const config = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
+  const rewrites = new Map(config.rewrites.map(item => [item.source, item.destination]));
+  assert.equal(rewrites.get("/manifest"), "/static/manifest.webmanifest");
+  assert.equal(rewrites.get("/sw.js"), "/static/sw.js");
+  assert.equal(rewrites.get("/health"), "/health.json");
+  assert.ok(fs.existsSync(path.join(root, "health.json")));
+  assert.match(fs.readFileSync(path.join(root, "static/app.js"), "utf8"), /serviceWorker\.register\("\/sw\.js"/);
+});
+
 test("preview entry point keeps RTL and loads both adaptive modules", () => {
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   assert.match(html, /html lang="ar" dir="rtl"/);
