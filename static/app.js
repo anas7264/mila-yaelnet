@@ -61,7 +61,8 @@
       category: term.groupTitle || "مصطلحات أكاديمية"
     })) : [];
     const extras = state.extras.map((w) => ({ ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية", category: w.category || "إضافية" }));
-    return [...new Map([...OFFICIAL, ...academic, ...extras].map((word) => [word.id, word])).values()];
+    const base = [...new Map([...OFFICIAL, ...academic, ...extras].map((word) => [word.id, word])).values()];
+    return window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
   };
   const wordMap = () => new Map(allWords().map((w) => [w.id, w]));
   const progressOf = (id) => state.progress[id] || {};
@@ -385,6 +386,7 @@
               <option value="stage" ${draft.source==="stage"?"selected":""}>مرحلة محددة</option>
               <option value="selected-stages" ${draft.source==="selected-stages"?"selected":""}>مراحل متعددة</option>
               <option value="extra" ${draft.source==="extra"?"selected":""}>الكلمات الإضافية</option>
+              <option value="expanded" ${draft.source==="expanded"?"selected":""}>المفردات الموسّعة</option>
               <option value="weak" ${draft.source==="weak"?"selected":""}>الكلمات الضعيفة</option>
               <option value="due" ${draft.source==="due"?"selected":""}>المراجعات المستحقة</option>
               <option value="mistakes" ${draft.source==="mistakes"?"selected":""}>الأخطاء السابقة</option>
@@ -463,6 +465,7 @@
         return OFFICIAL.filter((w) => ids.has(w.stageId));
       }
       case "extra": return words.filter((w) => w.source === "extra");
+      case "expanded": return words.filter((w) => w.source === "expanded" || (Array.isArray(w.expandedTopics) && w.expandedTopics.length > 0));
       case "weak": return weakWords(words);
       case "due": return dueWords(words);
       case "mistakes": return mistakeWords(words);
@@ -474,11 +477,12 @@
 
   function renderLibrary() {
     const filters = [
-      ["all","الكل"],["stage","مراحل"],["extra","إضافية"],["weak","ضعيفة"],["due","مستحقة"],["mistakes","أخطاء"],["favorites","مفضلة"],["new","جديدة"],["mastered","متقنة"]
+      ["all","الكل"],["stage","مراحل"],["expanded","موسّعة"],["extra","إضافية"],["weak","ضعيفة"],["due","مستحقة"],["mistakes","أخطاء"],["favorites","مفضلة"],["new","جديدة"],["mastered","متقنة"]
     ];
     let words = allWords();
     const q = ui.librarySearch || "";
     if (ui.libraryFilter === "stage") words = words.filter((w) => w.source === "stage");
+    else if (ui.libraryFilter === "expanded") words = words.filter((w) => w.source === "expanded" || (Array.isArray(w.expandedTopics) && w.expandedTopics.length > 0));
     else if (ui.libraryFilter === "extra") words = words.filter((w) => w.source === "extra");
     else if (ui.libraryFilter === "weak") words = weakWords(words);
     else if (ui.libraryFilter === "due") words = dueWords(words);
@@ -494,8 +498,8 @@
         <div class="form-actions"><button class="button button-primary" type="submit">＋ إضافة الكلمة</button><button class="button button-secondary" type="button" data-action="bulk-import">إضافة مجموعة كلمات</button></div>
       </form>`;
     $("appView").innerHTML = `
-      ${pageHead("WORD LIBRARY", "مكتبة الكلمات", "قاعدة المفردات المركزية. يمكنك البحث والتصفية، وإدارة الكلمات الإضافية، ومراجعة حالة كل كلمة.", '<button class="button button-secondary" data-action="export-csv">تصدير CSV ↓</button>')}
-      <section class="stats-grid">${statCard("كل الكلمات",allWords().length,"◇","المراحل والإضافات")}${statCard("إضافية",state.extras.length,"＋","أدخلتها يدويًا")}${statCard("مفضلة",favoriteWords().length,"★","محفوظة للمراجعة")}${statCard("متقنة",masteredWords().length,"✓","حسب بيانات التقدم")}</section>
+      ${pageHead("WORD LIBRARY", "مكتبة الكلمات", "قاعدة المفردات المركزية، بما فيها 21 مجموعة موسّعة. ابحث بالعبرية أو العربية، وصفِّ الكلمات حسب المصدر، وتابع إتقان كل مفردة.", '<button class="button button-secondary" data-action="export-csv">تصدير CSV ↓</button>')}
+      <section class="stats-grid">${statCard("كل الكلمات",allWords().length,"◇","المراحل والإضافات")}${statCard("موسّعة",allWords().filter((w)=>Array.isArray(w.expandedTopics)&&w.expandedTopics.length).length,"✧","21 مجموعة موضوعية")}${statCard("مفضلة",favoriteWords().length,"★","محفوظة للمراجعة")}${statCard("متقنة",masteredWords().length,"✓","حسب بيانات التقدم")}</section>
       ${addForm}
       <section class="panel-card" style="margin-top:16px"><div class="toolbar"><div class="search-control"><input class="control" data-input="library-search" value="${esc(q)}" placeholder="ابحث بالعبرية أو العربية"></div><div class="toolbar-group">${filters.map(([id,label]) => `<button class="stage-tab ${ui.libraryFilter===id?"active":""}" data-action="library-filter" data-filter="${id}">${label}</button>`).join("")}</div></div>
         <div class="panel-heading"><div><h2>نتائج المكتبة</h2><p>${words.length} كلمة مطابقة</p></div><span class="badge badge-neutral">${ui.libraryFilter === "all" ? "كل الكلمات" : esc(filters.find(f=>f[0]===ui.libraryFilter)?.[1] || "")}</span></div>

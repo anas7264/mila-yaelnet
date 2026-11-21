@@ -6,6 +6,7 @@ Mila is a browser-based Hebrew vocabulary and YAELNET learning workspace. The cu
 
 - Main vocabulary workspace with stages, custom vocabulary, review, analytics, and settings.
 - 377 academic terms in a dedicated section and shared global vocabulary/review map.
+- 1,050 supplied vocabulary entries across 21 thematic groups, integrated into the main library, custom practice, typed answers, and adaptive recall. Repeated Hebrew headwords are consolidated into one trainable entry while their topic tags and distinct glosses are retained.
 - Adaptive active recall in both directions: Hebrew → Arabic and Arabic → Hebrew.
 - Direction-specific adaptive scheduling and short-term retry queue (2–4 intervening questions, at most 3 retries per word per cycle).
 - Resumable adaptive sessions with duplicate/stale answer protection.
@@ -37,7 +38,7 @@ The earlier Flask deployment wrapper served the browser assets. The current rele
 
 ## Content and limitations
 
-The 377 academic terms are retained from the recovered content set. They have not all undergone independent linguistic/editorial validation. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
+The 377 academic terms are retained from the recovered content set. The additional 1,050 entries are organized into 21 thematic groups. Duplicate Hebrew headwords are merged across the new groups and existing catalog; alternate Arabic glosses are accepted as explicit aliases. Neither collection has undergone a complete independent linguistic/editorial review. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
 
 The adaptive scheduler is a bounded P0 short-term scheduler, not FSRS. Contextual prompts, written production, validated morphology, and advanced analytics remain outside this release.
 
