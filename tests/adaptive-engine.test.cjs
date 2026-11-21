@@ -192,6 +192,7 @@ test("main storage preserves adaptive idempotency keys and long session totals",
   assert.equal(clean.adaptiveEventIds["session:s-1"], 200);
   assert.equal(clean.sessions[0].total, 850);
   assert.equal(clean.sessions[0].incorrect, 150);
+  assert.equal(clean.lastSessionSummary, null);
 });
 
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
