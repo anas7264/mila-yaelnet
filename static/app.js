@@ -525,7 +525,7 @@
     const s = stats();
     const recent = state.sessions.slice(-7);
     const max = Math.max(1, ...recent.map((x) => Number(x.accuracy) || 0));
-    const bars = recent.map((session) => `<div class="chart-bar-wrap"><span class="chart-bar-value">${Number(session.accuracy)||0}%</span><div class="chart-bar" style="height:${Math.max(3,(Number(session.accuracy)||0)/max*90)}%"></div><span class="chart-bar-label">${formatDate(session.finishedAt).replace(/\\s*٢٠٢٦/,"")}</span></div>`).join("");
+    const bars = recent.map((session) => `<div class="chart-bar-wrap"><span class="chart-bar-value">${Number(session.accuracy)||0}%</span><div class="chart-bar" style="height:${Math.max(3,(Number(session.accuracy)||0)/max*90)}%"></div><span class="chart-bar-label">${formatDate(session.finishedAt).replace(/\s*٢٠٢٦/,"")}</span></div>`).join("");
     const rows = CATALOG.stages.map((stage) => {
       const a = stageAccuracy(stage.id);
       return `<tr><td><strong>${esc(stage.title)}</strong></td><td>${stageWords(stage.id).length}</td><td>${a.attempted}</td><td>${a.correct}</td><td>${a.accuracy}%</td><td>${stageMistakes(stage.id).length}</td></tr>`;
