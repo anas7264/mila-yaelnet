@@ -150,7 +150,11 @@
     else if (mode === "new") selected = enriched.filter(item => item.fresh);
     else {
       selected = enriched.filter(item => item.due || item.weak);
-      if (!selected.length) selected = enriched.filter(item => item.fresh);
+      const fresh = enriched.filter(item => item.fresh);
+      if (!selected.length) selected = fresh;
+      else if (selected.length < clamp(limit, 1, 100)) selected = selected.concat(
+        shuffle(fresh, random).slice(0, Math.max(0, Math.round(clamp(limit, 1, 100)) - selected.length))
+      );
       if (!selected.length) selected = enriched.filter(item => item.card.attempts > 0)
         .sort((a, b) => a.card.dueAt - b.card.dueAt || b.card.priority - a.card.priority);
     }
