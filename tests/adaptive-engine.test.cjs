@@ -187,12 +187,13 @@ test("main storage preserves adaptive idempotency keys and long session totals",
     total: 850, correct: 700, incorrect: 150, accuracy: 82,
     wrongWordIds: ["academic-001"], settings: { mode: "adaptive-he-ar", source: "adaptive" }
   }];
+  raw.lastSessionSummary = raw.sessions[0];
   const clean = Storage.sanitizeState(raw);
   assert.equal(clean.adaptiveEventIds["answer:q-1"], 100);
   assert.equal(clean.adaptiveEventIds["session:s-1"], 200);
   assert.equal(clean.sessions[0].total, 850);
   assert.equal(clean.sessions[0].incorrect, 150);
-  assert.equal(clean.lastSessionSummary, null);
+  assert.equal(clean.lastSessionSummary.id, "adaptive-s-1");
 });
 
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
