@@ -4,7 +4,7 @@
   if (root) root.MilaAdaptiveEngine = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function createMilaAdaptiveEngine() {
   "use strict";
-  const VERSION = 1;
+  const VERSION = 2;
   const DIRECTIONS = Object.freeze(["he-ar", "ar-he"]);
   const DEFAULT_POLICY = Object.freeze({ minDelay: 2, maxDelay: 4, maxRetries: 3 });
   const clamp = (value, min, max) => Math.max(min, Math.min(max, Number(value) || 0));
@@ -45,13 +45,17 @@
       failures: clamp(source.failures, 0, 1000000),
       priority: clamp(source.priority, 0, 100),
       cooldownCycles: Math.round(clamp(source.cooldownCycles, 0, 20)),
+      intervalDays: clamp(source.intervalDays, 0, 36500),
+      dueAt: Math.max(0, Number(source.dueAt) || 0),
+      ease: clamp(source.ease ?? 2.3, 1.3, 3),
       lastSeenAt: Number(source.lastSeenAt) || 0,
       lastResult: source.lastResult === "correct" || source.lastResult === "incorrect" ? source.lastResult : null
     };
   }
   function normalizeState(raw) {
     const state = createState();
-    if (!raw || raw.version !== VERSION || typeof raw !== "object" || Array.isArray(raw)) return state;
+    // Version 1 data is migrated in place; existing counters and sessions survive.
+    if (!raw || ![1, VERSION].includes(raw.version) || typeof raw !== "object" || Array.isArray(raw)) return state;
     if (raw.progress && typeof raw.progress === "object" && !Array.isArray(raw.progress)) {
       for (const [wordId, value] of Object.entries(raw.progress)) {
         if (!wordId || wordId.length > 120 || !value || typeof value !== "object") continue;
@@ -72,6 +76,10 @@
       state.session = {
         id: typeof session.id === "string" ? session.id.slice(0, 100) : "resumed",
         direction: session.direction, queue,
+        wordIds: Array.isArray(session.wordIds)
+          ? [...new Set(session.wordIds.filter(id => typeof id === "string").map(id => id.slice(0, 120)))].slice(0, 10000)
+          : [...new Set(queue)],
+        mode: ["smart", "due", "weak", "new", "all"].includes(session.mode) ? session.mode : "all",
         cursor: Math.round(clamp(session.cursor, 0, Math.max(0, queue.length))),
         cycle: Math.max(1, Math.round(clamp(session.cycle, 1, 1000000))),
         retryCounts: session.retryCounts && typeof session.retryCounts === "object" ? { ...session.retryCounts } : {},
@@ -106,18 +114,72 @@
   function makeQuestionId(session) {
     return session.id + ":" + session.cycle + ":" + session.cursor + ":" + session.queue[session.cursor];
   }
-  function startSession(rawState, words, direction, random = Math.random) {
+  function masteryOf(rawCard) {
+    const card = normalizeCard(rawCard);
+    if (!card.attempts) return "new";
+    if (card.priority >= 5 || card.failures >= 2 || card.incorrect > card.correct) return "weak";
+    if (card.consecutiveCorrect >= 5 && card.intervalDays >= 14) return "mastered";
+    if (card.dueAt > 0 && card.dueAt > Date.now()) return "scheduled";
+    return "learning";
+  }
+  function getStats(rawState, words, direction, now = Date.now()) {
+    const state = normalizeState(rawState), key = direction === "he-ar" ? "heToAr" : "arToHe";
+    const stats = { total: uniqueWords(words).length, new: 0, weak: 0, due: 0, scheduled: 0, mastered: 0, learning: 0 };
+    for (const word of uniqueWords(words)) {
+      const card = normalizeCard(state.progress[word.id]?.[key]);
+      const mastery = masteryOf(card);
+      stats[mastery] = (stats[mastery] || 0) + 1;
+      if (card.attempts > 0 && (!card.dueAt || card.dueAt <= now)) stats.due += 1;
+    }
+    return stats;
+  }
+  function selectWords(rawState, words, direction, mode = "smart", now = Date.now(), limit = 30, random = Math.random) {
     if (!DIRECTIONS.includes(direction)) throw new TypeError("Unsupported recall direction");
     const state = normalizeState(rawState), pool = uniqueWords(words);
-    if (!pool.length) throw new Error("No valid vocabulary words");
+    const key = direction === "he-ar" ? "heToAr" : "arToHe";
+    const enriched = pool.map(word => {
+      const card = normalizeCard(state.progress[word.id]?.[key]);
+      const due = card.attempts > 0 && (!card.dueAt || card.dueAt <= now);
+      const weak = card.attempts > 0 && (card.priority >= 5 || card.failures >= 2 || card.incorrect > card.correct);
+      return { word, card, due, weak, fresh: card.attempts === 0 };
+    });
+    let selected;
+    if (mode === "all") selected = enriched;
+    else if (mode === "due") selected = enriched.filter(item => item.due);
+    else if (mode === "weak") selected = enriched.filter(item => item.weak);
+    else if (mode === "new") selected = enriched.filter(item => item.fresh);
+    else {
+      selected = enriched.filter(item => item.due || item.weak);
+      if (!selected.length) selected = enriched.filter(item => item.fresh);
+      if (!selected.length) selected = enriched.filter(item => item.card.attempts > 0)
+        .sort((a, b) => a.card.dueAt - b.card.dueAt || b.card.priority - a.card.priority);
+    }
+    const cap = Math.round(clamp(limit, 1, 100));
+    const ordered = shuffle(selected, random).sort((a, b) => {
+      const overdueA = a.due ? Math.max(0, now - (a.card.dueAt || 0)) / 3600000 : 0;
+      const overdueB = b.due ? Math.max(0, now - (b.card.dueAt || 0)) / 3600000 : 0;
+      const scoreA = a.card.priority * 3 + a.card.failures * 2 + overdueA;
+      const scoreB = b.card.priority * 3 + b.card.failures * 2 + overdueB;
+      return scoreB - scoreA;
+    });
+    return ordered.slice(0, cap).map(item => item.word);
+  }
+  function startSession(rawState, words, direction, random = Math.random, options = {}) {
+    if (!DIRECTIONS.includes(direction)) throw new TypeError("Unsupported recall direction");
+    const state = normalizeState(rawState);
+    const mode = ["smart", "due", "weak", "new", "all"].includes(options.mode) ? options.mode : "all";
+    const pool = mode === "all" ? uniqueWords(words) : selectWords(state, words, direction, mode, Number(options.now) || Date.now(), options.limit ?? 30, random);
+    if (!pool.length) throw new Error(mode === "due" ? "لا توجد كلمات مستحقة للمراجعة الآن." : mode === "weak" ? "لا توجد كلمات ضعيفة مسجّلة بعد." : mode === "new" ? "لا توجد كلمات جديدة في المكتبة." : "لا توجد كلمات متاحة لهذا التدريب.");
     const id = "adaptive-" + Date.now().toString(36) + "-" + Math.floor(random() * 0x7fffffff).toString(36);
     const session = {
-      id, direction, queue: shuffle(pool.map(word => word.id), random), cursor: 0, cycle: 1,
+      id, direction, mode, wordIds: pool.map(word => word.id),
+      queue: pool.map(word => word.id), cursor: 0, cycle: 1,
       retryCounts: {}, answered: false, paused: false, questionId: "",
       attempts: 0, correct: 0, incorrect: 0, startedAt: Date.now(), results: [], wrongWordIds: [], lastResult: null
     };
-    session.questionId = makeQuestionId(session);
     state.session = session;
+    session.queue = prioritizeCycle(state, session.wordIds, random);
+    session.questionId = makeQuestionId(session);
     return state;
   }
   function currentQuestion(rawState, words) {
@@ -140,10 +202,19 @@
     card.attempts += 1; card.lastSeenAt = now; card.lastResult = correct ? "correct" : "incorrect";
     if (correct) {
       card.correct += 1; card.consecutiveCorrect += 1;
+      card.ease = Math.min(3, Number((card.ease + 0.02).toFixed(2)));
+      card.intervalDays = card.consecutiveCorrect === 1 ? 1
+        : card.consecutiveCorrect === 2 ? 3
+        : card.consecutiveCorrect === 3 ? 7
+        : Math.min(36500, Math.max(1, card.intervalDays * card.ease));
+      card.dueAt = now + card.intervalDays * 86400000;
       card.priority = Math.max(0, card.priority - (card.consecutiveCorrect >= 3 ? 2 : 1));
       card.cooldownCycles = card.consecutiveCorrect >= 5 ? 2 : card.consecutiveCorrect >= 3 ? 1 : 0;
     } else {
       card.incorrect += 1; card.failures += 1; card.consecutiveCorrect = 0; card.cooldownCycles = 0;
+      card.intervalDays = 0;
+      card.dueAt = now + 10 * 60 * 1000;
+      card.ease = Math.max(1.3, Number((card.ease - 0.2).toFixed(2)));
       card.priority = Math.min(100, card.priority + 2 + Math.min(card.failures, 3));
     }
     session.attempts += 1;
@@ -189,7 +260,9 @@
     session.cursor += 1;
     let newCycle = false;
     if (session.cursor >= session.queue.length) {
-      const ids = uniqueWords(words).map(word => word.id);
+      const available = new Set(uniqueWords(words).map(word => word.id));
+      const ids = (Array.isArray(session.wordIds) ? session.wordIds : uniqueWords(words).map(word => word.id))
+        .filter(id => available.has(id));
       if (!ids.length) return { state, advanced: false };
       session.cycle += 1; session.queue = prioritizeCycle(state, ids, random);
       session.cursor = 0; session.retryCounts = {}; newCycle = true;
@@ -211,5 +284,5 @@
   }
   return { VERSION, DIRECTIONS, DEFAULT_POLICY, normalizeText, aliases, uniqueWords, gradeAnswer,
     createState, normalizeState, startSession, currentQuestion, submitAnswer, advance,
-    setPaused, endSession, getCard };
+    setPaused, endSession, getCard, masteryOf, getStats, selectWords };
 });
