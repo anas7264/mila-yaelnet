@@ -215,3 +215,12 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
   assert.match(ui, /Adaptive action failed:/);
   assert.match(ui, /document\.addEventListener\("submit",\s*event\s*=>[\s\S]*?\},\s*true\);/);
 });
+
+test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
+  const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v9"/);
+  assert.match(sw, /cache\.add\(asset\)/);
+  assert.match(sw, /key !== CACHE_NAME\)\.map\(key => caches\.delete\(key\)\)/);
+  assert.match(sw, /await self\.skipWaiting\(\)/);
+  assert.match(sw, /await self\.clients\.claim\(\)/);
+});
