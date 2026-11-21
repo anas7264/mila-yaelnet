@@ -205,11 +205,67 @@
   function endSession(rawState) {
     const state = normalizeState(rawState); state.session = null; return state;
   }
+  function getAnalytics(rawState, words, sessions = []) {
+    const state = normalizeState(rawState);
+    const pool = uniqueWords(words);
+    const directions = DIRECTIONS.map(direction => {
+      const key = direction === "he-ar" ? "heToAr" : "arToHe";
+      let attempts = 0, correct = 0, incorrect = 0, practiced = 0;
+      const priorityWords = [];
+      for (const word of pool) {
+        const card = normalizeCard(state.progress[word.id]?.[key]);
+        attempts += card.attempts;
+        correct += card.correct;
+        incorrect += card.incorrect;
+        if (card.attempts > 0) practiced += 1;
+        if (card.attempts > 0 && (card.priority > 0 || card.failures > 0 || card.incorrect > 0)) {
+          priorityWords.push({
+            wordId: word.id, he: word.he, ar: word.ar,
+            attempts: card.attempts, correct: card.correct, incorrect: card.incorrect,
+            accuracy: card.attempts ? Math.round(card.correct / card.attempts * 100) : 0,
+            priority: card.priority, failures: card.failures,
+            consecutiveCorrect: card.consecutiveCorrect, lastSeenAt: card.lastSeenAt
+          });
+        }
+      }
+      priorityWords.sort((a, b) =>
+        (b.priority + Math.min(b.failures, 10) * 0.15 - Math.min(b.consecutiveCorrect, 5) * 0.2) -
+        (a.priority + Math.min(a.failures, 10) * 0.15 - Math.min(a.consecutiveCorrect, 5) * 0.2) ||
+        a.accuracy - b.accuracy || b.attempts - a.attempts
+      );
+      return {
+        direction, attempts, correct, incorrect, practiced,
+        accuracy: attempts ? Math.round(correct / attempts * 100) : 0,
+        priorityWords
+      };
+    });
+    const adaptiveSessions = (Array.isArray(sessions) ? sessions : []).filter(session =>
+      session && (session.settings?.source === "adaptive" || String(session.id || "").startsWith("adaptive-"))
+    ).map(session => {
+      const mode = String(session.settings?.mode || "");
+      const direction = mode === "adaptive-he-ar" ? "he-ar" :
+        mode === "adaptive-ar-he" ? "ar-he" : null;
+      const total = Math.max(0, Number(session.total) || 0);
+      const correct = Math.max(0, Number(session.correct) || 0);
+      return {
+        id: String(session.id || ""),
+        title: String(session.title || "التدريب التكيفي"),
+        direction,
+        startedAt: Math.max(0, Number(session.startedAt) || 0),
+        finishedAt: Math.max(0, Number(session.finishedAt) || 0),
+        total, correct,
+        incorrect: Math.max(0, Number(session.incorrect) || total - correct),
+        accuracy: total ? Math.round(correct / total * 100) : Math.max(0, Math.min(100, Number(session.accuracy) || 0))
+      };
+    }).sort((a, b) => a.finishedAt - b.finishedAt);
+    return { directions, sessions: adaptiveSessions };
+  }
+
   function getCard(rawState, wordId, direction) {
     const state = normalizeState(rawState), record = state.progress[wordId];
     return normalizeCard(record?.[direction === "he-ar" ? "heToAr" : "arToHe"]);
   }
   return { VERSION, DIRECTIONS, DEFAULT_POLICY, normalizeText, aliases, uniqueWords, gradeAnswer,
     createState, normalizeState, startSession, currentQuestion, submitAnswer, advance,
-    setPaused, endSession, getCard };
+    setPaused, endSession, getCard, getAnalytics };
 });

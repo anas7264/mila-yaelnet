@@ -393,9 +393,53 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v11"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v12"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
   assert.match(sw, /await self\.clients\.claim\(\)/);
+});
+
+
+test("adaptive analytics aggregates both directions independently and ranks reinforcement words", () => {
+  const raw = Engine.createState();
+  raw.progress.w1 = {
+    heToAr: { attempts: 4, correct: 1, incorrect: 3, priority: 8, failures: 3 },
+    arToHe: { attempts: 2, correct: 2, incorrect: 0, priority: 0, consecutiveCorrect: 2 }
+  };
+  raw.progress.w2 = {
+    heToAr: { attempts: 2, correct: 2, incorrect: 0, priority: 0 },
+    arToHe: { attempts: 3, correct: 1, incorrect: 2, priority: 5, failures: 2 }
+  };
+  const result = Engine.getAnalytics(raw, words, []);
+  const heAr = result.directions.find(item => item.direction === "he-ar");
+  const arHe = result.directions.find(item => item.direction === "ar-he");
+  assert.deepEqual([heAr.attempts, heAr.correct, heAr.incorrect, heAr.practiced, heAr.accuracy], [6, 3, 3, 2, 50]);
+  assert.deepEqual([arHe.attempts, arHe.correct, arHe.incorrect, arHe.practiced, arHe.accuracy], [5, 3, 2, 2, 60]);
+  assert.equal(heAr.priorityWords[0].wordId, "w1");
+  assert.equal(arHe.priorityWords[0].wordId, "w2");
+});
+
+test("adaptive analytics includes only adaptive session summaries and resolves direction", () => {
+  const sessions = [
+    { id: "adaptive-one", title: "جلسة تكيفية", total: 10, correct: 7, incorrect: 3, finishedAt: 200,
+      settings: { source: "adaptive", mode: "adaptive-he-ar" } },
+    { id: "regular-one", title: "جلسة عادية", total: 5, correct: 5, accuracy: 100, finishedAt: 300,
+      settings: { source: "studio", mode: "custom" } },
+    { id: "adaptive-two", total: 4, correct: 4, finishedAt: 400,
+      settings: { source: "adaptive", mode: "adaptive-ar-he" } }
+  ];
+  const result = Engine.getAnalytics(Engine.createState(), words, sessions);
+  assert.equal(result.sessions.length, 2);
+  assert.equal(result.sessions[0].direction, "he-ar");
+  assert.equal(result.sessions[0].accuracy, 70);
+  assert.equal(result.sessions[1].direction, "ar-he");
+  assert.equal(result.sessions[1].accuracy, 100);
+});
+
+test("adaptive analytics safely handles malformed snapshots and empty sessions", () => {
+  const result = Engine.getAnalytics({ version: 99, progress: [] }, words, null);
+  assert.equal(result.directions.length, 2);
+  assert.ok(result.directions.every(item => item.attempts === 0 && item.accuracy === 0));
+  assert.deepEqual(result.sessions, []);
 });

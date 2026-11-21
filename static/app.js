@@ -534,19 +534,54 @@
       .filter(({p}) => Number(p.attempts)>0)
       .sort((a,b) => ((Number(a.p.correct)||0)/(Number(a.p.attempts)||1)) - ((Number(b.p.correct)||0)/(Number(b.p.attempts)||1)))
       .slice(0,8);
+
+    let adaptive = { directions: [], sessions: [] };
+    try {
+      const adaptiveEngine = window.MilaAdaptiveEngine;
+      const raw = JSON.parse(localStorage.getItem("mila-yaelnet-adaptive-v1") || "null");
+      if (adaptiveEngine?.getAnalytics) adaptive = adaptiveEngine.getAnalytics(raw, allWords(), state.sessions);
+    } catch (error) {
+      console.warn("Adaptive analytics unavailable:", error);
+    }
+    const directionLabels = { "he-ar": "من العبرية إلى العربية", "ar-he": "من العربية إلى العبرية" };
+    const adaptiveDirectionCards = adaptive.directions.map(direction => {
+      const topWords = direction.priorityWords.slice(0, 5);
+      return `<section class="panel-card adaptive-analytics-direction" dir="rtl">
+        <div class="panel-heading"><div><h2>${directionLabels[direction.direction]}</h2><p>سجل المحرك التكيفي لهذا الاتجاه فقط</p></div><span class="badge badge-gold">${direction.accuracy}% دقة</span></div>
+        <div class="adaptive-analytics-metrics">
+          <div><strong>${direction.attempts}</strong><small>محاولة</small></div>
+          <div><strong>${direction.correct}</strong><small>صحيحة</small></div>
+          <div><strong>${direction.incorrect}</strong><small>خاطئة</small></div>
+          <div><strong>${direction.practiced}</strong><small>كلمة تدرّبت عليها</small></div>
+        </div>
+        <div class="adaptive-analytics-priority"><strong>كلمات تحتاج إلى تعزيز</strong>
+          ${topWords.length ? '<div class="due-list">' + topWords.map(word => `<div class="due-item"><span class="hebrew-chip">${esc(word.he)}</span><div class="due-meaning"><strong>${esc(word.ar)}</strong><small>${word.incorrect} خطأ · ${word.failures} إخفاقات متراكمة · أولوية ${word.priority}</small></div><span class="badge badge-red">${word.accuracy}%</span></div>`).join("") + '</div>' : emptyState("✦","لا توجد كلمات ذات أولوية","ستظهر الكلمات بعد تسجيل محاولات وأخطاء في هذا الاتجاه.")}
+        </div>
+      </section>`;
+    }).join("");
+    const adaptiveRecent = adaptive.sessions.slice(-7).reverse();
+    const adaptiveSessionRows = adaptiveRecent.map(session => `<div class="history-row"><div><strong>${esc(session.title)} · ${esc(directionLabels[session.direction] || "اتجاه غير محدد")}</strong><small>${formatDate(session.finishedAt)} · ${session.total} سؤال · ${session.correct} صحيح · ${session.incorrect} خطأ</small></div><span class="badge ${session.accuracy>=75?"badge-green":"badge-gold"}">${session.accuracy}%</span></div>`).join("");
+
     $("appView").innerHTML = `
       ${pageHead("LEARNING ANALYTICS", "التحليلات والأداء", "راقب السلوك الفعلي للتعلم: الدقة، الكلمات الصعبة، التقدم المرحلي وسجل الجلسات.")}
       <section class="stats-grid">${statCard("الإجابات",s.attempted,"✓","إجمالي المحاولات")}${statCard("الدقة",s.accuracy+"%","◎","المجموع الحالي")}${statCard("الكلمات المتقنة",s.mastered,"✦","معلّمة كمتقنة")}${statCard("جلسات التدريب",s.sessions,"◷","جلسات مكتملة")}</section>
       <div class="analytics-grid">
-        <section class="panel-card"><div class="panel-heading"><div><h2>دقة آخر الجلسات</h2><p>آخر 7 جلسات محفوظة</p></div><span class="badge badge-gold">TREND</span></div>
+        <section class="panel-card"><div class="panel-heading"><div><h2>دقة آخر الجلسات</h2><p>آخر 7 جلسات محفوظة، من جميع أوضاع التدريب</p></div><span class="badge badge-gold">TREND</span></div>
           ${recent.length ? '<div class="chart-bars">' + bars + '</div>' : emptyState("▥","لا توجد بيانات بعد","أكمل جلسات التدريب لعرض منحنى الدقة.")}
         </section>
-        <section class="panel-card"><div class="panel-heading"><div><h2>أضعف المفردات</h2><p>الكلمات التي سجلت أقل نسبة إجابة صحيحة</p></div><span class="badge badge-red">${wordRows.length}</span></div>
+        <section class="panel-card"><div class="panel-heading"><div><h2>أضعف المفردات</h2><p>الكلمات التي سجلت أقل نسبة إجابة صحيحة في المنصة</p></div><span class="badge badge-red">${wordRows.length}</span></div>
           ${wordRows.length ? '<div class="due-list">' + wordRows.map(({w,p})=>`<div class="due-item"><span class="hebrew-chip">${esc(w.he)}</span><div class="due-meaning"><strong>${esc(w.ar)}</strong><small>${Number(p.correct)||0} صحيح من ${Number(p.attempts)||0}</small></div><span class="badge badge-red">${Math.round((Number(p.correct)||0)/(Number(p.attempts)||1)*100)}%</span></div>`).join("") + '</div>' : emptyState("⌁","لا توجد نتائج كافية","سجل عدة إجابات أولًا.")}
         </section>
         <section class="panel-card" style="grid-column:1/-1"><div class="panel-heading"><div><h2>مقارنة المراحل</h2><p>كل صف محسوب من كلمات مرحلته فقط</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>المرحلة</th><th>كلمات</th><th>محاولات</th><th>صحيحة</th><th>الدقة</th><th>أخطاء</th></tr></thead><tbody>${rows}</tbody></table></div></section>
       </div>
-      <section class="panel-card" style="margin-top:16px"><div class="panel-heading"><div><h2>سجل الجلسات</h2><p>النتائج الفعلية دون احتسابها كعلامة رسمية لامتحان יעלנט</p></div><button class="button button-secondary button-small" data-action="print-report">طباعة التقرير</button></div>
+      <section class="adaptive-analytics-section" dir="rtl">
+        <div class="panel-heading"><div><h2>أداء التدريب التكيفي</h2><p>تحليل مستقل لكل اتجاه، دون إضافة المحاولات مرة ثانية إلى إجمالي المنصة أعلاه.</p></div><span class="badge badge-gold">ADAPTIVE</span></div>
+        ${adaptiveDirectionCards || emptyState("↻","لا توجد بيانات تكيفية","ابدأ جلسة في التدريب التكيفي لعرض الأداء حسب اتجاه الاستدعاء.")}
+      </section>
+      <section class="panel-card" style="margin-top:16px" dir="rtl"><div class="panel-heading"><div><h2>آخر جلسات التدريب التكيفي</h2><p>جلسات مكتملة فقط، مفصولة عن سجل الجلسات العام</p></div><span class="badge badge-neutral">${adaptive.sessions.length}</span></div>
+        ${adaptiveSessionRows ? '<div class="history-list">' + adaptiveSessionRows + '</div>' : emptyState("◷","لا توجد جلسات تكيفية مكتملة","ستظهر هنا ملخصات الجلسات بعد إنهائها.")}
+      </section>
+      <section class="panel-card" style="margin-top:16px"><div class="panel-heading"><div><h2>سجل الجلسات العام</h2><p>النتائج الفعلية دون احتسابها كعلامة رسمية لامتحان יעלנט</p></div><button class="button button-secondary button-small" data-action="print-report">طباعة التقرير</button></div>
         ${recent.length ? '<div class="history-list">' + state.sessions.slice().reverse().map((session)=>`<div class="history-row"><div><strong>${esc(session.title || "جلسة تدريب")}</strong><small>${formatDate(session.finishedAt)} · ${session.total} سؤال · ${session.correct} صحيح</small></div><span class="badge ${session.accuracy>=75?"badge-green":"badge-gold"}">${session.accuracy}%</span></div>`).join("") + '</div>' : emptyState("◷","لا يوجد سجل","الجلسة المكتملة ستظهر هنا.")}
       </section>`;
   }
