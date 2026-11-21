@@ -397,8 +397,7 @@
             </select></div>
           </div>
           <div id="singleStagePicker" class="advanced-panel" ${draft.source==="stage"?"":"hidden"}><strong class="field-label">اختر مرحلة واحدة فقط</strong><select id="singleStageSelect" name="stageId" class="control" style="margin-top:8px">${CATALOG.stages.map((stage)=>`<option value="${esc(stage.id)}" ${stage.id===(draft.stageId||ui.stageId)?"selected":""}>${esc(stage.title)}</option>`).join("")}</select></div>
-          <div id="singleStagePicker" class="advanced-panel" ${draft.source==="stage"?"":"hidden"}><strong class="field-label">اختر مرحلة واحدة فقط</strong><select id="singleStageSelect" name="stageId" class="control" style="margin-top:8px">${CATALOG.stages.map((stage)=>`<option value="${esc(stage.id)}" ${stage.id===(draft.stageId||ui.stageId)?"selected":""}>${esc(stage.title)}</option>`).join("")}</select></div>
-          <div id="stagePicker" class="advanced-panel" ${draft.source==="selected-stages"?"":"hidden"}><strong class="field-label">المراحل الداخلة في مجموعة الأسئلة</strong><div class="stage-checks">${stageOptions}</div></div></div>
+          <div id="stagePicker" class="advanced-panel" ${draft.source==="selected-stages"?"":"hidden"}><strong class="field-label">المراحل الداخلة في مجموعة الأسئلة</strong><div class="stage-checks">${stageOptions}</div></div>
           <details class="advanced-panel" open><summary>2. إعدادات متقدمة للتحكم في صعوبة التمرين</summary><div class="advanced-content">
             <div class="form-grid four">
               <div class="field"><label for="difficultySelect">مستوى الصعوبة</label><select id="difficultySelect" class="control" name="difficulty"><option value="easy" ${draft.difficulty==="easy"?"selected":""}>سهل · خياران</option><option value="medium" ${draft.difficulty==="medium"?"selected":""}>متوسط · 3 خيارات</option><option value="hard" ${draft.difficulty==="hard"?"selected":""}>متقدم · 5 خيارات</option><option value="adaptive" ${draft.difficulty==="adaptive"?"selected":""}>متكيف مع الأداء</option><option value="custom" ${draft.difficulty==="custom"?"selected":""}>تحديد يدوي</option></select></div>
@@ -1291,12 +1290,24 @@
   }
 
   function bindEvents() {
+    // Capture-phase delegation makes controls reliable even when a nested widget
+    // stops bubbling. Resolve the nearest Element defensively (SVG/text targets).
     document.addEventListener("click",(event)=>{
-      const button=event.target.closest("[data-action],[data-view]");
-      if(!button)return;
-      if(button.dataset.view && !button.dataset.action){event.preventDefault();navigate(button.dataset.view);return;}
-      if(button.dataset.action){event.preventDefault();handleAction(button.dataset.action,button);}
-    });
+      const origin = event.target instanceof Element ? event.target : event.target?.parentElement;
+      const button = origin?.closest("[data-action],[data-view]");
+      if(!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
+      if(button.dataset.view && !button.dataset.action){
+        event.preventDefault();
+        try { navigate(button.dataset.view); }
+        catch(error){ console.error("Mila navigation failed:", error); toast("تعذر فتح الصفحة. أعد المحاولة؛ إذا تكرر الخطأ فحدّث الصفحة.", "error"); }
+        return;
+      }
+      if(button.dataset.action){
+        event.preventDefault();
+        try { handleAction(button.dataset.action,button); }
+        catch(error){ console.error("Mila action failed:", button.dataset.action, error); toast("تعذر تنفيذ هذا الإجراء: "+(error?.message || "خطأ غير متوقع"), "error"); }
+      }
+    }, true);
 
     document.addEventListener("submit",(event)=>{
       if(event.target.id==="extraForm"){addExtra(event);return;}
@@ -1324,7 +1335,7 @@
         if(ui.studioDraft.source==="selected-stages"&&!selectedStages.length){toast("اختر مرحلة واحدة على الأقل.","error");return;}
         startStudioSession(ui.studioDraft);
       }
-    });
+    }, true);
 
     document.addEventListener("change",(event)=>{
       if(event.target.id==="sourceSelect")updateStudioAvailability();
