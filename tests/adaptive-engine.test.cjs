@@ -234,6 +234,7 @@ test("adaptive integration writes to canonical and academic progress without rep
   assert.match(academic, /academicViewOpen && ui\.mode === "list"/);
   assert.match(adaptive, /bridge\?\.recordAdaptiveAnswer/);
   assert.match(adaptive, /bridge\?\.recordAdaptiveSession/);
+  assert.match(adaptive, /session\.attempts > 0 \? bridge\?\.recordAdaptiveSession/);
   assert.ok(html.indexOf("academic-terms.js") < html.indexOf("static/app.js"));
 });
 
