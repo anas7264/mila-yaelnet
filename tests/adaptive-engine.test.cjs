@@ -415,21 +415,23 @@ test("adaptive v2 migrates v1 progress and resumable sessions without losing his
   assert.equal(migrated.session.id, "legacy");
 });
 
-test("directional spaced schedule advances on success and returns errors after ten minutes", () => {
+test("correct answers are saved and re-tested after ten minutes; wrong answers remain immediately weak", () => {
   let state = Engine.startSession(Engine.createState(), [words[0]], "he-ar", fixedRandom);
   const first = Engine.currentQuestion(state, [words[0]]);
   let result = Engine.submitAnswer(state, [words[0]], "هدف", { questionId: first.questionId, now: 1000 });
   let card = Engine.getCard(result.state, "w1", "he-ar");
-  assert.equal(card.intervalDays, 1);
-  assert.equal(card.dueAt, 1000 + 86400000);
+  assert.equal(card.intervalDays, 0);
+  assert.equal(card.dueAt, 1000 + 10 * 60 * 1000);
+  assert.equal(Engine.masteryOf(card, 1000), "saved");
   assert.equal(Engine.getCard(result.state, "w1", "ar-he").attempts, 0);
   state = Engine.startSession(result.state, [words[0]], "he-ar", fixedRandom);
   const second = Engine.currentQuestion(state, [words[0]]);
   result = Engine.submitAnswer(state, [words[0]], "إجابة خاطئة", { questionId: second.questionId, now: 2000 });
   card = Engine.getCard(result.state, "w1", "he-ar");
   assert.equal(card.intervalDays, 0);
-  assert.equal(card.dueAt, 2000 + 10 * 60 * 1000);
+  assert.equal(card.dueAt, 2000);
   assert.equal(card.consecutiveCorrect, 0);
+  assert.equal(Engine.masteryOf(card, 2000), "weak");
 });
 
 test("smart selection prioritizes due and weak vocabulary, caps sessions, and falls back to new words", () => {
@@ -479,13 +481,12 @@ test("recovered words can leave weak state after sustained correct answers", () 
 });
 
 
-test("weak words respect their ten-minute relearning delay in smart and weak-only modes", () => {
+test("weak words are immediately eligible in smart and weak-only modes after a wrong answer", () => {
   const pool = [words[0], words[1]];
   const state = Engine.createState();
   state.progress.w1 = { heToAr: { attempts: 2, correct: 0, incorrect: 2, failures: 2, priority: 8, dueAt: 5000 }, arToHe: {} };
-  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "smart", 1000, 10, fixedRandom).map(x => x.id), ["w2"]);
-  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 1000, 10, fixedRandom), []);
-  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 6000, 10, fixedRandom).map(x => x.id), ["w1"]);
+  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "smart", 1000, 10, fixedRandom).map(x => x.id), ["w1", "w2"]);
+  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 1000, 10, fixedRandom).map(x => x.id), ["w1"]);
 });
 
 
