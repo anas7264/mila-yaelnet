@@ -227,6 +227,8 @@
       },
       legacyTotals,
       adaptiveEventIds,
+      lastSessionSummary: raw.lastSessionSummary && typeof raw.lastSessionSummary === "object" && !Array.isArray(raw.lastSessionSummary)
+        ? sessions.find((item) => item.id === raw.lastSessionSummary.id) || null : null,
       completedStageIds: Array.isArray(raw.completedStageIds) ? raw.completedStageIds.filter((id) => typeof id === "string").slice(0, 100) : []
     };
   }
