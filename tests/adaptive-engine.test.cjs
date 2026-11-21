@@ -205,7 +205,7 @@ test("studio form contains unique stage picker identifiers and valid container s
   assert.equal((app.match(/id="singleStagePicker"/g) || []).length, 1);
   assert.equal((app.match(/id="singleStageSelect"/g) || []).length, 1);
   assert.equal((app.match(/id="stagePicker"/g) || []).length, 1);
-  assert.doesNotMatch(app, /stageOptions\}<\/div><\/div>/);
+  assert.doesNotMatch(app, /stageOptions\}<\/div><\/div><\/div>/);
 });
 
 test("adaptive controls dispatch in capture phase and protect touch interactions", () => {
