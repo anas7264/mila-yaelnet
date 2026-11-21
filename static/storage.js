@@ -40,7 +40,8 @@
         largeText: false
       },
       daily: { lastDate: "", streak: 0, completed: 0 },
-      legacyTotals: null
+      legacyTotals: null,
+      adaptiveEventIds: {}
     };
   }
 
@@ -176,9 +177,9 @@
       title: String(item.title || "جلسة تدريب").slice(0, 100),
       startedAt: Math.max(0, Number(item.startedAt) || 0),
       finishedAt: Math.max(0, Number(item.finishedAt) || 0),
-      total: Math.max(0, Math.min(200, Number(item.total) || 0)),
-      correct: Math.max(0, Math.min(200, Number(item.correct) || 0)),
-      incorrect: Math.max(0, Math.min(200, Number(item.incorrect) || 0)),
+      total: Math.max(0, Math.min(10000000, Number(item.total) || 0)),
+      correct: Math.max(0, Math.min(10000000, Number(item.correct) || 0)),
+      incorrect: Math.max(0, Math.min(10000000, Number(item.incorrect) || 0)),
       accuracy: Math.max(0, Math.min(100, Number(item.accuracy) || 0)),
       wrongWordIds: Array.isArray(item.wrongWordIds) ? [...new Set(item.wrongWordIds.filter((id) => typeof id === "string").map((id) => id.slice(0, 120)))].slice(0, 200) : [],
       settings: item.settings && typeof item.settings === "object" && !Array.isArray(item.settings) ? {
@@ -186,6 +187,12 @@
         source: String(item.settings.source || "all").slice(0, 30)
       } : {}
     })) : [];
+    const adaptiveEventIds = Object.create(null);
+    if (raw.adaptiveEventIds && typeof raw.adaptiveEventIds === "object" && !Array.isArray(raw.adaptiveEventIds)) {
+      for (const [id, at] of Object.entries(raw.adaptiveEventIds).slice(-10000)) {
+        if (id && id.length <= 200 && !["__proto__", "constructor", "prototype"].includes(id)) adaptiveEventIds[id] = Math.max(0, Number(at) || 0);
+      }
+    }
     const legacyTotals = raw.legacyTotals && typeof raw.legacyTotals === "object" ? {
       correct: Math.max(0, Number(raw.legacyTotals.correct) || 0),
       attempted: Math.max(0, Number(raw.legacyTotals.attempted) || 0)
@@ -219,6 +226,7 @@
         completed: Math.max(0, Math.min(10000, Number(daily.completed) || 0))
       },
       legacyTotals,
+      adaptiveEventIds,
       completedStageIds: Array.isArray(raw.completedStageIds) ? raw.completedStageIds.filter((id) => typeof id === "string").slice(0, 100) : []
     };
   }
