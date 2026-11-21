@@ -242,8 +242,28 @@
       return;
     }
     if (action === "end") {
+      const session = state.session;
+      if (!session) return;
+      const wrongWordIds = [...new Set(session.results.filter(item => !item.correct).map(item => item.wordId))];
+      const bridge = window.MilaLearningBridge;
+      const saved = bridge?.recordAdaptiveSession({
+        sessionId: session.id,
+        direction: session.direction,
+        startedAt: session.startedAt,
+        finishedAt: Date.now(),
+        total: session.attempts,
+        correct: session.correct,
+        wrongWordIds
+      });
+      if (!saved?.accepted) {
+        toast("تعذر تسجيل ملخص الجلسة في سجل المنصة الرئيسية. لم يتم إنهاء الجلسة؛ حاول مجددًا.", true);
+        return;
+      }
       state = Engine.endSession(state);
-      save();
+      if (!save()) {
+        toast("سُجل ملخص الجلسة، لكن تعذر حفظ إغلاق الوضع التكيفي محليًا.", true);
+        return;
+      }
       renderHome();
     }
   }
@@ -292,8 +312,20 @@
       toast("تم تجاهل الإرسال المكرر أو القديم.", true);
       return;
     }
+    const bridge = window.MilaLearningBridge;
+    const integrated = bridge?.recordAdaptiveAnswer({
+      eventId: q.questionId,
+      wordId: q.wordId,
+      correct: result.correct,
+      direction: q.direction,
+      at: result.state.session?.lastResult?.at
+    });
+    if (!integrated?.accepted) {
+      toast("لم تُحفظ هذه الإجابة في سجل المنصة الرئيسي؛ أعد المحاولة دون الانتقال للسؤال التالي.", true);
+      return;
+    }
     state = result.state;
-    save();
+    if (!save()) toast("حُفظت النتيجة العامة، لكن تعذر حفظ حالة الطابور التكيفي محليًا.", true);
     renderSession();
   }, true);
 
