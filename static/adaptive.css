@@ -39,3 +39,10 @@
 .adaptive-session-hint{text-align:center;color:var(--muted,#7d899b);font-size:10px;line-height:1.8}
 .adaptive-paused{padding:16px;border-radius:12px;background:var(--surface-2,#f7f8fa);color:var(--muted,#7d899b);font-size:12px}
 @media(max-width:760px){.adaptive-page{padding:18px 0 28px}.adaptive-heading,.adaptive-session-top{align-items:flex-start;flex-direction:column}.adaptive-resume{align-items:flex-start;flex-direction:column}.adaptive-direction-grid{grid-template-columns:1fr}.adaptive-direction-card{min-height:190px}.adaptive-question{padding:23px 16px}.adaptive-session-actions{width:100%}.adaptive-session-actions .adaptive-button{flex:1}.adaptive-footer-note{display:grid;grid-template-columns:1fr;gap:8px}}
+
+/* Adaptive vocabulary engine v2 */
+.adaptive-overview,.adaptive-mode-picker{margin:18px 0;padding:18px;border:1px solid var(--line,#e3e8ee);border-radius:16px;background:var(--surface,#fff)}
+.adaptive-overview-heading{display:flex;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:12px}.adaptive-overview-heading span,.adaptive-mode-picker small{color:var(--muted,#7d899b);font-size:11px}
+.adaptive-overview-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.adaptive-overview-grid>div{display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:11px;background:var(--surface-2,#f7f8fa)}.adaptive-overview-grid b{font:800 21px Heebo,sans-serif;color:var(--navy,#101a2b)}.adaptive-overview-grid span{font-size:10px;color:var(--muted,#7d899b)}
+.adaptive-mode-picker{display:grid;grid-template-columns:1fr;gap:8px}.adaptive-mode-picker label{font-size:12px;font-weight:800}.adaptive-mode-picker select{width:100%;min-height:44px;border:1px solid var(--line,#e3e8ee);border-radius:10px;background:var(--surface-2,#f7f8fa);color:var(--ink,#172338);padding:8px 12px;font:600 13px Heebo,"IBM Plex Sans Arabic",sans-serif}
+@media(max-width:760px){.adaptive-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.adaptive-overview{padding:14px}}
