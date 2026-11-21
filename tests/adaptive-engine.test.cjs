@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const syncCorePromise = import("../sync-core.mjs");
 const Engine = require("../static/adaptive-engine.js");
+const Storage = require("../static/storage.js");
 
 const words = [
   { id: "w1", he: "מטרה", ar: "هدف" },
@@ -161,6 +162,52 @@ test("short-term retries are bounded and defer when there is not enough spacing 
   }
   assert.equal(state.session.retryCounts.w1, 2);
   assert.equal(state.session.queue.slice(state.session.cursor + 1).filter(id => id === "w1").length, 0);
+});
+
+
+test("adaptive session persists start time and a deduplicatable answer history", () => {
+  let state = Engine.startSession(Engine.createState(), [words[0]], "he-ar", fixedRandom);
+  const startedAt = state.session.startedAt;
+  const q = Engine.currentQuestion(state, [words[0]]);
+  const result = Engine.submitAnswer(state, [words[0]], "هدف", { questionId: q.questionId, now: 123456 });
+  assert.equal(result.accepted, true);
+  assert.equal(result.state.session.startedAt, startedAt);
+  assert.deepEqual(result.state.session.results, [{
+    questionId: q.questionId, wordId: "w1", correct: true, at: 123456, direction: "he-ar"
+  }]);
+  const restored = Engine.normalizeState(JSON.parse(JSON.stringify(result.state)));
+  assert.deepEqual(restored.session.results, result.state.session.results);
+});
+
+test("main storage preserves adaptive idempotency keys and long session totals", () => {
+  const raw = Storage.createDefaultState();
+  raw.adaptiveEventIds = { "answer:q-1": 100, "session:s-1": 200 };
+  raw.sessions = [{
+    id: "adaptive-s-1", title: "التدريب التكيفي", startedAt: 1, finishedAt: 2,
+    total: 850, correct: 700, incorrect: 150, accuracy: 82,
+    wrongWordIds: ["academic-001"], settings: { mode: "adaptive-he-ar", source: "adaptive" }
+  }];
+  const clean = Storage.sanitizeState(raw);
+  assert.equal(clean.adaptiveEventIds["answer:q-1"], 100);
+  assert.equal(clean.adaptiveEventIds["session:s-1"], 200);
+  assert.equal(clean.sessions[0].total, 850);
+  assert.equal(clean.sessions[0].incorrect, 150);
+});
+
+test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  const academic = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
+  const adaptive = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  assert.match(app, /window\.MilaLearningBridge = Object\.freeze/);
+  assert.match(app, /recordAdaptiveAnswer/);
+  assert.match(app, /recordAdaptiveSession/);
+  assert.match(app, /source: "academic"/);
+  assert.match(academic, /window\.MilaAcademicProgressBridge/);
+  assert.match(academic, /academicViewOpen && ui\.mode === "list"/);
+  assert.match(adaptive, /bridge\?\.recordAdaptiveAnswer/);
+  assert.match(adaptive, /bridge\?\.recordAdaptiveSession/);
+  assert.ok(html.indexOf("academic-terms.js") < html.indexOf("static/app.js"));
 });
 
 // Keep this deterministic suite runnable with Node's built-in test runner.
