@@ -244,7 +244,7 @@
         <div class="hero-actions"><button class="button button-primary" data-action="practice-source" data-source="due">ابدأ المراجعة الذكية ↗</button><button class="button button-secondary" data-view="stages">استعراض المراحل</button></div>
       </div></section>
       <section class="stats-grid">
-        ${statCard("إجمالي المفردات", s.words, "◇", "في جميع المراحل والمكتبة الإضافية")}
+        ${statCard("إجمالي المفردات", s.words, "◇", "في المراحل والمصطلحات الأكاديمية والمكتبة الإضافية")}
         ${statCard("الإجابات الصحيحة", s.correct, "✓", "من أصل " + s.attempted + " إجابة")}
         ${statCard("دقة الإجابات", s.accuracy + "%", "◎", "مؤشر تدريبي وليس علامة رسمية")}
         ${statCard("كلمات متقنة", s.mastered, "✦", s.due + " مراجعة مستحقة", s.weak + " كلمة ضعيفة")}
@@ -663,13 +663,14 @@
     const previousProgress = state.progress[wordId] ? { ...state.progress[wordId] } : undefined;
     const previousDaily = { ...state.daily };
     const previousMistakes = state.mistakes.slice();
+    const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
     recordAnswer(wordId, event.correct, null, "التدريب التكيفي");
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
       state.daily = previousDaily;
       state.mistakes = previousMistakes;
-      delete state.adaptiveEventIds[ledgerKey];
+      state.adaptiveEventIds = previousAdaptiveEventIds;
       return { accepted: false, reason: "main-progress-save-failed" };
     }
     return { accepted: true, duplicate: false };
@@ -698,14 +699,17 @@
       wrongWordIds,
       settings: { mode: "adaptive-" + (session.direction === "ar-he" ? "ar-he" : "he-ar"), source: "adaptive" }
     };
+    const previousSessions = state.sessions.slice();
+    const previousLastSessionSummary = state.lastSessionSummary || null;
+    const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
     state.sessions.push(record);
     if (state.sessions.length > 500) state.sessions.splice(0, state.sessions.length - 500);
     state.lastSessionSummary = record;
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
-      state.sessions = state.sessions.filter((item) => item.id !== record.id);
-      if (state.lastSessionSummary?.id === record.id) state.lastSessionSummary = null;
-      delete state.adaptiveEventIds[ledgerKey];
+      state.sessions = previousSessions;
+      state.lastSessionSummary = previousLastSessionSummary;
+      state.adaptiveEventIds = previousAdaptiveEventIds;
       return { accepted: false, reason: "session-save-failed" };
     }
     return { accepted: true, duplicate: false, record };
