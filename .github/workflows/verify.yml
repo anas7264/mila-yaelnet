@@ -2,9 +2,9 @@ name: Verify adaptive engine
 
 on:
   push:
-    branches: [feat/adaptive-vocabulary-p0]
+    branches: [feat/adaptive-vocabulary-p0, feat/adaptive-static-preview, feat/adaptive-data-integration]
   pull_request:
-    branches: [main]
+    branches: [main, feat/adaptive-static-preview]
 
 jobs:
   unit-tests:
