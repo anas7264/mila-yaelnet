@@ -114,12 +114,12 @@
   function makeQuestionId(session) {
     return session.id + ":" + session.cycle + ":" + session.cursor + ":" + session.queue[session.cursor];
   }
-  function masteryOf(rawCard) {
+  function masteryOf(rawCard, now = Date.now()) {
     const card = normalizeCard(rawCard);
     if (!card.attempts) return "new";
-    if (card.priority >= 5 || card.failures >= 2 || card.incorrect > card.correct) return "weak";
+    if (card.priority >= 5 || card.incorrect > card.correct) return "weak";
     if (card.consecutiveCorrect >= 5 && card.intervalDays >= 14) return "mastered";
-    if (card.dueAt > 0 && card.dueAt > Date.now()) return "scheduled";
+    if (card.dueAt > 0 && card.dueAt > now) return "scheduled";
     return "learning";
   }
   function getStats(rawState, words, direction, now = Date.now()) {
@@ -127,7 +127,7 @@
     const stats = { total: uniqueWords(words).length, new: 0, weak: 0, due: 0, scheduled: 0, mastered: 0, learning: 0 };
     for (const word of uniqueWords(words)) {
       const card = normalizeCard(state.progress[word.id]?.[key]);
-      const mastery = masteryOf(card);
+      const mastery = masteryOf(card, now);
       stats[mastery] = (stats[mastery] || 0) + 1;
       if (card.attempts > 0 && (!card.dueAt || card.dueAt <= now)) stats.due += 1;
     }
@@ -140,7 +140,7 @@
     const enriched = pool.map(word => {
       const card = normalizeCard(state.progress[word.id]?.[key]);
       const due = card.attempts > 0 && (!card.dueAt || card.dueAt <= now);
-      const weak = card.attempts > 0 && (card.priority >= 5 || card.failures >= 2 || card.incorrect > card.correct);
+      const weak = card.attempts > 0 && (card.priority >= 5 || card.incorrect > card.correct);
       return { word, card, due, weak, fresh: card.attempts === 0 };
     });
     let selected;
