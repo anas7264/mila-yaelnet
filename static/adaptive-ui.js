@@ -246,7 +246,7 @@
       if (!session) return;
       const wrongWordIds = Array.isArray(session.wrongWordIds) ? session.wrongWordIds : [...new Set(session.results.filter(item => !item.correct).map(item => item.wordId))];
       const bridge = window.MilaLearningBridge;
-      const saved = bridge?.recordAdaptiveSession({
+      const saved = session.attempts > 0 ? bridge?.recordAdaptiveSession({
         sessionId: session.id,
         direction: session.direction,
         startedAt: session.startedAt,
@@ -254,7 +254,7 @@
         total: session.attempts,
         correct: session.correct,
         wrongWordIds
-      });
+      }) : { accepted: true, skipped: true };
       if (!saved?.accepted) {
         toast("تعذر تسجيل ملخص الجلسة في سجل المنصة الرئيسية. لم يتم إنهاء الجلسة؛ حاول مجددًا.", true);
         return;
