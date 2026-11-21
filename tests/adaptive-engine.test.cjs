@@ -399,3 +399,71 @@ test("service worker cache is versioned so updated scripts replace stale cached 
   assert.match(sw, /await self\.skipWaiting\(\)/);
   assert.match(sw, /await self\.clients\.claim\(\)/);
 });
+
+
+test("adaptive v2 migrates v1 progress and resumable sessions without losing history", () => {
+  const legacy = {
+    version: 1,
+    progress: { w1: { heToAr: { attempts: 4, correct: 2, incorrect: 2, priority: 7 }, arToHe: { attempts: 1, correct: 1 } } },
+    session: { id: "legacy", direction: "he-ar", queue: ["w1", "w2"], cursor: 1, cycle: 2, answered: false }
+  };
+  const migrated = Engine.normalizeState(legacy);
+  assert.equal(migrated.version, 2);
+  assert.equal(Engine.getCard(migrated, "w1", "he-ar").attempts, 4);
+  assert.equal(Engine.getCard(migrated, "w1", "he-ar").priority, 7);
+  assert.deepEqual(migrated.session.wordIds, ["w1", "w2"]);
+  assert.equal(migrated.session.id, "legacy");
+});
+
+test("directional spaced schedule advances on success and returns errors after ten minutes", () => {
+  let state = Engine.startSession(Engine.createState(), [words[0]], "he-ar", fixedRandom);
+  const first = Engine.currentQuestion(state, [words[0]]);
+  let result = Engine.submitAnswer(state, [words[0]], "هدف", { questionId: first.questionId, now: 1000 });
+  let card = Engine.getCard(result.state, "w1", "he-ar");
+  assert.equal(card.intervalDays, 1);
+  assert.equal(card.dueAt, 1000 + 86400000);
+  assert.equal(Engine.getCard(result.state, "w1", "ar-he").attempts, 0);
+  state = Engine.startSession(result.state, [words[0]], "he-ar", fixedRandom);
+  const second = Engine.currentQuestion(state, [words[0]]);
+  result = Engine.submitAnswer(state, [words[0]], "إجابة خاطئة", { questionId: second.questionId, now: 2000 });
+  card = Engine.getCard(result.state, "w1", "he-ar");
+  assert.equal(card.intervalDays, 0);
+  assert.equal(card.dueAt, 2000 + 10 * 60 * 1000);
+  assert.equal(card.consecutiveCorrect, 0);
+});
+
+test("smart selection prioritizes due and weak vocabulary, caps sessions, and falls back to new words", () => {
+  const pool = Array.from({ length: 40 }, (_, i) => ({ id: "v" + i, he: "מילה" + i, ar: "كلمة" + i }));
+  const state = Engine.createState();
+  state.progress.v0 = { heToAr: { attempts: 3, correct: 0, incorrect: 3, failures: 3, priority: 9, dueAt: 500 }, arToHe: {} };
+  state.progress.v1 = { heToAr: { attempts: 2, correct: 2, incorrect: 0, consecutiveCorrect: 2, dueAt: 9000 }, arToHe: {} };
+  const smart = Engine.selectWords(state, pool, "he-ar", "smart", 1000, 30, fixedRandom);
+  assert.equal(smart.length, 30);
+  assert.equal(smart[0].id, "v0");
+  const due = Engine.selectWords(state, pool, "he-ar", "due", 1000, 30, fixedRandom);
+  assert.deepEqual(due.map(item => item.id), ["v0"]);
+  const fresh = Engine.selectWords(state, pool, "he-ar", "new", 1000, 5, fixedRandom);
+  assert.equal(fresh.length, 5);
+  assert.ok(fresh.every(item => item.id !== "v0" && item.id !== "v1"));
+});
+
+test("selected smart-session scope remains stable across later cycles", () => {
+  const pool = Array.from({ length: 40 }, (_, i) => ({ id: "s" + i, he: "מילה" + i, ar: "كلمة" + i }));
+  let state = Engine.startSession(Engine.createState(), pool, "he-ar", fixedRandom, { mode: "smart", limit: 5 });
+  assert.equal(state.session.wordIds.length, 5);
+  for (let i = 0; i < state.session.queue.length; i += 1) {
+    const q = Engine.currentQuestion(state, pool);
+    state = Engine.submitAnswer(state, pool, q.word.ar, { questionId: q.questionId, now: 10000 + i }).state;
+    state = Engine.advance(state, pool, fixedRandom).state;
+  }
+  assert.equal(state.session.cycle, 2);
+  assert.equal(state.session.wordIds.length, 5);
+  assert.deepEqual([...new Set(state.session.queue)].sort(), [...state.session.wordIds].sort());
+});
+
+test("mastery states distinguish new, weak, learning, scheduled and mastered cards", () => {
+  assert.equal(Engine.masteryOf({}), "new");
+  assert.equal(Engine.masteryOf({ attempts: 3, incorrect: 2, correct: 1, failures: 2 }), "weak");
+  assert.equal(Engine.masteryOf({ attempts: 2, correct: 2, consecutiveCorrect: 2, dueAt: Date.now() + 100000 }), "scheduled");
+  assert.equal(Engine.masteryOf({ attempts: 5, correct: 5, consecutiveCorrect: 5, intervalDays: 14 }), "mastered");
+});
