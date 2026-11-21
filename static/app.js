@@ -662,13 +662,13 @@
     }
     const previousProgress = state.progress[wordId] ? { ...state.progress[wordId] } : undefined;
     const previousDaily = { ...state.daily };
-    const previousMistakesLength = state.mistakes.length;
+    const previousMistakes = state.mistakes.slice();
     recordAnswer(wordId, event.correct, null, "التدريب التكيفي");
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
       state.daily = previousDaily;
-      state.mistakes.length = previousMistakesLength;
+      state.mistakes = previousMistakes;
       delete state.adaptiveEventIds[ledgerKey];
       return { accepted: false, reason: "main-progress-save-failed" };
     }
