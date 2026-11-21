@@ -84,6 +84,7 @@
         cycle: Math.max(1, Math.round(clamp(session.cycle, 1, 1000000))),
         retryCounts: session.retryCounts && typeof session.retryCounts === "object" ? { ...session.retryCounts } : {},
         answered: Boolean(session.answered), paused: Boolean(session.paused),
+        completed: Boolean(session.completed),
         questionId: typeof session.questionId === "string" ? session.questionId.slice(0, 180) : "",
         attempts: clamp(session.attempts, 0, 10000000),
         correct: clamp(session.correct, 0, 10000000),
@@ -93,7 +94,10 @@
         wrongWordIds: Array.isArray(session.wrongWordIds) ? [...new Set(session.wrongWordIds.filter(id => typeof id === "string").map(id => id.slice(0, 120)))].slice(0, 200) : [],
         lastResult: session.lastResult && typeof session.lastResult === "object" ? { ...session.lastResult } : null
       };
-      if (state.session.cursor >= state.session.queue.length) state.session.answered = true;
+      if (state.session.cursor >= state.session.queue.length) {
+        state.session.answered = true;
+        if (state.session.mode !== "all") state.session.completed = true;
+      }
     }
     return state;
   }
@@ -141,15 +145,15 @@
       const card = normalizeCard(state.progress[word.id]?.[key]);
       const due = card.attempts > 0 && (!card.dueAt || card.dueAt <= now);
       const weak = card.attempts > 0 && (card.priority >= 5 || card.incorrect > card.correct);
-      return { word, card, due, weak, fresh: card.attempts === 0 };
+      return { word, card, due, weak, weakEligible: weak && due, fresh: card.attempts === 0 };
     });
     let selected;
     if (mode === "all") selected = enriched;
     else if (mode === "due") selected = enriched.filter(item => item.due);
-    else if (mode === "weak") selected = enriched.filter(item => item.weak);
+    else if (mode === "weak") selected = enriched.filter(item => item.weakEligible);
     else if (mode === "new") selected = enriched.filter(item => item.fresh);
     else {
-      selected = enriched.filter(item => item.due || item.weak);
+      selected = enriched.filter(item => item.due || item.weakEligible);
       const fresh = enriched.filter(item => item.fresh);
       if (!selected.length) selected = fresh;
       else if (selected.length < clamp(limit, 1, 100)) selected = selected.concat(
@@ -188,7 +192,7 @@
   }
   function currentQuestion(rawState, words) {
     const state = normalizeState(rawState), session = state.session;
-    if (!session || session.cursor >= session.queue.length) return null;
+    if (!session || session.completed || session.cursor >= session.queue.length) return null;
     const wordId = session.queue[session.cursor], word = uniqueWords(words).find(item => item.id === wordId);
     if (!word) return null;
     return { word, wordId, direction: session.direction, questionId: session.questionId || makeQuestionId(session),
@@ -197,7 +201,7 @@
   }
   function submitAnswer(rawState, words, answer, options = {}) {
     const state = normalizeState(rawState), session = state.session;
-    if (!session || session.paused || session.answered || !options.questionId || options.questionId !== session.questionId)
+    if (!session || session.completed || session.paused || session.answered || !options.questionId || options.questionId !== session.questionId)
       return { state, accepted: false, reason: "duplicate-or-stale" };
     const pool = uniqueWords(words), word = pool.find(item => item.id === session.queue[session.cursor]);
     if (!word) return { state, accepted: false, reason: "word-unavailable" };
@@ -263,6 +267,11 @@
     if (!session || !session.answered || session.paused) return { state, advanced: false };
     session.cursor += 1;
     let newCycle = false;
+    if (session.cursor >= session.queue.length && session.mode !== "all") {
+      session.completed = true;
+      session.answered = false;
+      return { state, advanced: false, completed: true };
+    }
     if (session.cursor >= session.queue.length) {
       const available = new Set(uniqueWords(words).map(word => word.id));
       const ids = (Array.isArray(session.wordIds) ? session.wordIds : uniqueWords(words).map(word => word.id))
