@@ -159,3 +159,5 @@ test("short-term retries are bounded and defer when there is not enough spacing 
   assert.equal(state.session.retryCounts.w1, 2);
   assert.equal(state.session.queue.slice(state.session.cursor + 1).filter(id => id === "w1").length, 0);
 });
+
+// Keep this deterministic suite runnable with Node's built-in test runner.
