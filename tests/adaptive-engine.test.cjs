@@ -447,18 +447,21 @@ test("smart selection prioritizes due and weak vocabulary, caps sessions, and fa
   assert.ok(fresh.every(item => item.id !== "v0" && item.id !== "v1"));
 });
 
-test("selected smart-session scope remains stable across later cycles", () => {
+test("smart-session scope stays bounded and the batch completes instead of restarting immediately", () => {
   const pool = Array.from({ length: 40 }, (_, i) => ({ id: "s" + i, he: "מילה" + i, ar: "كلمة" + i }));
   let state = Engine.startSession(Engine.createState(), pool, "he-ar", fixedRandom, { mode: "smart", limit: 5 });
   assert.equal(state.session.wordIds.length, 5);
   for (let i = 0; i < state.session.queue.length; i += 1) {
     const q = Engine.currentQuestion(state, pool);
     state = Engine.submitAnswer(state, pool, q.word.ar, { questionId: q.questionId, now: 10000 + i }).state;
-    state = Engine.advance(state, pool, fixedRandom).state;
+    const moved = Engine.advance(state, pool, fixedRandom);
+    state = moved.state;
+    if (i === 4) assert.equal(moved.completed, true);
   }
-  assert.equal(state.session.cycle, 2);
+  assert.equal(state.session.completed, true);
+  assert.equal(state.session.cycle, 1);
   assert.equal(state.session.wordIds.length, 5);
-  assert.deepEqual([...new Set(state.session.queue)].sort(), [...state.session.wordIds].sort());
+  assert.equal(Engine.currentQuestion(state, pool), null);
 });
 
 test("mastery states distinguish new, weak, learning, scheduled and mastered cards", () => {
@@ -473,4 +476,14 @@ test("recovered words can leave weak state after sustained correct answers", () 
   const state = Engine.createState();
   state.progress.w1 = { heToAr: { attempts: 7, correct: 5, incorrect: 2, failures: 2, consecutiveCorrect: 5, priority: 0, intervalDays: 14 }, arToHe: {} };
   assert.equal(Engine.masteryOf(state.progress.w1.heToAr), "mastered");
+});
+
+
+test("weak words respect their ten-minute relearning delay in smart and weak-only modes", () => {
+  const pool = [words[0], words[1]];
+  const state = Engine.createState();
+  state.progress.w1 = { heToAr: { attempts: 2, correct: 0, incorrect: 2, failures: 2, priority: 8, dueAt: 5000 }, arToHe: {} };
+  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "smart", 1000, 10, fixedRandom).map(x => x.id), ["w2"]);
+  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 1000, 10, fixedRandom), []);
+  assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 6000, 10, fixedRandom).map(x => x.id), ["w1"]);
 });
