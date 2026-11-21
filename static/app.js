@@ -55,7 +55,14 @@
     }
   };
 
-  const allWords = () => [...OFFICIAL, ...state.extras.map((w) => ({ ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية", category: w.category || "إضافية" }))];
+  const allWords = () => {
+    const academic = Array.isArray(window.YaelAcademicTerms) ? window.YaelAcademicTerms.map((term) => ({
+      ...term, source: "academic", stageId: null, stageTitle: term.groupTitle || "مصطلحات أكاديمية",
+      category: term.groupTitle || "مصطلحات أكاديمية"
+    })) : [];
+    const extras = state.extras.map((w) => ({ ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية", category: w.category || "إضافية" }));
+    return [...new Map([...OFFICIAL, ...academic, ...extras].map((word) => [word.id, word])).values()];
+  };
   const wordMap = () => new Map(allWords().map((w) => [w.id, w]));
   const progressOf = (id) => state.progress[id] || {};
   const stageById = (id) => CATALOG.stages.find((s) => s.id === id) || CATALOG.stages[0];
@@ -603,7 +610,7 @@
     state.daily.completed = (Number(state.daily.completed) || 0) + 1;
   }
 
-  function recordAnswer(wordId, correct, selectedWordId = null) {
+  function recordAnswer(wordId, correct, selectedWordId = null, source = null) {
     const previous = progressOf(wordId);
     const now = Date.now();
     const next = {
@@ -619,12 +626,95 @@
     Object.assign(next, schedule);
     state.progress[wordId] = next;
     if (!correct) {
-      state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: ui.session?.title || "جلسة تدريب" });
+      state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: source || ui.session?.title || "جلسة تدريب" });
       if (state.mistakes.length > 500) state.mistakes.splice(0, state.mistakes.length - 500);
     }
     updateDailyStreak();
     return next;
   }
+
+  const ADAPTIVE_EVENT_LIMIT = 10000;
+  if (!state.adaptiveEventIds || typeof state.adaptiveEventIds !== "object" || Array.isArray(state.adaptiveEventIds)) state.adaptiveEventIds = {};
+
+  function rememberAdaptiveEvent(eventId) {
+    state.adaptiveEventIds[eventId] = Date.now();
+    const ids = Object.keys(state.adaptiveEventIds);
+    if (ids.length > ADAPTIVE_EVENT_LIMIT) {
+      ids.sort((left, right) => Number(state.adaptiveEventIds[left]) - Number(state.adaptiveEventIds[right]));
+      for (const id of ids.slice(0, ids.length - ADAPTIVE_EVENT_LIMIT)) delete state.adaptiveEventIds[id];
+    }
+  }
+
+  function recordAdaptiveAnswer(event) {
+    if (!event || typeof event !== "object") return { accepted: false, reason: "invalid-event" };
+    const eventId = String(event.eventId || "").slice(0, 180);
+    const wordId = String(event.wordId || "").slice(0, 120);
+    if (!eventId || !wordId || !wordMap().has(wordId) || typeof event.correct !== "boolean") {
+      return { accepted: false, reason: "invalid-answer" };
+    }
+    const ledgerKey = "answer:" + eventId;
+    if (state.adaptiveEventIds[ledgerKey]) return { accepted: true, duplicate: true };
+    if (wordId.startsWith("academic-")) {
+      const academicBridge = window.MilaAcademicProgressBridge;
+      if (!academicBridge || !academicBridge.recordAdaptiveAnswer(eventId, wordId, event.correct, Number(event.at) || Date.now())) {
+        return { accepted: false, reason: "academic-progress-save-failed" };
+      }
+    }
+    const previousProgress = state.progress[wordId] ? { ...state.progress[wordId] } : undefined;
+    const previousDaily = { ...state.daily };
+    const previousMistakesLength = state.mistakes.length;
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي");
+    rememberAdaptiveEvent(ledgerKey);
+    if (!persist()) {
+      if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
+      state.daily = previousDaily;
+      state.mistakes.length = previousMistakesLength;
+      delete state.adaptiveEventIds[ledgerKey];
+      return { accepted: false, reason: "main-progress-save-failed" };
+    }
+    return { accepted: true, duplicate: false };
+  }
+
+  function recordAdaptiveSession(session) {
+    if (!session || typeof session !== "object") return { accepted: false, reason: "invalid-session" };
+    const sessionId = String(session.sessionId || "").slice(0, 120);
+    const total = Math.max(0, Math.min(10000000, Number(session.total) || 0));
+    const correct = Math.max(0, Math.min(total, Number(session.correct) || 0));
+    if (!sessionId || !total) return { accepted: false, reason: "invalid-session-summary" };
+    const ledgerKey = "session:" + sessionId;
+    if (state.adaptiveEventIds[ledgerKey]) return { accepted: true, duplicate: true };
+    const wrongWordIds = [...new Set((Array.isArray(session.wrongWordIds) ? session.wrongWordIds : [])
+      .filter((id) => typeof id === "string" && wordMap().has(id)))].slice(0, 200);
+    const finishedAt = Number(session.finishedAt) || Date.now();
+    const record = {
+      id: "adaptive-" + sessionId,
+      title: "التدريب التكيفي · " + (session.direction === "ar-he" ? "عربي إلى عبري" : "عبري إلى عربي"),
+      startedAt: Number(session.startedAt) || finishedAt,
+      finishedAt,
+      total,
+      correct,
+      incorrect: total - correct,
+      accuracy: Math.round(correct / total * 100),
+      wrongWordIds,
+      settings: { mode: "adaptive-" + (session.direction === "ar-he" ? "ar-he" : "he-ar"), source: "adaptive" }
+    };
+    state.sessions.push(record);
+    if (state.sessions.length > 500) state.sessions.splice(0, state.sessions.length - 500);
+    state.lastSessionSummary = record;
+    rememberAdaptiveEvent(ledgerKey);
+    if (!persist()) {
+      state.sessions = state.sessions.filter((item) => item.id !== record.id);
+      if (state.lastSessionSummary?.id === record.id) state.lastSessionSummary = null;
+      delete state.adaptiveEventIds[ledgerKey];
+      return { accepted: false, reason: "session-save-failed" };
+    }
+    return { accepted: true, duplicate: false, record };
+  }
+
+  window.MilaLearningBridge = Object.freeze({
+    recordAdaptiveAnswer,
+    recordAdaptiveSession
+  });
 
   function setReviewRating(wordId, rating) {
     const previous = progressOf(wordId);
