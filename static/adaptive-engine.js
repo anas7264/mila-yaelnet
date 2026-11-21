@@ -80,6 +80,8 @@
         attempts: clamp(session.attempts, 0, 10000000),
         correct: clamp(session.correct, 0, 10000000),
         incorrect: clamp(session.incorrect, 0, 10000000),
+        startedAt: Math.max(0, Number(session.startedAt) || 0),
+        results: Array.isArray(session.results) ? session.results.slice(-10000).filter(item => item && typeof item.questionId === "string" && typeof item.wordId === "string" && typeof item.correct === "boolean").map(item => ({ questionId: item.questionId.slice(0, 180), wordId: item.wordId.slice(0, 120), correct: item.correct, at: Math.max(0, Number(item.at) || 0) })) : [],
         lastResult: session.lastResult && typeof session.lastResult === "object" ? { ...session.lastResult } : null
       };
       if (state.session.cursor >= state.session.queue.length) state.session.answered = true;
@@ -111,7 +113,7 @@
     const session = {
       id, direction, queue: shuffle(pool.map(word => word.id), random), cursor: 0, cycle: 1,
       retryCounts: {}, answered: false, paused: false, questionId: "",
-      attempts: 0, correct: 0, incorrect: 0, lastResult: null
+      attempts: 0, correct: 0, incorrect: 0, startedAt: Date.now(), results: [], lastResult: null
     };
     session.questionId = makeQuestionId(session);
     state.session = session;
@@ -146,6 +148,8 @@
     session.attempts += 1;
     if (correct) session.correct += 1; else session.incorrect += 1;
     session.answered = true; session.lastResult = { wordId: word.id, correct, at: now };
+    session.results.push({ questionId: session.questionId, wordId: word.id, correct, at: now });
+    if (session.results.length > 10000) session.results.splice(0, session.results.length - 10000);
     let retryAfter = null;
     if (!correct) {
       const retries = Math.max(0, Number(session.retryCounts[word.id]) || 0);
