@@ -147,11 +147,13 @@ test("short-term retries are bounded and defer when there is not enough spacing 
     const q = Engine.currentQuestion(state, pool);
     assert.equal(q.wordId, "w1");
     state = Engine.submitAnswer(state, pool, "wrong", { questionId: q.questionId, now: 5000 + attempt, random }).state;
-    state = move(state, pool);
-    while (Engine.currentQuestion(state, pool).wordId !== "w1") {
-      const other = Engine.currentQuestion(state, pool);
-      state = Engine.submitAnswer(state, pool, other.word.ar, { questionId: other.questionId, now: 6000 + attempt }).state;
+    if (attempt < 2) {
       state = move(state, pool);
+      while (Engine.currentQuestion(state, pool).wordId !== "w1") {
+        const other = Engine.currentQuestion(state, pool);
+        state = Engine.submitAnswer(state, pool, other.word.ar, { questionId: other.questionId, now: 6000 + attempt }).state;
+        state = move(state, pool);
+      }
     }
   }
   assert.equal(state.session.retryCounts.w1, 2);
