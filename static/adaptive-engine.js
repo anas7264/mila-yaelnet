@@ -121,7 +121,7 @@
   function masteryOf(rawCard, now = Date.now()) {
     const card = normalizeCard(rawCard);
     if (!card.attempts) return "new";
-    if (card.priority >= 5 || card.incorrect > card.correct) return "weak";
+    if ((card.priority >= 5 && card.consecutiveCorrect < 3) || card.incorrect > card.correct) return "weak";
     if (card.consecutiveCorrect >= 5 && card.intervalDays >= 14) return "mastered";
     if (card.dueAt > 0 && card.dueAt > now) return "scheduled";
     return "learning";
@@ -144,7 +144,7 @@
     const enriched = pool.map(word => {
       const card = normalizeCard(state.progress[word.id]?.[key]);
       const due = card.attempts > 0 && (!card.dueAt || card.dueAt <= now);
-      const weak = card.attempts > 0 && (card.priority >= 5 || card.incorrect > card.correct);
+      const weak = card.attempts > 0 && ((card.priority >= 5 && card.consecutiveCorrect < 3) || card.incorrect > card.correct);
       return { word, card, due, weak, weakEligible: weak && due, fresh: card.attempts === 0 };
     });
     let selected;
