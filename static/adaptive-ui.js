@@ -305,6 +305,7 @@
     event.preventDefault();
     if (!state.session || state.session.answered || state.session.paused) return;
     const q = Engine.currentQuestion(state, words);
+    if (!q) { toast("تعذر تحديد السؤال الحالي. أعد تحميل الصفحة لاستعادة الجلسة.", true); return; }
     const input = event.target.elements.answer;
     const answer = input.value;
     const result = Engine.submitAnswer(state, words, answer, { questionId: q.questionId });
