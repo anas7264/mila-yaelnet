@@ -23,11 +23,12 @@
     }
     return result;
   };
-  const defaultState = () => ({ version: 1, progress: {} });
+  const defaultState = () => ({ version: 1, progress: {}, adaptiveEvents: [] });
   const loadState = () => {
     try {
       const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
       if (saved && saved.version === 1 && saved.progress && typeof saved.progress === "object" && !Array.isArray(saved.progress)) {
+        if (!Array.isArray(saved.adaptiveEvents)) saved.adaptiveEvents = [];
         return saved;
       }
     } catch (_) {}
@@ -82,6 +83,35 @@
     if (!correct) data.progress[term.id].mastered = false;
     save();
   }
+  function recordAdaptiveProgress(eventId, termId, correct, at) {
+    if (typeof eventId !== "string" || !eventId || !TERMS.some(term => term.id === termId) || typeof correct !== "boolean") return false;
+    if (!Array.isArray(data.adaptiveEvents)) data.adaptiveEvents = [];
+    if (data.adaptiveEvents.includes(eventId)) return true;
+    const previous = data.progress[termId] ? { ...data.progress[termId] } : undefined;
+    const previousEvents = data.adaptiveEvents.slice();
+    const now = Number(at) || Date.now();
+    const current = progressOf(TERMS.find(term => term.id === termId));
+    data.progress[termId] = {
+      ...current,
+      attempts: (Number(current.attempts) || 0) + 1,
+      correct: (Number(current.correct) || 0) + (correct ? 1 : 0),
+      incorrect: (Number(current.incorrect) || 0) + (correct ? 0 : 1),
+      mastered: correct ? Boolean(current.mastered) : false,
+      lastReviewedAt: now,
+      dueAt: now + (correct ? 3 * DAY : 30 * 60000)
+    };
+    data.adaptiveEvents.push(eventId);
+    if (data.adaptiveEvents.length > 10000) data.adaptiveEvents.splice(0, data.adaptiveEvents.length - 10000);
+    if (!save()) {
+      if (previous) data.progress[termId] = previous; else delete data.progress[termId];
+      data.adaptiveEvents = previousEvents;
+      return false;
+    }
+    if (ui.mode === "list") render();
+    return true;
+  }
+  window.MilaAcademicProgressBridge = Object.freeze({ recordAdaptiveAnswer: recordAdaptiveProgress });
+
   function toggleMastered(id) {
     const term = TERMS.find(item => item.id === id);
     if (!term) return;
