@@ -1,0 +1,23 @@
+name: PR-0 CI Baseline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - ci/pr-0-node20-test-baseline
+
+jobs:
+  test:
+    name: npm test (Node 20)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run test suite
+        run: npm test
