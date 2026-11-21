@@ -16,6 +16,7 @@
   let words = [];
   let wordMap = new Map();
   let opened = false;
+  let selectedMode = "smart";
 
   function collectWords() {
     const core = window.YaelCatalog?.officialWords?.() || [];
@@ -115,6 +116,9 @@
 
   function renderHome() {
     const heAr = cardStats("he-ar"), arHe = cardStats("ar-he");
+    const heStats = Engine.getStats(state, words, "he-ar");
+    const arStats = Engine.getStats(state, words, "ar-he");
+    const activeMode = $("adaptiveModeSelect")?.value || selectedMode;
     const resume = state.session ? `
       <section class="adaptive-resume">
         <div><span class="adaptive-eyebrow">جلسة محفوظة</span><h2>${directionLabel(state.session.direction)}</h2>
@@ -128,8 +132,32 @@
           <p>استدعاء نشط مستمر. الكلمات التي تخطئ فيها تعود بعد فاصل قصير، والكلمات التي تتقنها تقلّ مراجعتها.</p></div>
           <button class="adaptive-button adaptive-quiet" data-adaptive-action="exit">العودة إلى المنصة</button>
         </header>
-        <div class="adaptive-notice"><strong>ملاحظة المحتوى:</strong> يتضمن هذا الوضع المفردات الأساسية والموسّعة و377 مصطلحًا أكاديميًا. جرى دمج الكلمات المكررة في مدخل واحد، لكن القائمة الجديدة لم تخضع بعد لمراجعة لغوية مستقلة شاملة.</div>
+        <div class="adaptive-notice"><strong>كيف تعمل المراجعة:</strong> لكل كلمة سجل مستقل في كل اتجاه. الإجابة الصحيحة توسّع الفاصل الزمني تدريجيًا، والخاطئة تعود إلى المراجعة بعد 10 دقائق، مع أولوية أعلى للكلمات الصعبة.</div>
         ${resume}
+        <section class="adaptive-overview" aria-label="مستوى إتقان المفردات">
+          <div class="adaptive-overview-heading"><strong>حالة المفردات</strong><span>لكل اتجاه على حدة</span></div>
+          <div class="adaptive-overview-grid">
+            <div><b>${heStats.new}</b><span>جديدة · عبري ← عربي</span></div>
+            <div><b>${heStats.weak}</b><span>ضعيفة · عبري ← عربي</span></div>
+            <div><b>${heStats.due}</b><span>مستحقة · عبري ← عربي</span></div>
+            <div><b>${heStats.mastered}</b><span>متقنة · عبري ← عربي</span></div>
+            <div><b>${arStats.new}</b><span>جديدة · عربي ← عبري</span></div>
+            <div><b>${arStats.weak}</b><span>ضعيفة · عربي ← عبري</span></div>
+            <div><b>${arStats.due}</b><span>مستحقة · عربي ← عبري</span></div>
+            <div><b>${arStats.mastered}</b><span>متقنة · عربي ← عبري</span></div>
+          </div>
+        </section>
+        <section class="adaptive-mode-picker">
+          <label for="adaptiveModeSelect">نوع جلسة المراجعة</label>
+          <select id="adaptiveModeSelect">
+            <option value="smart" ${activeMode === "smart" ? "selected" : ""}>ذكية — المستحق والضعيف، ثم الجديد</option>
+            <option value="due" ${activeMode === "due" ? "selected" : ""}>الكلمات المستحقة الآن</option>
+            <option value="weak" ${activeMode === "weak" ? "selected" : ""}>الكلمات الضعيفة فقط</option>
+            <option value="new" ${activeMode === "new" ? "selected" : ""}>تعلّم كلمات جديدة</option>
+            <option value="all" ${activeMode === "all" ? "selected" : ""}>المكتبة كاملة (جلسة طويلة)</option>
+          </select>
+          <small>الجلسة الذكية تختار حتى 30 كلمة، وتقدّم الكلمات الأضعف والأكثر تأخرًا. لا تُخلط نتائج الاتجاهين.</small>
+        </section>
         <div class="adaptive-direction-grid">
           <button class="adaptive-direction-card" data-adaptive-start="he-ar">
             <span class="adaptive-card-label">ACTIVE RECALL · 01</span><strong>عبري ← عربي</strong>
@@ -160,6 +188,9 @@
     const promptDir = q.direction === "he-ar" ? "ltr" : "rtl";
     const answerDir = q.direction === "he-ar" ? "rtl" : "ltr";
     const card = Engine.getCard(state, q.wordId, q.direction);
+    const masteryLabels = { new: "جديدة", weak: "ضعيفة", learning: "قيد التعلّم", scheduled: "مجدولة", mastered: "متقنة" };
+    const mastery = masteryLabels[Engine.masteryOf(card)] || "قيد التعلّم";
+    const dueLabel = card.dueAt ? new Intl.DateTimeFormat("ar", { dateStyle: "medium", timeStyle: "short" }).format(new Date(card.dueAt)) : "لم تُجدول بعد";
     const pct = Math.round((session.cursor / Math.max(1, session.queue.length)) * 100);
     const result = session.lastResult;
     const feedback = session.answered && result ? `
@@ -187,7 +218,7 @@
         <article class="adaptive-question">
           <span class="adaptive-question-label">${q.word.source === "academic" ? "مصطلح أكاديمي" : q.word.source === "expanded" ? "مفردة موسّعة" : q.word.source === "extra" ? "كلمة شخصية" : "مفردة أساسية"}</span>
           <div class="adaptive-prompt" dir="${promptDir}" lang="${q.direction === "he-ar" ? "he" : "ar"}">${esc(q.word[promptField])}</div>
-          <div class="adaptive-meta"><span>${esc(q.word.category || "مفردات")}</span><span>محاولات هذه الكلمة: ${card.attempts}</span><span>أخطاء: ${card.incorrect}</span></div>
+          <div class="adaptive-meta"><span>${esc(q.word.category || "مفردات")}</span><span>الحالة: ${mastery}</span><span>محاولات: ${card.attempts}</span><span>أخطاء: ${card.incorrect}</span><span>المراجعة التالية: ${dueLabel}</span></div>
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
         </article>
         <div class="adaptive-session-stats"><span>الإجابات الصحيحة <b>${session.correct}</b></span><span>الأخطاء <b>${session.incorrect}</b></span><span>إجمالي المحاولات <b>${session.attempts}</b></span></div>
@@ -207,8 +238,9 @@
 
   function start(direction) {
     if (state.session && !window.confirm("بدء جلسة جديدة سيستبدل طابور الجلسة المحفوظة. هل تريد المتابعة؟")) return;
+    selectedMode = $("adaptiveModeSelect")?.value || selectedMode || "smart";
     try {
-      state = Engine.startSession(state, words, direction);
+      state = Engine.startSession(state, words, direction, Math.random, { mode: selectedMode, limit: 30 });
       if (!save()) return;
       openMode();
       renderSession();
