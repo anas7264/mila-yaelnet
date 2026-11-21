@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "מילה — مختبر יעלנט",
+  "short_name": "מילה",
+  "description": "منصة شخصية لتعلم مفردات العبرية ومراجعتها والتدرب على יעלנט.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f5f8",
+  "theme_color": "#111c2d",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
