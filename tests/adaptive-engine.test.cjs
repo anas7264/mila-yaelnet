@@ -1,5 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const syncCorePromise = import("../sync-core.mjs");
 const Engine = require("../static/adaptive-engine.js");
 
 const words = [
@@ -161,3 +164,30 @@ test("short-term retries are bounded and defer when there is not enough spacing 
 });
 
 // Keep this deterministic suite runnable with Node's built-in test runner.
+
+test("adaptive namespace remains inside the existing sync snapshot filter", async () => {
+  const sync = await syncCorePromise;
+  const snapshot = sync.createSnapshot([
+    ["mila-yaelnet-studio-v3", "{\"version\":3}"],
+    ["mila-yaelnet-academic-v1", "{\"version\":1}"],
+    ["mila-yaelnet-adaptive-v1", "{\"version\":1}"],
+    ["__mila_sync_meta_v1", "{\"internal\":true}"]
+  ]);
+  assert.deepEqual(snapshot.entries.map(([key]) => key), [
+    "mila-yaelnet-academic-v1",
+    "mila-yaelnet-adaptive-v1",
+    "mila-yaelnet-studio-v3"
+  ]);
+  assert.equal(sync.isLearningStorageKey("mila-yaelnet-adaptive-v1"), true);
+  assert.equal(sync.isLearningStorageKey("__mila_sync_meta_v1"), false);
+});
+
+test("preview entry point keeps RTL and loads both adaptive modules", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  assert.match(html, /html lang="ar" dir="rtl"/);
+  assert.match(html, /MILA_ADAPTIVE_ENABLED = true/);
+  assert.match(html, /static\/adaptive-engine\.js/);
+  assert.match(html, /static\/adaptive-ui\.js/);
+  const css = fs.readFileSync(path.join(__dirname, "../static/adaptive.css"), "utf8");
+  assert.match(css, /@media\(max-width:760px\)/);
+});
