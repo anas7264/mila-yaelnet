@@ -1,0 +1,33 @@
+{
+  "kind": "recovered-deployment-baseline",
+  "project": "mila-yaelnet-vocabulary",
+  "production_deployment_id": "dpl_3gx8WGNYSCqfBtu4hqpnMiaj6Ba7",
+  "production_deployment_url": "https://mila-yaelnet-vocabulary-5vmrmkmvj-anasagbareea-7788s-projects.vercel.app",
+  "source_repository": null,
+  "source_commit_sha": null,
+  "recovery_method": "Vercel deployment asset payload recovery and deterministic rebuild with P0 client feature.",
+  "runtime_asset_bundle": {
+    "path": "payload/part-*",
+    "bytes": 146026,
+    "sha256": "68c46b1f13d2cc375ee38c1e21094f7157efb8bee4706e5126f0b5546deab34a",
+    "members": 21,
+    "chunk_count": 105,
+    "chunk_size_bytes": 1400,
+    "last_chunk_bytes": 426
+  },
+  "recovered_runtime": {
+    "framework": "Flask",
+    "python_version": "3.12",
+    "requirements": "Flask==3.1.1",
+    "service_worker_cache": "mila-yaelnet-v8"
+  },
+  "missing_source": [
+    "app.py"
+  ],
+  "deployment_sha": null,
+  "notes": [
+    "app.py was present in the Vercel file listing, but its content response was truncated.",
+    "No substitute app.py was generated; deployable preview is blocked.",
+    "Existing Flask bootstrap concatenates payload/part-* in lexical order."
+  ]
+}
