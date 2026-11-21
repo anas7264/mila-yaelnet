@@ -191,3 +191,27 @@ test("preview entry point keeps RTL and loads both adaptive modules", () => {
   const css = fs.readFileSync(path.join(__dirname, "../static/adaptive.css"), "utf8");
   assert.match(css, /@media\(max-width:760px\)/);
 });
+
+test("main application dispatches UI interactions in capture phase and reports handler failures", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /document\.addEventListener\("click",\s*\(event\)=>[\s\S]*?\},\s*true\);/);
+  assert.match(app, /event\.target instanceof Element/);
+  assert.match(app, /Mila action failed:/);
+  assert.match(app, /document\.addEventListener\("submit",\s*\(event\)=>[\s\S]*?\},\s*true\);/);
+});
+
+test("studio form contains unique stage picker identifiers and valid container structure", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.equal((app.match(/id="singleStagePicker"/g) || []).length, 1);
+  assert.equal((app.match(/id="singleStageSelect"/g) || []).length, 1);
+  assert.equal((app.match(/id="stagePicker"/g) || []).length, 1);
+  assert.doesNotMatch(app, /stageOptions\}<\/div><\/div>/);
+});
+
+test("adaptive controls dispatch in capture phase and protect touch interactions", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  assert.match(ui, /document\.addEventListener\("click",\s*event\s*=>[\s\S]*?\},\s*true\);/);
+  assert.match(ui, /event\.target instanceof Element/);
+  assert.match(ui, /Adaptive action failed:/);
+  assert.match(ui, /document\.addEventListener\("submit",\s*event\s*=>[\s\S]*?\},\s*true\);/);
+});
