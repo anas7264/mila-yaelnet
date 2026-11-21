@@ -487,3 +487,9 @@ test("weak words respect their ten-minute relearning delay in smart and weak-onl
   assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 1000, 10, fixedRandom), []);
   assert.deepEqual(Engine.selectWords(state, pool, "he-ar", "weak", 6000, 10, fixedRandom).map(x => x.id), ["w1"]);
 });
+
+
+test("three consecutive correct recalls clear the weak classification even when old failures remain", () => {
+  const card = { attempts: 8, correct: 5, incorrect: 3, failures: 3, priority: 9, consecutiveCorrect: 3, intervalDays: 7, dueAt: Date.now() + 86400000 };
+  assert.notEqual(Engine.masteryOf(card), "weak");
+});
