@@ -221,6 +221,85 @@ test("academic progress bridge is idempotent and persists adaptive attempts", ()
   assert.deepEqual(saved.adaptiveEvents, ["adaptive:q-1"]);
 });
 
+
+test("main learning bridge records adaptive answers, review errors and sessions exactly once", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js", "academic-terms.js"];
+  const values = new Map();
+  let failMainSave = false;
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) {
+      if (failMainSave && key === "mila-yaelnet-studio-v3") throw new Error("simulated quota failure");
+      values.set(key, value);
+    },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    getElementById() { return null; },
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console,
+    navigator: {}, crypto: { randomUUID: () => "test-uuid" },
+    addEventListener() {}, scrollTo() {},
+    setTimeout, clearTimeout
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.equal((appSource.match(/  initialize\(\);\n\}\)\(\);/) || []).length, 1);
+  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const bridge = context.__MilaTestBridge;
+  assert.ok(bridge);
+  assert.equal(context.YaelAcademicTerms.length, 377);
+
+  failMainSave = true;
+  const failed = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  assert.equal(failed.accepted, false);
+  const academicAfterFailure = JSON.parse(values.get("mila-yaelnet-academic-v1"));
+  assert.equal(academicAfterFailure.progress["academic-001"].attempts, 1);
+  assert.equal(values.has("mila-yaelnet-studio-v3"), true);
+  const mainAfterFailure = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(mainAfterFailure.progress["academic-001"], undefined);
+  assert.equal(mainAfterFailure.daily.completed, 0);
+
+  failMainSave = false;
+  const accepted = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  assert.equal(accepted.accepted, true);
+  assert.equal(accepted.duplicate, false);
+  const duplicate = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  assert.equal(duplicate.accepted, true);
+  assert.equal(duplicate.duplicate, true);
+
+  const academic = JSON.parse(values.get("mila-yaelnet-academic-v1"));
+  const main = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(academic.progress["academic-001"].attempts, 1);
+  assert.equal(main.progress["academic-001"].attempts, 1);
+  assert.equal(main.progress["academic-001"].incorrect, 1);
+  assert.equal(main.mistakes.filter(item => item.wordId === "academic-001").length, 1);
+  assert.equal(main.daily.completed, 1);
+  assert.ok(main.progress["academic-001"].dueAt > 1000);
+
+  const summary = {
+    sessionId: "session-one", direction: "he-ar", startedAt: 500,
+    finishedAt: 1500, total: 1, correct: 0, wrongWordIds: ["academic-001"]
+  };
+  assert.equal(bridge.recordAdaptiveSession(summary).accepted, true);
+  const repeatedSummary = bridge.recordAdaptiveSession(summary);
+  assert.equal(repeatedSummary.accepted, true);
+  assert.equal(repeatedSummary.duplicate, true);
+  const afterSession = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(afterSession.sessions.filter(item => item.id === "adaptive-session-one").length, 1);
+  assert.equal(afterSession.lastSessionSummary.id, "adaptive-session-one");
+  assert.deepEqual(afterSession.lastSessionSummary.wrongWordIds, ["academic-001"]);
+});
+
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   const academic = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
