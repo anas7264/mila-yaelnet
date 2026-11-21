@@ -121,9 +121,9 @@
     const activeMode = $("adaptiveModeSelect")?.value || selectedMode;
     const resume = state.session ? `
       <section class="adaptive-resume">
-        <div><span class="adaptive-eyebrow">جلسة محفوظة</span><h2>${directionLabel(state.session.direction)}</h2>
-        <p>الدورة ${state.session.cycle} · السؤال ${Math.min(state.session.cursor + 1, state.session.queue.length)} من ${state.session.queue.length} في الدورة</p></div>
-        <button class="adaptive-button adaptive-primary" data-adaptive-action="resume">استكمال الجلسة</button>
+        <div><span class="adaptive-eyebrow">${state.session.completed ? "جلسة مكتملة بانتظار الحفظ" : "جلسة محفوظة"}</span><h2>${directionLabel(state.session.direction)}</h2>
+        <p>الدورة ${state.session.cycle} · ${state.session.completed ? "اكتمل التدريب" : "السؤال " + Math.min(state.session.cursor + 1, state.session.queue.length) + " من " + state.session.queue.length}</p></div>
+        <button class="adaptive-button adaptive-primary" data-adaptive-action="${state.session.completed ? "end" : "resume"}">${state.session.completed ? "حفظ الملخص وإنهاء" : "استكمال الجلسة"}</button>
       </section>` : "";
     $("appView").innerHTML = `
       <section class="adaptive-page" dir="rtl">
@@ -174,11 +174,30 @@
       </section>`;
   }
 
+  function renderComplete(session) {
+    const accuracy = session.attempts ? Math.round(session.correct / session.attempts * 100) : 0;
+    const uniqueCount = session.wordIds?.length || 0;
+    $("appView").innerHTML = `
+      <section class="adaptive-page adaptive-study" dir="rtl">
+        <header class="adaptive-heading"><div><div class="adaptive-eyebrow">MILA · SESSION COMPLETE</div><h1>اكتملت جلسة التعلّم</h1>
+        <p>أنهيت مجموعة الكلمات المحددة. حُفظت مواعيد مراجعتها لكل اتجاه.</p></div></header>
+        <div class="adaptive-completion-grid">
+          <div><b>${uniqueCount}</b><span>كلمة في المجموعة</span></div>
+          <div><b>${session.attempts}</b><span>إجمالي المحاولات</span></div>
+          <div><b>${session.correct}</b><span>إجابات صحيحة</span></div>
+          <div><b>${accuracy}%</b><span>دقة الإجابة</span></div>
+        </div>
+        <p class="adaptive-session-hint">الكلمات التي أُجيب عنها خطأ ستصبح مستحقة بعد 10 دقائق. أما الكلمات الصحيحة فستعود وفق الفاصل الزمني الخاص بها.</p>
+        <button class="adaptive-button adaptive-primary adaptive-full" data-adaptive-action="end">حفظ الملخص والعودة إلى لوحة المراجعة</button>
+      </section>`;
+  }
+
   function renderSession() {
     const session = state.session;
     if (!session) return renderHome();
     const q = Engine.currentQuestion(state, words);
     if (!q) {
+      if (session.completed) return renderComplete(session);
       state.session = null;
       save();
       return renderHome();
@@ -271,7 +290,11 @@
     if (action === "next") {
       const result = Engine.advance(state, words);
       state = result.state;
-      save();
+      if (!save()) return;
+      if (result.completed) {
+        renderComplete(state.session);
+        return;
+      }
       renderSession();
       return;
     }
