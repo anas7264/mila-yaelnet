@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const vm = require("node:vm");
 const syncCorePromise = import("../sync-core.mjs");
 const Engine = require("../static/adaptive-engine.js");
 const Storage = require("../static/storage.js");
@@ -194,6 +195,30 @@ test("main storage preserves adaptive idempotency keys and long session totals",
   assert.equal(clean.sessions[0].total, 850);
   assert.equal(clean.sessions[0].incorrect, 150);
   assert.equal(clean.lastSessionSummary.id, "adaptive-s-1");
+});
+
+
+test("academic progress bridge is idempotent and persists adaptive attempts", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
+  const values = new Map();
+  const context = {
+    window: { addEventListener() {} },
+    document: { getElementById() { return null; } },
+    localStorage: {
+      getItem(key) { return values.has(key) ? values.get(key) : null; },
+      setItem(key, value) { values.set(key, value); }
+    },
+    Date, Math, setTimeout, clearTimeout
+  };
+  vm.runInNewContext(source, context);
+  const bridge = context.window.MilaAcademicProgressBridge;
+  assert.equal(bridge.recordAdaptiveAnswer("adaptive:q-1", "academic-001", false, 1000), true);
+  assert.equal(bridge.recordAdaptiveAnswer("adaptive:q-1", "academic-001", false, 1000), true);
+  const saved = JSON.parse(values.get("mila-yaelnet-academic-v1"));
+  assert.equal(saved.progress["academic-001"].attempts, 1);
+  assert.equal(saved.progress["academic-001"].incorrect, 1);
+  assert.equal(saved.progress["academic-001"].dueAt, 1000 + 30 * 60000);
+  assert.deepEqual(saved.adaptiveEvents, ["adaptive:q-1"]);
 });
 
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
