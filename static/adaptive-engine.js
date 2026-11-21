@@ -123,6 +123,7 @@
     if (!card.attempts) return "new";
     if ((card.priority >= 5 && card.consecutiveCorrect < 3) || card.incorrect > card.correct) return "weak";
     if (card.consecutiveCorrect >= 5 && card.intervalDays >= 14) return "mastered";
+    if (card.consecutiveCorrect > 0) return "saved";
     if (card.dueAt > 0 && card.dueAt > now) return "scheduled";
     return "learning";
   }
@@ -211,17 +212,17 @@
     if (correct) {
       card.correct += 1; card.consecutiveCorrect += 1;
       card.ease = Math.min(3, Number((card.ease + 0.02).toFixed(2)));
-      card.intervalDays = card.consecutiveCorrect === 1 ? 1
-        : card.consecutiveCorrect === 2 ? 3
-        : card.consecutiveCorrect === 3 ? 7
-        : Math.min(36500, Math.max(1, card.intervalDays * card.ease));
-      card.dueAt = now + card.intervalDays * 86400000;
+      // A correct recall is provisionally saved, then re-tested after ten minutes.
+      // Keep the long-term interval dormant until a later scheduling policy is introduced.
+      card.intervalDays = 0;
+      card.dueAt = now + 10 * 60 * 1000;
       card.priority = Math.max(0, card.priority - (card.consecutiveCorrect >= 3 ? 2 : 1));
       card.cooldownCycles = card.consecutiveCorrect >= 5 ? 2 : card.consecutiveCorrect >= 3 ? 1 : 0;
     } else {
       card.incorrect += 1; card.failures += 1; card.consecutiveCorrect = 0; card.cooldownCycles = 0;
       card.intervalDays = 0;
-      card.dueAt = now + 10 * 60 * 1000;
+      // Wrong answers stay immediately eligible for in-session retries (2–4 questions later).
+      card.dueAt = now;
       card.ease = Math.max(1.3, Number((card.ease - 0.2).toFixed(2)));
       card.priority = Math.min(100, card.priority + 2 + Math.min(card.failures, 3));
     }
