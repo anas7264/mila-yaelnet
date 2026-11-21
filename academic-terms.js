@@ -35,6 +35,7 @@
     return defaultState();
   };
   const data = loadState();
+  let academicViewOpen = false;
   const ui = {
     mode: "list", groupId: "all", filter: "all", query: "",
     studyTerms: [], studyIndex: 0, revealed: false,
@@ -107,7 +108,7 @@
       data.adaptiveEvents = previousEvents;
       return false;
     }
-    if (ui.mode === "list") render();
+    if (academicViewOpen && ui.mode === "list") render();
     return true;
   }
   window.MilaAcademicProgressBridge = Object.freeze({ recordAdaptiveAnswer: recordAdaptiveProgress });
@@ -174,6 +175,7 @@
     document.querySelectorAll("#mainNav .nav-item").forEach(button => button.classList.toggle("active", button === active));
   }
   function openView() {
+    academicViewOpen = true;
     ui.mode = "list";
     const title = $("breadcrumbTitle");
     if (title) title.textContent = "مصطلحات أكاديمية";
@@ -397,6 +399,7 @@
       return;
     }
     const normalNav = event.target.closest("#mainNav [data-view]");
+    if (normalNav || event.target.closest("[data-adaptive-open]")) academicViewOpen = false;
     if (normalNav && navButton) navButton.classList.remove("active");
   }, true);
   document.addEventListener("input", event => {
