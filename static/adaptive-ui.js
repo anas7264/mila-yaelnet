@@ -248,26 +248,37 @@
     }
   }
 
+  // Capture phase avoids losing taps when another component stops bubbling.
   document.addEventListener("click", event => {
-    const open = event.target.closest("[data-adaptive-open]");
+    const origin = event.target instanceof Element ? event.target : event.target?.parentElement;
+    const open = origin?.closest("[data-adaptive-open]");
     if (open) {
       event.preventDefault();
-      if (!opened) openMode();
-      else renderHome();
+      try {
+        if (!opened) openMode();
+        else renderHome();
+      } catch (error) {
+        console.error("Adaptive navigation failed:", error);
+        toast("تعذر فتح التدريب التكيفي: " + (error?.message || "خطأ غير متوقع"), true);
+      }
       return;
     }
-    const startButton = event.target.closest("[data-adaptive-start]");
+    const startButton = origin?.closest("[data-adaptive-start]");
     if (startButton) {
       event.preventDefault();
       start(startButton.getAttribute("data-adaptive-start"));
       return;
     }
-    const actionButton = event.target.closest("[data-adaptive-action]");
+    const actionButton = origin?.closest("[data-adaptive-action]");
     if (actionButton) {
       event.preventDefault();
-      handleAction(actionButton.getAttribute("data-adaptive-action"));
+      try { handleAction(actionButton.getAttribute("data-adaptive-action")); }
+      catch (error) {
+        console.error("Adaptive action failed:", error);
+        toast("تعذر تنفيذ الإجراء: " + (error?.message || "خطأ غير متوقع"), true);
+      }
     }
-  });
+  }, true);
 
   document.addEventListener("submit", event => {
     if (event.target?.id !== "adaptiveAnswerForm") return;
@@ -284,7 +295,7 @@
     state = result.state;
     save();
     renderSession();
-  });
+  }, true);
 
   function init() {
     collectWords();
