@@ -244,7 +244,7 @@
     if (action === "end") {
       const session = state.session;
       if (!session) return;
-      const wrongWordIds = [...new Set(session.results.filter(item => !item.correct).map(item => item.wordId))];
+      const wrongWordIds = Array.isArray(session.wrongWordIds) ? session.wrongWordIds : [...new Set(session.results.filter(item => !item.correct).map(item => item.wordId))];
       const bridge = window.MilaLearningBridge;
       const saved = bridge?.recordAdaptiveSession({
         sessionId: session.id,
