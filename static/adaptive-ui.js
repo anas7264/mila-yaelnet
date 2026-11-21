@@ -207,7 +207,7 @@
     const promptDir = q.direction === "he-ar" ? "ltr" : "rtl";
     const answerDir = q.direction === "he-ar" ? "rtl" : "ltr";
     const card = Engine.getCard(state, q.wordId, q.direction);
-    const masteryLabels = { new: "جديدة", weak: "ضعيفة", learning: "قيد التعلّم", scheduled: "مجدولة", mastered: "متقنة" };
+    const masteryLabels = { new: "جديدة", weak: "غير محفوظة", learning: "قيد التعلّم", scheduled: "مجدولة", saved: "محفوظة", mastered: "متقنة" };
     const mastery = masteryLabels[Engine.masteryOf(card)] || "قيد التعلّم";
     const dueLabel = card.dueAt ? new Intl.DateTimeFormat("ar", { dateStyle: "medium", timeStyle: "short" }).format(new Date(card.dueAt)) : "لم تُجدول بعد";
     const pct = Math.round((session.cursor / Math.max(1, session.queue.length)) * 100);
