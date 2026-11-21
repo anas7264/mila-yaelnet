@@ -346,6 +346,7 @@ test("static release includes every PWA icon and required Flask-free route rewri
   }
   const sw = fs.readFileSync(path.join(root, "static/sw.js"), "utf8");
   assert.match(sw, /"\/static\/icon\.svg"/);
+  assert.match(sw, /"\/static\/expanded-vocabulary\.js\?v=1"/);
   assert.doesNotMatch(sw, /icon-(192|512)\.png/);
   const config = JSON.parse(fs.readFileSync(path.join(root, "vercel.json"), "utf8"));
   const rewrites = new Map(config.rewrites.map(item => [item.source, item.destination]));
@@ -392,7 +393,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v10"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v11"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);

@@ -32,8 +32,10 @@
         ...item, category: "كلمات شخصية", level: "مخصص", source: "extra"
       })) : [];
     } catch (_) {}
+    const base = [...core, ...academic, ...extras];
+    const combined = window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
     const seen = new Set();
-    words = [...core, ...academic, ...extras].filter(word => {
+    words = combined.filter(word => {
       if (!word?.id || seen.has(word.id) || !String(word.he || "").trim() || !String(word.ar || "").trim()) return false;
       seen.add(word.id);
       return true;
@@ -126,7 +128,7 @@
           <p>استدعاء نشط مستمر. الكلمات التي تخطئ فيها تعود بعد فاصل قصير، والكلمات التي تتقنها تقلّ مراجعتها.</p></div>
           <button class="adaptive-button adaptive-quiet" data-adaptive-action="exit">العودة إلى المنصة</button>
         </header>
-        <div class="adaptive-notice"><strong>ملاحظة المحتوى:</strong> يستخدم هذا الوضع المفردات الحالية كما هي، بما فيها المصطلحات الأكاديمية الـ377؛ لم تخضع جميع الترجمات لمراجعة لغوية مستقلة.</div>
+        <div class="adaptive-notice"><strong>ملاحظة المحتوى:</strong> يتضمن هذا الوضع المفردات الأساسية والموسّعة و377 مصطلحًا أكاديميًا. جرى دمج الكلمات المكررة في مدخل واحد، لكن القائمة الجديدة لم تخضع بعد لمراجعة لغوية مستقلة شاملة.</div>
         ${resume}
         <div class="adaptive-direction-grid">
           <button class="adaptive-direction-card" data-adaptive-start="he-ar">
@@ -183,7 +185,7 @@
         </header>
         <div class="adaptive-progress"><span>الدورة ${session.cycle}</span><span>السؤال ${q.position} · ${q.totalInCycle}</span><div><i style="width:${pct}%"></i></div></div>
         <article class="adaptive-question">
-          <span class="adaptive-question-label">${q.word.source === "academic" ? "مصطلح أكاديمي" : q.word.source === "extra" ? "كلمة شخصية" : "مفردة أساسية"}</span>
+          <span class="adaptive-question-label">${q.word.source === "academic" ? "مصطلح أكاديمي" : q.word.source === "expanded" ? "مفردة موسّعة" : q.word.source === "extra" ? "كلمة شخصية" : "مفردة أساسية"}</span>
           <div class="adaptive-prompt" dir="${promptDir}" lang="${q.direction === "he-ar" ? "he" : "ar"}">${esc(q.word[promptField])}</div>
           <div class="adaptive-meta"><span>${esc(q.word.category || "مفردات")}</span><span>محاولات هذه الكلمة: ${card.attempts}</span><span>أخطاء: ${card.incorrect}</span></div>
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
