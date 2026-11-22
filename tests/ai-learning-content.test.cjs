@@ -226,10 +226,11 @@ test("online cached content is checked against server consent; offline mode uses
 
 
 test("one account cannot suppress shared AI content with a single report", () => {
+  const migration = fs.readFileSync(path.join(root, "supabase/migrations/20261122090650_add_ai_learning_content_cache.sql"), "utf8");
   assert.match(edge, /record_mila_ai_content_report/);
   assert.match(migration, /primary key \(cache_key, user_id\)/);
   assert.match(migration, /v_report_count >= p_min_reports/);
-  assert.match(client, /result\?\.status === "reported"/);
-  assert.match(client, /result\?\.status === "received"/);
-  assert.match(client, /سيبقى المحتوى متاحًا مؤقتًا/);
+  assert.match(aiClient, /result\?\.status === "reported"/);
+  assert.match(aiClient, /result\?\.status === "received"/);
+  assert.match(aiClient, /سيبقى المحتوى متاحًا مؤقتًا/);
 });
