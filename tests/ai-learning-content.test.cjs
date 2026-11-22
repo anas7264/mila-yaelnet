@@ -120,3 +120,38 @@ test("browser sends only canonical word ID and action; server resolves source te
   assert.match(edge, /MAX_BODY_BYTES/);
   assert.doesNotMatch(edge, /console\.log\([^\n]*(?:prompt|payload|authorization|apiKey)/i);
 });
+
+test("generated text cannot mix Hebrew into Arabic fields or Arabic into Hebrew fields", async () => {
+  const api = await contract();
+  const mixedHebrew = validPayload();
+  mixedHebrew.example_he = "המשפט טוב ومعه كلمة عربية";
+  assert.equal(api.validateGeneratedContent(mixedHebrew).ok, false);
+
+  const mixedArabic = validPayload();
+  mixedArabic.usage_note_ar = "تُستخدم الكلمة مع מילה عبرية";
+  assert.equal(api.validateGeneratedContent(mixedArabic).ok, false);
+});
+
+test("IndexedDB cache success is reported only after transaction commit", () => {
+  assert.match(aiClient, /transaction\.oncomplete = \(\) => \{[\s\S]*?resolve\(failed \? null/);
+  assert.match(aiClient, /transaction\.onabort = \(\) => \{ failed = true/);
+});
+
+test("AI calls obtain a fresh Supabase auth session and never sync the AI cache", () => {
+  assert.match(sync, /invokeAiContent:[\s\S]*?sb\.auth\.getSession\(\)/);
+  assert.match(sync, /sb\.functions\.invoke\("mila-ai-content"/);
+  assert.match(aiClient, /mila-ai-content-v1/);
+  assert.doesNotMatch(sync, /mila-ai-content-v1/);
+});
+
+test("AI database migration is isolated and grants no client access", () => {
+  const migration = fs.readFileSync(path.join(root, "supabase/migrations/20261122090650_add_ai_learning_content_cache.sql"), "utf8");
+  assert.match(migration, /create table if not exists public\.ai_learning_content/);
+  assert.match(migration, /create table if not exists public\.ai_generation_usage/);
+  assert.match(migration, /alter table public\.ai_learning_content enable row level security/);
+  assert.match(migration, /revoke all on table public\.ai_learning_content from public, anon, authenticated/);
+  assert.match(migration, /grant select, insert, update, delete on table public\.ai_learning_content to service_role/);
+  assert.match(migration, /security invoker/);
+  assert.doesNotMatch(migration, /learning_state|sync_learning_state/);
+  assert.doesNotMatch(migration, /security definer/);
+});
