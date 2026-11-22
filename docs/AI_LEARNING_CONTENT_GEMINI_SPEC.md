@@ -8,7 +8,7 @@
 
 ## 1. Decision and non-negotiable boundary
 
-Use the **Gemini Developer API free tier** as a provider for generating reusable learning material, subject to the eligibility/terms gate below. The initial model candidate is `gemini-3.8-flash`; model, quota and availability must remain server-configurable because Google's free-tier model access and quotas can change.
+Use the **Gemini Developer API free tier** as a provider for generating reusable learning material, subject to the eligibility/terms gate below. The selected initial model is `gemini-3.5-flash-lite`: Google currently lists it as a stable model optimized for translation and simple data processing, with free standard input/output tokens. Model, quota and availability must remain server-configurable because Google's free-tier model access and quotas can change.
 
 Gemini is a **content authoring service only**. It may create a short Hebrew example, Arabic translation, usage explanation and a small set of collocations. It must never:
 - grade a learner's answer or decide whether an answer is accepted;
@@ -26,7 +26,7 @@ The unpaid/free tier also allows Google to use submitted prompts and generated r
 
 **Release gate G-LEGAL (blocking):**
 1. Before enabling the integration for any shared/public MILA audience, verify and document that the application and its likely audience satisfy the current Gemini Additional Terms. A simple checkbox or an age-gate is not a substitute if the app is in fact directed at or likely to be accessed by under-18 users.
-2. If MILA is or may be accessed by under-18 users, or if the use does not qualify under the developer/professional/business restriction, **do not enable Gemini Developer API for that app**. Keep the AI feature disabled and use curated/static content or select a provider/service whose terms permit the intended audience and use.
+2. The same terms also state that Gemini API is for developers building with Google AI models for **professional or business purposes, not consumer use**. Because MILA is currently a personal learning workspace, this is a separate eligibility question that the age-18 confirmation does not resolve. Confirm that the API client/use is genuinely within Google's professional/business scope. If it is a private consumer/personal-use app and Google's terms do not permit that use, **do not enable Gemini Developer API**. Keep the AI feature disabled and use curated/static content or select a provider/service whose terms permit the intended use.
 3. Before first use, show a separate, explicit AI consent notice. Cloud-sync login is not consent to send content to Google. The notice must state that the feature sends only a canonical Hebrew vocabulary item and its Arabic gloss, and that free-tier prompts/responses may be used by Google and reviewed by humans.
 4. Do not ask for or send a date of birth to Gemini. Do not send personal, sensitive, confidential or user-entered material.
 5. Re-check the terms and available-region page before production enablement. Israel is currently listed as an available Gemini API / AI Studio country, but regional availability is not a data-residency guarantee.
@@ -239,4 +239,4 @@ The existing main baseline at the time of this specification is 34 passing CI te
 - Supabase API key guidance: https://supabase.com/docs/guides/getting-started/api-keys
 - Google states Gemini Developer API model access is global; an available country does not guarantee regional data residency: https://firebase.google.com/docs/ai-logic/locations
 
-**Current result:** architecture specified; implementation, migration, Edge Function, client integration and production activation remain pending the gates above.
+**Implementation status (branch only):** schema, Edge Function, client card, IndexedDB cache and automated contract tests have been added to the unmerged implementation PR. No migration has been applied and no Edge Function deployed. Production activation remains blocked on the service eligibility gate, a separate staging database, a Gemini API secret and browser/integration testing.
