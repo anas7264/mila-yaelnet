@@ -119,7 +119,7 @@ test("sync tears down realtime offline and restores it after connectivity return
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
   assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v20"'));
-  assert.ok(sw.includes('"/sync.js?v=4"'));
+  assert.ok(sw.includes('"/sync.js?v=5"'));
 });
 
 test("sync card remains visually light and independent of the application dark theme", () => {
