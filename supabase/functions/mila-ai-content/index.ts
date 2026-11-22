@@ -127,29 +127,32 @@ async function releaseLease(cacheKey: string, leaseToken: string): Promise<void>
   }
 }
 
-async function reportContent(cacheKey: string, cors: Record<string, string>): Promise<Response> {
-  const query = new URLSearchParams({
-    cache_key: `eq.${cacheKey}`,
-    status: "eq.ready"
+async function reportContent(
+  cacheKey: string,
+  userId: string,
+  cors: Record<string, string>
+): Promise<Response> {
+  const response = await supabaseRest("rpc/record_mila_ai_content_report", {
+    method: "POST",
+    body: JSON.stringify({
+      p_cache_key: cacheKey,
+      p_user_id: userId,
+      p_min_reports: 3
+    })
   });
-  const response = await supabaseRest(`ai_learning_content?${query.toString()}`, {
-    method: "PATCH",
-    headers: { "Prefer": "return=representation" },
-    body: JSON.stringify({ status: "reported", updated_at: new Date().toISOString() })
-  });
-  if (!response.ok) return json({ code: "storage_unavailable" }, 503, cors);
-  const rows = await response.json();
-  if (!Array.isArray(rows) || rows.length === 0) {
-    const existingQuery = new URLSearchParams({ cache_key: `eq.${cacheKey}`, select: "status" });
-    const existing = await supabaseRest(`ai_learning_content?${existingQuery.toString()}`, { method: "GET" });
-    if (!existing.ok) return json({ code: "storage_unavailable" }, 503, cors);
-    const current = await existing.json();
-    if (Array.isArray(current) && current[0]?.status === "reported") {
-      return json({ status: "reported" }, 200, cors);
-    }
+  if (!response.ok) return json({ code: "report_storage_unavailable" }, 503, cors);
+
+  const result = await response.json();
+  if (result?.status === "not_found") {
     return json({ code: "content_not_found" }, 404, cors);
   }
-  return json({ status: "reported" }, 200, cors);
+  if (result?.status === "reported") {
+    return json({ status: "reported" }, 200, cors);
+  }
+  if (result?.status === "received") {
+    return json({ status: "received" }, 202, cors);
+  }
+  return json({ code: "invalid_report_response" }, 503, cors);
 }
 
 async function storeUserConsent(userId: string, accepted: boolean): Promise<boolean> {
@@ -393,7 +396,7 @@ Deno.serve(async request => {
   }
 
   if (action === "report") {
-    return await reportContent(cacheKey, cors);
+    return await reportContent(cacheKey, userId, cors);
   }
 
   let consent: boolean | null;
