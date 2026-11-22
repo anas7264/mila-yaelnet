@@ -118,5 +118,5 @@ test("sync tears down realtime offline and restores it after connectivity return
 
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v17"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v18"'));
 });
