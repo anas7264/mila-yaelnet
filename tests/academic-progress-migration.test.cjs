@@ -138,3 +138,48 @@ test("missing legacy academic state leaves migration pending and does not mark i
   assert.equal(result.pending, true);
   assert.equal(result.state.migrations.academicProgressV1, undefined);
 });
+
+test("adaptive cards, saved queue, retries, and results remap old academic IDs without losing attempts", () => {
+  const Engine = require("../static/adaptive-engine.js");
+  const state = Engine.createState();
+  state.progress["academic-duplicate"] = {
+    heToAr: { attempts: 2, correct: 1, incorrect: 1, failures: 1, priority: 4, lastSeenAt: 100 },
+    arToHe: { attempts: 1, correct: 1, incorrect: 0, consecutiveCorrect: 1, lastSeenAt: 200, lastResult: "correct" }
+  };
+  state.progress["canonical-stage-word"] = {
+    heToAr: { attempts: 5, correct: 4, incorrect: 1, failures: 1, priority: 2, lastSeenAt: 300 },
+    arToHe: { attempts: 3, correct: 2, incorrect: 1, failures: 1, priority: 3, lastSeenAt: 250 }
+  };
+  state.session = {
+    id: "adaptive-preserved", direction: "he-ar",
+    queue: ["academic-duplicate", "canonical-stage-word", "academic-duplicate"],
+    cursor: 1, cycle: 2, retryCounts: { "academic-duplicate": 2 },
+    answered: true, paused: true, questionId: "adaptive-preserved:2:1:canonical-stage-word",
+    attempts: 3, correct: 2, incorrect: 1, startedAt: 50,
+    results: [{ questionId: "q-old", wordId: "academic-duplicate", correct: false, at: 100, direction: "he-ar" }],
+    wrongWordIds: ["academic-duplicate"],
+    lastResult: { wordId: "academic-duplicate", correct: false, at: 100 }
+  };
+
+  const result = Engine.migrateWordIds(state, { "academic-duplicate": "canonical-stage-word" });
+  assert.equal(result.migrated, true);
+  assert.equal(result.mappedProgressCount, 1);
+  assert.equal(result.mappedSessionReferenceCount, 3);
+  assert.equal(result.state.progress["academic-duplicate"], undefined);
+  assert.equal(result.state.progress["canonical-stage-word"].heToAr.attempts, 7);
+  assert.equal(result.state.progress["canonical-stage-word"].heToAr.correct, 5);
+  assert.equal(result.state.progress["canonical-stage-word"].heToAr.incorrect, 2);
+  assert.equal(result.state.progress["canonical-stage-word"].arToHe.attempts, 4);
+  assert.deepEqual(result.state.session.queue, [
+    "canonical-stage-word", "canonical-stage-word", "canonical-stage-word"
+  ]);
+  assert.equal(result.state.session.retryCounts["canonical-stage-word"], 2);
+  assert.equal(result.state.session.results[0].wordId, "canonical-stage-word");
+  assert.deepEqual(result.state.session.wrongWordIds, ["canonical-stage-word"]);
+  assert.equal(result.state.session.lastResult.wordId, "canonical-stage-word");
+  const reloaded = Engine.normalizeState(JSON.parse(JSON.stringify(result.state)));
+  assert.equal(reloaded.migrations.academicWordIdsV1, true);
+  const repeated = Engine.migrateWordIds(reloaded, { "academic-duplicate": "canonical-stage-word" });
+  assert.equal(repeated.alreadyMigrated, true);
+  assert.equal(repeated.state.progress["canonical-stage-word"].heToAr.attempts, 7);
+});
