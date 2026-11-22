@@ -18,6 +18,25 @@
 
   function collectWords() {
     const core = window.YaelCatalog?.officialWords?.() || [];
+    const legacyAcademicTerms = window.YaelAcademicTerms || [];
+    if (legacyAcademicTerms.length) {
+      const byHebrew = new Map();
+      for (const word of core) {
+        const key = Engine.normalizeText(word.he);
+        if (key && !byHebrew.has(key)) byHebrew.set(key, word);
+      }
+      const idMap = new Map();
+      for (const term of legacyAcademicTerms) {
+        const canonical = byHebrew.get(Engine.normalizeText(term.he));
+        if (canonical && canonical.id !== term.id) idMap.set(term.id, canonical.id);
+      }
+      const migration = Engine.migrateWordIds(state, idMap);
+      if (migration.migrated) {
+        const previous = state;
+        state = migration.state;
+        if (!save()) state = previous;
+      }
+    }
     let extras = [];
     try {
       const legacy = window.YaelStorage?.loadState?.(localStorage, core);
