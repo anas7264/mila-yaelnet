@@ -824,6 +824,25 @@
     }
     const wordsMap = wordMap();
     const targetIds = sessionData.questions.map((q) => q.targetWordId);
+    // Persist only JSON-safe settings; never serialize runtime objects or callbacks.
+    const persistableConfig = {
+      mode,
+      source: typeof config.source === "string" ? config.source : "all",
+      stageId: typeof config.stageId === "string" ? config.stageId : null,
+      stageIds: Array.isArray(config.stageIds) ? config.stageIds.filter((id) => typeof id === "string") : [],
+      scopeStageOnly: config.scopeStageOnly === true,
+      excludeMastered: config.excludeMastered === true,
+      search: typeof config.search === "string" ? config.search : "",
+      category: typeof config.category === "string" ? config.category : "all",
+      count: config.count === "all" ? "all" : (Number(config.count) || targetWords.length),
+      optionCount: Number(config.optionCount) || adaptiveOptions,
+      difficulty,
+      timerSeconds: Math.max(0, Number(config.timerSeconds) || 0),
+      feedback: config.feedback === "end" ? "end" : "instant",
+      shuffle: config.shuffle !== false,
+      noRepeat: config.noRepeat !== false,
+      distractorScope: config.distractorScope === "question-source" ? "question-source" : "library"
+    };
     ui.session = {
       id: sessionData.id,
       title,
@@ -841,18 +860,7 @@
       remainingSeconds: mode === "matching" ? 0 : (Number(config.timerSeconds) || 0),
       startedAt: Date.now(),
       currentAdaptiveOptions: Number(config.optionCount) || adaptiveOptions,
-      config: {
-        source: config.source || "all",
-        difficulty,
-        feedback: config.feedback === "end" ? "end" : "instant",
-        distractorScope: config.distractorScope || "library",
-        shuffle: config.shuffle !== false,
-        noRepeat: config.noRepeat !== false,
-        optionCount: Number(config.optionCount) || adaptiveOptions,
-        timerSeconds: Number(config.timerSeconds) || 0,
-        mode,
-        targetCount: targetIds.length
-      },
+      config: { ...persistableConfig, mode, targetCount: targetIds.length },
       distractorPool: pool,
       warnings: sessionData.warnings,
       matchState: null,

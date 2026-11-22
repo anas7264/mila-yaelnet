@@ -1,4 +1,4 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController}from'./sync-core.mjs?v=3';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle}from'./sync-core.mjs?v=3';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
@@ -24,9 +24,9 @@ if(!C.url||!C.publishableKey){setStatus('خدمة المزامنة غير مهي
 else if(!createClient){setStatus('تعذر تشغيل المزامنة: '+(initializationError?.message||'لم يتم تحميل مكتبة Supabase المحلية.'),'error');card$('mila-sync-retry').hidden=false}
 else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
-const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
+const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
-let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING));
+let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve();
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>{const e=card$('mila-sync-status');if(e){e.textContent=m;e.dataset.state=s}},emailRedirect=()=>buildEmailRedirect(location.origin);
 const writeMeta=(r,v)=>{revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,deviceId:device,updatedAt:new Date().toISOString()}))};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
@@ -38,8 +38,40 @@ const loginSync=async()=>{status('جارٍ مقارنة بيانات هذا ال
 const flush=async()=>{if(!session||!navigator.onLine||conflict)return;const l=snap();if(baseline&&isSameSnapshot(l,baseline)&&!pending)return;status('جارٍ حفظ التعديلات في السحابة…');try{const r=await save(l,revision);if(r.conflict){showConflict(l,r.data.state,r.data.revision);return}status('تمت مزامنة آخر التعديلات.','ok')}catch(e){pending=l;localStorage.setItem(PENDING,JSON.stringify(l));status('تعذرت المزامنة الآن؛ حُفظت التعديلات محليًا وستعاد المحاولة. '+(e.message||''),'error')}};
 const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;clearTimeout(timer);timer=setTimeout(flush,900)};
 const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(dirty||(baseline&&!isSameSnapshot(l,baseline))){showConflict(l,r.state,r.revision);return}try{apply(r.state);writeMeta(r.revision,r.state);location.reload()}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
-const subscribe=()=>{if(channel)sb.removeChannel(channel);channel=sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new)).subscribe(s=>{if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')status('التحديث الفوري غير مستقر؛ المزامنة اليدوية متاحة.','error')})};
-const activate=async s=>{session=s;setAuth(s?.user||null);if(channel){await sb.removeChannel(channel);channel=null}if(!s){clearConflict();status('غير متصل — بياناتك محفوظة على هذا الجهاز.');return}try{await loginSync();subscribe()}catch(e){status('تعذر تحميل بيانات السحابة: '+(e.message||e),'error')}};
+const pauseRealtime=()=>{
+const active=channel;channel=null;
+if(!active)return realtimeCleanup;
+try{realtimeCleanup=Promise.resolve(sb.removeChannel(active)).catch(()=>{});return realtimeCleanup}
+catch{return Promise.resolve()}
+};
+const subscribe=()=>{
+if(!session?.user?.id||navigator.onLine===false||document.visibilityState==='hidden'||channel)return;
+const nextChannel=sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new));
+channel=nextChannel;
+nextChannel.subscribe(s=>{if(channel!==nextChannel)return;if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')status('التحديث الفوري غير مستقر؛ المزامنة اليدوية متاحة.','error')});
+};
+const recoverOnline=async()=>{
+if(!session||navigator.onLine===false||document.visibilityState==='hidden')return;
+if(recoveryPromise)return recoveryPromise;
+recoveryPromise=(async()=>{
+try{
+if(!syncReady){await loginSync();syncReady=true;}
+await realtimeCleanup;
+subscribe();
+await flush();
+}catch(e){status('تعذر استئناف المزامنة: '+(e.message||e),'error')}
+})().finally(()=>{recoveryPromise=null});
+return recoveryPromise;
+};
+const activate=async s=>{
+const previousUserId=session?.user?.id;
+if(previousUserId!==s?.user?.id)syncReady=false;
+session=s;setAuth(s?.user||null);
+await pauseRealtime();
+if(!s){syncReady=false;clearConflict();status('غير متصل — بياناتك محفوظة على هذا الجهاز.');return}
+if(navigator.onLine===false){status('لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة عند عودة الاتصال.','info');return}
+await recoverOnline();
+};
 const creds=()=>({email:card$('mila-sync-email').value.trim(),password:card$('mila-sync-password').value});
 card$('mila-sync-login').onclick=async()=>{const{email,password}=creds();if(!email||!password)return status('أدخل البريد الإلكتروني وكلمة المرور.','error');status('جارٍ تسجيل الدخول…');const{data,error}=await sb.auth.signInWithPassword({email,password});if(error)return status(error.message,'error');await activate(data.session)};
 card$('mila-sync-signup').onclick=async()=>{const{email,password}=creds();if(!email||password.length<8)return status('أدخل بريدًا صحيحًا وكلمة مرور من 8 أحرف على الأقل.','error');status('جارٍ إرسال رسالة تأكيد الحساب…');const{data,error}=await sb.auth.signUp({email,password,options:{emailRedirectTo:emailRedirect()}});if(error)return status(error.message,'error');if(!data.session){card$('mila-sync-resend').hidden=false;status('أُنشئ الحساب. افتح رسالة التأكيد التي أرسلناها. إذا انتهت صلاحية الرابط يمكنك طلب رسالة جديدة.','ok');return}await activate(data.session)};
@@ -51,7 +83,18 @@ const set=Storage.prototype.setItem,remove=Storage.prototype.removeItem,clear=St
 Storage.prototype.setItem=function(k,v){set.call(this,k,v);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
 Storage.prototype.removeItem=function(k){remove.call(this,k);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
 Storage.prototype.clear=function(){clear.call(this);if(this===localStorage)schedule()};
-addEventListener('storage',e=>{if(e.storageArea===localStorage&&e.key&&!isInternalStorageKey(e.key))schedule()});addEventListener('online',()=>{if(session)flush()});addEventListener('offline',()=>{if(session)status('لا يوجد اتصال. ستُحفظ التعديلات محليًا حتى عودة الإنترنت.','error')});
+addEventListener('storage',e=>{if(e.storageArea===localStorage&&e.key&&!isInternalStorageKey(e.key))schedule()});
+createNetworkLifecycle({
+auth:sb.auth,
+windowRef:window,
+documentRef:document,
+navigatorRef:navigator,
+onOffline:()=>{
+void pauseRealtime();
+if(session)status('لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة تلقائيًا.','info');
+},
+onOnline:()=>{void recoverOnline()}
+});
 if(isExpiredConfirmation(location.search)){status('انتهت صلاحية رابط تأكيد البريد أو استُخدم سابقًا. أدخل بريدك واطلب رسالة جديدة.','error');card$('mila-sync-resend').hidden=false}else if(new URLSearchParams(location.search).has('error')){status(new URLSearchParams(location.search).get('error_description')||'تعذر تأكيد البريد. اطلب رابطًا جديدًا.','error');card$('mila-sync-resend').hidden=false}
 const m=meta();revision=Number.isInteger(m.revision)?m.revision:0;baseline=m.baseline||null;const{data,error}=await sb.auth.getSession();if(error)status('تعذر استعادة الجلسة: '+error.message,'error');else await activate(data.session);sb.auth.onAuthStateChange((e,s)=>{if(s?.user?.id!==session?.user?.id)queueMicrotask(()=>activate(s))});
 }
