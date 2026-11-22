@@ -396,7 +396,9 @@ test("adaptive exit restores the existing platform view without reloading the do
   assert.match(app, /function returnToPlatform\(\)[\s\S]*?render\(\);[\s\S]*?return true/);
   assert.match(app, /function pausePlatformSessionForAdaptive\(\)[\s\S]*?pauseSession\(\)/);
   assert.match(app, /window\.MilaLearningBridge = Object\.freeze\([\s\S]*?pausePlatformSessionForAdaptive[\s\S]*?returnToPlatform/);
-  assert.match(adaptive, /pausePlatformSessionForAdaptive\?\.\(\)/);
+  assert.match(adaptive, /const adaptiveViewActive = Boolean\(\$\("appView"\)\?\.querySelector\?\.\("\.adaptive-study"\)\)/);
+  assert.match(app, /\$\("adaptiveNavButton"\)\?\.classList\.remove\("active"\)/);
+  assert.match(adaptive, /pausePlatformSessionForAdaptive\?\.\(\)[\s\S]*?openMode\(\)/);
   assert.match(adaptive, /window\.MilaLearningBridge\?\.returnToPlatform\?\.\(\)/);
   assert.doesNotMatch(adaptive, /window\.location\.reload\(\)/);
   assert.match(adaptive, /const previousState = state/);
