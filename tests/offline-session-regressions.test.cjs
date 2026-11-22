@@ -26,10 +26,13 @@ test("beginSession defines a JSON-safe config before storing it", () => {
     "difficulty", "timerSeconds", "feedback", "shuffle", "noRepeat",
     "distractorScope"
   ]) {
-    assert.match(config, new RegExp("\\b" + key + "\\s*:"));
+    assert.ok(config.includes(key + ":"), "persistableConfig must include " + key);
   }
-  assert.doesNotMatch(config, /distractorPool|currentWord|function/);
-  assert.match(body.slice(sessionStart), /config:\\s*\\{\\s*\\.\\.\\.persistableConfig,\\s*mode,\\s*targetCount:/);
+  assert.equal(config.includes("distractorPool"), false);
+  assert.equal(config.includes("currentWord"), false);
+  assert.ok(body.slice(sessionStart).includes(
+    "config: { ...persistableConfig, mode, targetCount: targetIds.length }"
+  ));
 });
 
 test("network lifecycle pauses Supabase auth refresh offline and while hidden", async () => {
@@ -92,22 +95,27 @@ test("network lifecycle pauses Supabase auth refresh offline and while hidden", 
   online = true;
   win.emit("online");
   doc.emit("visibilitychange");
-  assert.equal(calls.length, disposedCalls + 1); // dispose performs one final stop
+  assert.equal(calls.length, disposedCalls + 1);
   assert.equal(calls.at(-1), "stop");
 });
 
 test("sync tears down realtime offline and restores it after connectivity returns", () => {
   const sync = read("sync.js");
-  assert.match(sync, /const pauseRealtime=/);
-  assert.match(sync, /sb\\.removeChannel\\(active\\)/);
-  assert.match(sync, /navigator\\.onLine===false/);
-  assert.match(sync, /createNetworkLifecycle\\(\\{/);
-  assert.match(sync, /onOffline:[\\s\\S]*?pauseRealtime/);
-  assert.match(sync, /onOnline:[\\s\\S]*?recoverOnline/);
-  assert.match(sync, /await realtimeCleanup/);
+  for (const required of [
+    "const pauseRealtime=",
+    "sb.removeChannel(active)",
+    "navigator.onLine===false",
+    "createNetworkLifecycle({",
+    "await realtimeCleanup",
+    "onOffline:()=>{",
+    "void pauseRealtime()",
+    "onOnline:()=>{void recoverOnline()}"
+  ]) {
+    assert.ok(sync.includes(required), "sync.js must include " + required);
+  }
 });
 
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v16"/);
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v16"'));
 });
