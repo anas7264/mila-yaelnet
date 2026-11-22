@@ -162,3 +162,12 @@ test("Gemini configuration selects the documented free translation model", async
   assert.match(edge, /DEFAULT_MODEL/);
   assert.doesNotMatch(edge, /gemini-3\\.8-flash/);
 });
+
+test("AI content consent can be revoked locally without touching learning progress", () => {
+  assert.match(aiClient, /function revokeConsent\(card\)/);
+  assert.match(aiClient, /localStorage\.removeItem\(CONSENT_KEY\)/);
+  assert.match(aiClient, /target\.replaceChildren\(\)/);
+  assert.match(aiClient, /data-mila-ai-disable/);
+  assert.doesNotMatch(aiClient, /localStorage\.clear\(/);
+  assert.doesNotMatch(aiClient, /mila-yaelnet-studio-v3|learning_state/);
+});
