@@ -7,6 +7,7 @@ Mila is a browser-based Hebrew vocabulary and YAELNET learning workspace. The cu
 - Main vocabulary workspace with stages, custom vocabulary, review, analytics, and settings.
 - 377 academic terms in a dedicated section and shared global vocabulary/review map.
 - 1,050 supplied vocabulary entries across 21 thematic groups, integrated into the main library, custom practice, typed answers, and adaptive recall. Repeated Hebrew headwords are consolidated into one trainable entry while their topic tags and distinct glosses are retained.
+- 1,250 additional unique Hebrew headwords arranged in 10 progressive learning stages (from daily vocabulary to advanced reading and analytical expressions). The new stages are part of the official stage path, independent stage quizzes, progress, mistakes, review, and adaptive practice.
 - Adaptive active recall in both directions: Hebrew → Arabic and Arabic → Hebrew.
 - Direction-specific adaptive scheduling and short-term retry queue (2–4 intervening questions, at most 3 retries per word per cycle).
 - Resumable adaptive sessions with duplicate/stale answer protection.
