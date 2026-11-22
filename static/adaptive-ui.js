@@ -15,7 +15,6 @@
   let state = normalize(localStorage.getItem(STORAGE_KEY));
   let words = [];
   let wordMap = new Map();
-  let opened = false;
 
   function collectWords() {
     const core = window.YaelCatalog?.officialWords?.() || [];
@@ -202,7 +201,6 @@
   }
 
   function openMode() {
-    opened = true;
     setNavActive(true);
     if (state.session && !state.session.paused) renderSession();
     else renderHome();
@@ -262,11 +260,9 @@
           return;
         }
       }
-      opened = false;
       setNavActive(false);
       const restored = window.MilaLearningBridge?.returnToPlatform?.();
       if (!restored) {
-        opened = true;
         setNavActive(true);
         try {
           if (state.session) renderSession();
@@ -335,12 +331,11 @@
     if (open) {
       event.preventDefault();
       try {
-        if (!opened) {
-          // Do not let a hidden main-app quiz timer continue while adaptive
-          // training replaces its view.
-          window.MilaLearningBridge?.pausePlatformSessionForAdaptive?.();
-          openMode();
-        } else renderHome();
+        // Always route through openMode so the adaptive nav state is restored
+        // even after the user navigates back to a platform page.
+        // A hidden main-app quiz must not keep counting down in the background.
+        window.MilaLearningBridge?.pausePlatformSessionForAdaptive?.();
+        openMode();
       } catch (error) {
         console.error("Adaptive navigation failed:", error);
         toast("تعذر فتح التدريب التكيفي: " + (error?.message || "خطأ غير متوقع"), true);
@@ -367,7 +362,8 @@
   document.addEventListener("keydown", event => {
     const isForgotShortcut = event.altKey && !event.ctrlKey && !event.metaKey &&
       !event.shiftKey && event.code === "KeyN";
-    if (!isForgotShortcut || !opened || !state.session ||
+    const adaptiveViewActive = Boolean($("appView")?.querySelector?.(".adaptive-study"));
+    if (!isForgotShortcut || !adaptiveViewActive || !state.session ||
         state.session.paused || state.session.answered) return;
     event.preventDefault();
     event.stopPropagation();
