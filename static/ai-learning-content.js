@@ -264,9 +264,25 @@
       }
 
       if (cached?.payload) {
-        renderPayload(card, cached.payload);
-        setStatus(card, "تم تحميل المحتوى من الذاكرة المحلية بعد التحقق من موافقة الحساب.", "ok");
-        return;
+        const remoteStatus = await invoke(wordId, "check-content");
+        if (remoteStatus?.status === "ready") {
+          renderPayload(card, cached.payload);
+          setStatus(card, "تم تحميل المحتوى من الذاكرة المحلية بعد التحقق من موافقة الحساب وصلاحية المحتوى المشترك.", "ok");
+          return;
+        }
+        if (remoteStatus?.status === "unavailable") {
+          await storeOperation("readwrite", key, null);
+          const target = card.querySelector("[data-mila-ai-content]");
+          if (target) target.hidden = true;
+          setStatus(card, "أوقفنا عرض هذا المحتوى المشترك بعد مراجعة البلاغات.", "error");
+          return;
+        }
+        if (!["pending", "not_found"].includes(String(remoteStatus?.status))) {
+          const error = new Error(remoteStatus?.code || "cache_status_unavailable");
+          error.code = remoteStatus?.code || "cache_status_unavailable";
+          throw error;
+        }
+        await storeOperation("readwrite", key, null);
       }
 
       setStatus(card, "جارٍ إعداد المثال والشرح لهذه المفردة…");
