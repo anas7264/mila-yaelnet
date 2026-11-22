@@ -613,3 +613,54 @@ test("stage workspace eyebrow interpolates the numeric stage and has no quoted p
   assert.match(app, /pageHead\(`STAGE WORKSPACE · \$\{stage\.number\}`/);
   assert.doesNotMatch(app, /pageHead\("STAGE WORKSPACE · \$\{stage\.number\}"/);
 });
+
+
+test("main learning progress auto-masters after three spaced successes and keeps mastery on a later miss", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    documentElement: { dataset: {} },
+    getElementById() { return null; },
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "mastery-test-uuid" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  appSource = appSource.replace("  initialize();\\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\\n})();");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const bridge = context.__MilaTestBridge;
+  const word = context.YaelCatalog.officialWords()[0];
+  assert.ok(word?.id);
+
+  for (let i = 0; i < 3; i += 1) {
+    const result = bridge.recordAdaptiveAnswer({ eventId: "mastery-correct-" + i, wordId: word.id, correct: true });
+    assert.equal(result.accepted, true);
+  }
+  let saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(saved.progress[word.id].repetitions, 3);
+  assert.ok(saved.progress[word.id].intervalDays >= 6);
+  assert.equal(saved.progress[word.id].mastered, true);
+
+  const restored = context.MilaStorage.loadState(storage, context.YaelCatalog.officialWords());
+  assert.equal(restored.progress[word.id].mastered, true);
+
+  const laterMiss = bridge.recordAdaptiveAnswer({ eventId: "mastery-later-miss", wordId: word.id, correct: false });
+  assert.equal(laterMiss.accepted, true);
+  saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(saved.progress[word.id].mastered, true);
+});

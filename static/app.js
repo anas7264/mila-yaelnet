@@ -672,6 +672,7 @@
     };
     const schedule = ENGINE.scheduleReview(previous, correct ? "good" : "again", now);
     Object.assign(next, schedule);
+    if (correct && next.repetitions >= 3 && next.intervalDays >= 6) next.mastered = true;
     state.progress[wordId] = next;
     if (!correct) {
       state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: source || ui.session?.title || "جلسة تدريب" });
