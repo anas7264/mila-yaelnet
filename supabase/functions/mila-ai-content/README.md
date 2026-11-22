@@ -63,3 +63,15 @@ Production read-only inspection lists two earlier database migrations:
 - `20261114160330_harden_learning_state_rpc_with_invoker_rls`
 
 Their SQL source files were not found in the repository during implementation. Before applying the new AI cache migration anywhere through the Supabase CLI, recover the exact original SQL, commit it, and reconcile the remote migration history against the schema. Do not synthesize replacement versions, reset history, or apply the AI migration to production.
+
+## Account-level consent
+
+The function now records consent in the separate `public.ai_user_consents` table. The browser sends one of these actions:
+
+- `consent`: record the current consent version and acceptance timestamp for the authenticated user.
+- `consent-status`: check whether the authenticated account has an active record for the current consent version.
+- `revoke-consent`: mark the current consent as revoked for the account.
+- `generate`: rejected unless the server-side consent record is active.
+- `report`: report a cached item; it does not send content to Gemini.
+
+The table stores only the authenticated account UUID, consent version, and timestamps. It stores no vocabulary, prompt, answer, session or history fields, and is never sent to Google. The account-level record allows revocation to take effect on other devices the next time they connect. While a device is offline, it can only consult its local consent flag and locally cached non-personal learning content; it cannot observe a revocation made on another device until it reconnects.
