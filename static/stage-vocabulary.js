@@ -1453,17 +1453,104 @@
   }
 
   catalog.stages.push(...addedStages);
+
+  const academicStageDefinitions = [
+    { subtitle: "مفاهيم ومصطلحات أساسية تُستخدم في القراءة الأكاديمية", description: "مصطلحات عامة تساعد على فهم النصوص الجامعية والتفسيرية.", color: "gold" },
+    { subtitle: "الرياضيات والفيزياء والمفاهيم الكمية", description: "مصطلحات علمية ورياضية لفهم المسائل والنصوص العلمية.", color: "blue" },
+    { subtitle: "الكهرباء والإلكترونيكا والدوائر", description: "مصطلحات هندسية وتقنية في الكهرباء والمكوّنات والأنظمة الإلكترونية.", color: "teal" },
+    { subtitle: "الحاسوب والبرمجة والأنظمة المدمجة", description: "مفاهيم الحوسبة والبرمجة والبيانات والأنظمة الرقمية.", color: "purple" },
+    { subtitle: "أفعال وصفات وتراكيب أكاديمية", description: "أفعال وصفات شائعة في صياغة النصوص والحجج والشرح الأكاديمي.", color: "green" }
+  ];
+  const stageWordMap = new Map();
+  for (const stage of catalog.stages) {
+    for (const word of stage.words) {
+      const key = normalize(word.he);
+      if (key && !stageWordMap.has(key)) stageWordMap.set(key, word);
+    }
+  }
+
+  const academicStages = [];
+  const mergedAcademicTerms = [];
+  const invalidAcademicTerms = [];
+  for (let groupIndex = 0; groupIndex < academicGroups.length; groupIndex += 1) {
+    const group = academicGroups[groupIndex];
+    const stageDefinition = academicStageDefinitions[groupIndex] || {};
+    const stageId = "stage-academic-" + group.id;
+    const words = [];
+    for (const term of group.terms) {
+      const he = String(term?.he || "").trim();
+      const ar = String(term?.ar || "").trim();
+      const key = normalize(he);
+      if (!key || !ar || !term?.id) {
+        invalidAcademicTerms.push({ groupId: group.id, id: term?.id || null });
+        continue;
+      }
+
+      const existing = stageWordMap.get(key);
+      if (existing) {
+        const oldGloss = String(existing.ar || "").trim();
+        if (oldGloss && !oldGloss.includes(ar)) existing.ar = oldGloss + " / " + ar;
+        else if (!oldGloss) existing.ar = ar;
+        existing.topics = [...new Set([...(Array.isArray(existing.topics) ? existing.topics : []), group.title])];
+        existing.academicGroups = [...new Set([...(Array.isArray(existing.academicGroups) ? existing.academicGroups : []), group.id])];
+        mergedAcademicTerms.push({ termId: term.id, canonicalWordId: existing.id, groupId: group.id });
+        continue;
+      }
+
+      const word = {
+        id: String(term.id),
+        he,
+        ar,
+        category: group.title,
+        level: "أكاديمي",
+        groupId: group.id,
+        groupTitle: group.title,
+        academicGroups: [group.id],
+        stageId,
+        stageTitle: group.title,
+        source: "stage"
+      };
+      words.push(word);
+      stageWordMap.set(key, word);
+    }
+
+    academicStages.push({
+      id: stageId,
+      number: 12 + groupIndex,
+      title: group.title,
+      subtitle: stageDefinition.subtitle || group.title,
+      description: stageDefinition.description || group.title,
+      color: stageDefinition.color || "blue",
+      words
+    });
+  }
+  catalog.stages.push(...academicStages);
+
   globalThis.YaelAdditionalStagesMeta = Object.freeze({
     stageCount: addedStages.length,
-    candidateCount: definitions.reduce((sum, item) => sum + item.rows.split(/\r?\n/).filter(line => line.trim()).length, 0),
+    candidateCount: definitions.reduce((sum, item) => sum + item.rows.split(/\\r?\\n/).filter(line => line.trim()).length, 0),
     addedWordCount: addedStages.reduce((sum, stage) => sum + stage.words.length, 0),
     duplicateCount: duplicateRows.length,
     invalidCount: invalidRows.length,
     duplicates: duplicateRows,
     invalidRows
   });
+  globalThis.YaelAcademicStagesMeta = Object.freeze({
+    stageCount: academicStages.length,
+    rawTermCount: academicGroups.reduce((sum, group) => sum + group.terms.length, 0),
+    addedWordCount: academicStages.reduce((sum, stage) => sum + stage.words.length, 0),
+    mergedTermCount: mergedAcademicTerms.length,
+    invalidCount: invalidAcademicTerms.length,
+    mergedTerms: mergedAcademicTerms,
+    invalidTerms: invalidAcademicTerms
+  });
 
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { stages: addedStages, meta: globalThis.YaelAdditionalStagesMeta };
+    module.exports = {
+      stages: addedStages,
+      academicStages,
+      meta: globalThis.YaelAdditionalStagesMeta,
+      academicMeta: globalThis.YaelAcademicStagesMeta
+    };
   }
 })();
