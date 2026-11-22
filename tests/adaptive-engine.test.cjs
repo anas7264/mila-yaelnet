@@ -300,6 +300,96 @@ test("main learning bridge records adaptive answers, review errors and sessions 
   assert.deepEqual(afterSession.lastSessionSummary.wrongWordIds, ["academic-001"]);
 });
 
+test("returnToPlatform renders newly saved adaptive answers and analytics in the existing view", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const values = new Map();
+  const listeners = new Map();
+  const makeClassList = () => ({
+    toggle() {}, add() {}, remove() {}, contains() { return false; }
+  });
+  const nodes = new Map();
+  const getNode = (id) => {
+    if (!nodes.has(id)) nodes.set(id, {
+      id, innerHTML: "", textContent: "", hidden: false, className: "",
+      dataset: {}, classList: makeClassList(), addEventListener() {},
+      remove() {}, focus() {}, setAttribute() {}, appendChild() {}
+    });
+    return nodes.get(id);
+  };
+  class FakeElement {
+    constructor(dataset = {}) { this.dataset = dataset; this.disabled = false; }
+    closest() { return this; }
+    getAttribute() { return null; }
+  }
+  const document = {
+    body: { classList: makeClassList(), appendChild() {} },
+    documentElement: { dataset: {} },
+    getElementById: getNode,
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, []);
+      listeners.get(type).push(callback);
+    }
+  };
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const context = {
+    document, localStorage: storage, console, Element: FakeElement,
+    navigator: {}, crypto: { randomUUID: () => "live-return-test" },
+    scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  vm.runInContext(fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8"), context, { filename: "static/app.js" });
+  context.MilaAdaptiveEngine = Engine;
+  const word = context.YaelCatalog.officialWords()[0];
+  assert.ok(word?.id);
+
+  const click = (listeners.get("click") || [])[0];
+  assert.equal(typeof click, "function");
+  click({ target: new FakeElement({ view: "analytics" }), preventDefault() {} });
+  assert.ok(getNode("appView").innerHTML.includes("التحليلات والأداء"));
+
+  const answer = context.MilaLearningBridge.recordAdaptiveAnswer({
+    eventId: "live-answer-one", wordId: word.id, correct: false, at: 1000
+  });
+  assert.equal(answer.accepted, true);
+  const duplicate = context.MilaLearningBridge.recordAdaptiveAnswer({
+    eventId: "live-answer-one", wordId: word.id, correct: false, at: 1000
+  });
+  assert.equal(duplicate.duplicate, true);
+
+  const adaptive = Engine.createState();
+  adaptive.progress[word.id] = {
+    heToAr: { attempts: 1, correct: 0, incorrect: 1, priority: 3, failures: 1 },
+    arToHe: {}
+  };
+  values.set("mila-yaelnet-adaptive-v1", JSON.stringify(adaptive));
+  const summary = context.MilaLearningBridge.recordAdaptiveSession({
+    sessionId: "live-return-session", direction: "he-ar", startedAt: 500,
+    finishedAt: 1500, total: 1, correct: 0, wrongWordIds: [word.id]
+  });
+  assert.equal(summary.accepted, true);
+
+  assert.equal(context.MilaLearningBridge.returnToPlatform(), true);
+  const html = getNode("appView").innerHTML;
+  assert.ok(html.includes("أداء التدريب التكيفي"));
+  assert.ok(html.includes("آخر جلسات التدريب التكيفي"));
+  assert.ok(html.includes("التدريب التكيفي · عبري إلى عربي"));
+  assert.match(html, /<strong>1<\\/strong>/);
+  const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(saved.progress[word.id].attempts, 1);
+  assert.equal(saved.progress[word.id].incorrect, 1);
+  assert.equal(saved.sessions.filter((session) => session.id === "adaptive-live-return-session").length, 1);
+});
+
 test("adaptive exit restores the existing platform view without reloading the document", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   const adaptive = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
