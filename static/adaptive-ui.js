@@ -253,9 +253,16 @@
     if (action === "exit") {
       if (state.session) {
         state = Engine.setPaused(state, true);
-        save();
+        if (!save()) return;
       }
-      window.location.reload();
+      opened = false;
+      setNavActive(false);
+      const restored = window.MilaLearningBridge?.returnToPlatform?.();
+      if (!restored) {
+        opened = true;
+        setNavActive(true);
+        toast("تعذرت العودة إلى المنصة دون إعادة تحميل. بقيت جلستك محفوظة؛ حاول مرة أخرى.", true);
+      }
       return;
     }
     if (action === "resume") {
