@@ -55,3 +55,11 @@ The browser supplies no Hebrew/Arabic text. The function resolves the ID from th
 - Database API calls use a server-only credential. Browser users have no direct table grants.
 - Daily and per-minute user caps plus a project-wide daily cap are enforced in a transaction.
 - Client feature flag remains false until the release gate is passed.
+
+## Existing migration-history prerequisite
+
+Production read-only inspection lists two earlier database migrations:
+- `20261114144743_create_private_learning_state_sync`
+- `20261114160330_harden_learning_state_rpc_with_invoker_rls`
+
+Their SQL source files were not found in the repository during implementation. Before applying the new AI cache migration anywhere through the Supabase CLI, recover the exact original SQL, commit it, and reconcile the remote migration history against the schema. Do not synthesize replacement versions, reset history, or apply the AI migration to production.
