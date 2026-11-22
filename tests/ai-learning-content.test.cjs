@@ -164,7 +164,7 @@ test("Gemini configuration selects the documented free translation model", async
 });
 
 test("AI content consent is account-level and revocation never touches learning progress", () => {
-  assert.match(aiClient, /function revokeConsent\(card\)/);
+  assert.match(aiClient, /async function revokeConsent\(card, wordId\)/);
   assert.match(aiClient, /localStorage\.removeItem\(CONSENT_KEY\)/);
   assert.match(aiClient, /target\.replaceChildren\(\)/);
   assert.match(aiClient, /data-mila-ai-disable/);
