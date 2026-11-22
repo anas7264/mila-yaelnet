@@ -118,6 +118,8 @@ test("browser sends only canonical word ID and action; server resolves source te
   assert.match(edge, /x-goog-api-key/);
   assert.match(edge, /MILA_ALLOWED_ORIGINS/);
   assert.match(edge, /MAX_BODY_BYTES/);
+  assert.match(edge, /rpc\/record_mila_ai_content_report/);
+  assert.match(edge, /p_min_reports: 3/);
   assert.doesNotMatch(edge, /console\.log\([^\n]*(?:prompt|payload|authorization|apiKey)/i);
 });
 
@@ -151,6 +153,9 @@ test("AI database migration is isolated and grants no client access", () => {
   assert.match(migration, /alter table public\.ai_learning_content enable row level security/);
   assert.match(migration, /revoke all on table public\.ai_learning_content from public, anon, authenticated/);
   assert.match(migration, /grant select, insert, update, delete on table public\.ai_learning_content to service_role/);
+  assert.match(migration, /create table if not exists public\.ai_learning_content_reports/);
+  assert.match(migration, /primary key \(cache_key, user_id\)/);
+  assert.match(migration, /record_mila_ai_content_report/);
   assert.match(migration, /security invoker/);
   assert.doesNotMatch(migration, /(?:alter|drop|truncate)\s+(?:table|function)\s+(?:public\.)?(?:learning_state|sync_learning_state)/i);
   assert.doesNotMatch(migration, /security definer/);
@@ -217,4 +222,14 @@ test("online cached content is checked against server consent; offline mode uses
   const consentCheck = loader.indexOf('invoke(wordId, "consent-status")');
   const onlineCacheRead = loader.indexOf('if (cached?.payload)', consentCheck);
   assert.ok(consentCheck >= 0 && consentCheck < onlineCacheRead);
+});
+
+
+test("one account cannot suppress shared AI content with a single report", () => {
+  assert.match(edge, /record_mila_ai_content_report/);
+  assert.match(migration, /primary key \(cache_key, user_id\)/);
+  assert.match(migration, /v_report_count >= p_min_reports/);
+  assert.match(client, /result\?\.status === "reported"/);
+  assert.match(client, /result\?\.status === "received"/);
+  assert.match(client, /سيبقى المحتوى متاحًا مؤقتًا/);
 });
