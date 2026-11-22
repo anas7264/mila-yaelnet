@@ -172,6 +172,9 @@
   }
 
   function renderShell() {
+    // The adaptive navigation item is injected separately and has no data-view
+    // attribute, so clear its active state whenever the platform renders.
+    $("adaptiveNavButton")?.classList.remove("active");
     document.querySelectorAll("[data-view]").forEach((button) => {
       button.classList.toggle("active", button.dataset.view === ui.view);
     });
