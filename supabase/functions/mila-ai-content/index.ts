@@ -127,6 +127,33 @@ async function releaseLease(cacheKey: string, leaseToken: string): Promise<void>
   }
 }
 
+async function checkCachedContent(
+  cacheKey: string,
+  cors: Record<string, string>
+): Promise<Response> {
+  const query = new URLSearchParams({
+    cache_key: `eq.${cacheKey}`,
+    select: "status",
+    limit: "1"
+  });
+  const response = await supabaseRest(`ai_learning_content?${query.toString()}`, {
+    method: "GET"
+  });
+  if (!response.ok) return json({ code: "cache_status_unavailable" }, 503, cors);
+
+  const rows = await response.json();
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return json({ status: "not_found" }, 200, cors);
+  }
+  const status = rows[0]?.status;
+  if (status === "ready") return json({ status: "ready" }, 200, cors);
+  if (status === "reported" || status === "rejected") {
+    return json({ status: "unavailable" }, 200, cors);
+  }
+  if (status === "pending") return json({ status: "pending" }, 200, cors);
+  return json({ code: "invalid_cache_status" }, 503, cors);
+}
+
 async function reportContent(
   cacheKey: string,
   userId: string,
@@ -347,7 +374,7 @@ Deno.serve(async request => {
 
   const action = requestBody.action === undefined ? "generate" : requestBody.action;
   if (typeof action !== "string" ||
-      !["generate", "report", "consent", "revoke-consent", "consent-status"].includes(action)) {
+      !["generate", "report", "consent", "revoke-consent", "consent-status", "check-content"].includes(action)) {
     return json({ code: "invalid_action" }, 400, cors);
   }
 
@@ -410,6 +437,10 @@ Deno.serve(async request => {
   }
   if (!consent) {
     return json({ code: "consent_required" }, 403, cors);
+  }
+
+  if (action === "check-content") {
+    return await checkCachedContent(cacheKey, cors);
   }
 
   const leaseToken = crypto.randomUUID();
