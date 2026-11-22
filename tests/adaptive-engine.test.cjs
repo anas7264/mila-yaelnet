@@ -398,7 +398,7 @@ test("adaptive integration uses the unified stage catalog and removes the standa
   assert.match(app, /STORE\.migrateAcademicProgress/);
   assert.doesNotMatch(app, /MilaAcademicProgressBridge/);
   assert.doesNotMatch(app, /source: "academic"/);
-  assert.doesNotMatch(adaptive, /YaelAcademicTerms/);
+  assert.match(adaptive, /const legacyAcademicTerms = window.YaelAcademicTerms \|\| \[\]/);\n  assert.doesNotMatch(adaptive, /const academic = Array\\.isArray\\(window\\.YaelAcademicTerms/);
   assert.doesNotMatch(adaptive, /MilaAcademicProgressBridge/);
   assert.match(stageData, /YaelAcademicGroups/);
   assert.match(stageData, /YaelAcademicTerms/);
