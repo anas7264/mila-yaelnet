@@ -1,4 +1,4 @@
-const CACHE_NAME = "mila-yaelnet-v20";
+const CACHE_NAME = "mila-yaelnet-v21";
 const CORE_ASSETS = [
   "/",
   "/health",
@@ -23,8 +23,8 @@ const CORE_ASSETS = [
   "/static/adaptive-engine.js?v=2",
   "/static/adaptive-ui.js?v=2",
   "/sync-config.js?v=3",
-  "/sync.js?v=5",
-  "/sync-core.mjs?v=3",
+  "/sync.js?v=6",
+  "/sync-core.mjs?v=4",
   "/sync-settings-core.mjs?v=3"
 ];
 
