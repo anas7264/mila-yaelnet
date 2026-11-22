@@ -24,7 +24,7 @@ if(!C.url||!C.publishableKey){setStatus('خدمة المزامنة غير مهي
 else if(!createClient){setStatus('تعذر تشغيل المزامنة: '+(initializationError?.message||'لم يتم تحميل مكتبة Supabase المحلية.'),'error');card$('mila-sync-retry').hidden=false}
 else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
-const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
+const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve();
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>{const e=card$('mila-sync-status');if(e){e.textContent=m;e.dataset.state=s}},emailRedirect=()=>buildEmailRedirect(location.origin);
