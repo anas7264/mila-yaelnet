@@ -200,3 +200,19 @@ test("offline AI content can be served only from IndexedDB when local consent re
   assert.match(loader, /if \(!navigator\.onLine\)[\s\S]*?cached\?\.payload[\s\S]*?renderPayload/);
   assert.match(loader, /invoke\(wordId, "consent-status"\)[\s\S]*?if \(cached\?\.payload\)/);
 });
+
+test("account consent is stored locally before the server-side consent grant is requested", () => {
+  const start = aiClient.indexOf("async function acceptConsent");
+  const end = aiClient.indexOf("async function report", start);
+  const accept = aiClient.slice(start, end);
+  assert.ok(accept.indexOf("if (!saveConsent())") < accept.indexOf('invoke(wordId, "consent")'));
+  assert.match(accept, /localStorage\.removeItem\(CONSENT_KEY\)/);
+});
+
+test("online cached content is checked against server consent; offline mode uses IndexedDB only", () => {
+  const start = aiClient.indexOf("async function loadForWord");
+  const end = aiClient.indexOf("async function acceptConsent", start);
+  const loader = aiClient.slice(start, end);
+  assert.ok(loader.indexOf('if (!navigator.onLine)') < loader.indexOf('invoke(wordId, "consent-status")'));
+  assert.ok(loader.indexOf('invoke(wordId, "consent-status")') < loader.indexOf('if (cached?.payload)'));
+});
