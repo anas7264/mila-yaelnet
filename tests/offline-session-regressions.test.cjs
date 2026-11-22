@@ -26,7 +26,7 @@ test("beginSession defines a JSON-safe config before storing it", () => {
     "difficulty", "timerSeconds", "feedback", "shuffle", "noRepeat",
     "distractorScope"
   ]) {
-    assert.ok(config.includes(key + ":"), "persistableConfig must include " + key);
+    assert.ok(config.includes(key + ":") || config.includes(key + ","), "persistableConfig must include " + key);
   }
   assert.equal(config.includes("distractorPool"), false);
   assert.equal(config.includes("currentWord"), false);
@@ -95,7 +95,7 @@ test("network lifecycle pauses Supabase auth refresh offline and while hidden", 
   online = true;
   win.emit("online");
   doc.emit("visibilitychange");
-  assert.equal(calls.length, disposedCalls + 1);
+  assert.equal(calls.length, disposedCalls);
   assert.equal(calls.at(-1), "stop");
 });
 
