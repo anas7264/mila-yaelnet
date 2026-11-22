@@ -300,6 +300,16 @@ test("main learning bridge records adaptive answers, review errors and sessions 
   assert.deepEqual(afterSession.lastSessionSummary.wrongWordIds, ["academic-001"]);
 });
 
+test("adaptive exit restores the existing platform view without reloading the document", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  const adaptive = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  assert.match(app, /function returnToPlatform\(\)[\s\S]*?render\(\);[\s\S]*?return true/);
+  assert.match(app, /window\.MilaLearningBridge = Object\.freeze\([\s\S]*?returnToPlatform/);
+  assert.match(adaptive, /window\.MilaLearningBridge\?\.returnToPlatform\?\.\(\)/);
+  assert.doesNotMatch(adaptive, /window\.location\.reload\(\)/);
+  assert.match(adaptive, /if \(!save\(\)\) return;/);
+});
+
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   const academic = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
@@ -393,7 +403,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v13"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v14"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
