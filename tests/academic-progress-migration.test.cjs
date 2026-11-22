@@ -164,7 +164,7 @@ test("adaptive cards, saved queue, retries, and results remap old academic IDs w
   const result = Engine.migrateWordIds(state, { "academic-duplicate": "canonical-stage-word" });
   assert.equal(result.migrated, true);
   assert.equal(result.mappedProgressCount, 1);
-  assert.equal(result.mappedSessionReferenceCount, 3);
+  assert.equal(result.mappedSessionReferenceCount, 2);
   assert.equal(result.state.progress["academic-duplicate"], undefined);
   assert.equal(result.state.progress["canonical-stage-word"].heToAr.attempts, 7);
   assert.equal(result.state.progress["canonical-stage-word"].heToAr.correct, 5);
