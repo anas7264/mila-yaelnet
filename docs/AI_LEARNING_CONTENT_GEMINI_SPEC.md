@@ -50,6 +50,15 @@ Read-only inspection found:
 
 **Do not modify** `learning_state`, `sync_learning_state`, its current RLS policies, sync revisioning, sync conflict resolution, or the existing user progress records for this feature.
 
+
+### Migration-history reconciliation (blocking)
+
+Read-only production inspection confirms that the live project records these migrations:
+- `20261114144743_create_private_learning_state_sync`
+- `20261114160330_harden_learning_state_rpc_with_invoker_rls`
+
+The corresponding SQL migration files were not found in the current repository paths during this implementation review. Do not apply the new AI migration with Supabase CLI or through any database write workflow until the exact existing migration SQL has been recovered from the original source / Supabase history and committed in the repository. Then compare migration history, schema and policies against the live project and a fresh staging branch. Do not reconstruct or replace the old migrations by guesswork, and do not reset or repair the production migration history automatically.
+
 ## 4. Target architecture
 
 ```text
