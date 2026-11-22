@@ -118,5 +118,26 @@ test("sync tears down realtime offline and restores it after connectivity return
 
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v18"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v19"'));
+  assert.ok(sw.includes('"/sync.js?v=4"'));
+});
+
+test("sync card keeps its own light color scheme when the application theme is dark", () => {
+  const sync = read("sync.js");
+  const index = read("index.html");
+  const cardRule = sync.match(/#mila-sync-card\\{([^}]*)\\}/)?.[1] || "";
+
+  for (const required of [
+    "color-scheme:light",
+    "--mila-sync-surface:#fff",
+    "--mila-sync-text:#17233a",
+    "--mila-sync-input:#fff"
+  ]) {
+    assert.ok(cardRule.includes(required), "sync card must define " + required);
+  }
+
+  assert.ok(index.includes("background:#fff;color:#17233a;color-scheme:light"),
+    "the sync-load fallback card must stay light too");
+  assert.ok(index.includes("import('/sync.js?v=4')"),
+    "the updated sync stylesheet must bypass a cached older module");
 });
