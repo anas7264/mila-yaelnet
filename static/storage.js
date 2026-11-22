@@ -249,9 +249,9 @@
 
   function normalizeHebrewHeadword(value) {
     return String(value ?? "").normalize("NFC")
-      .replace(/[\\u0591-\\u05C7]/g, "")
-      .replace(/[\\u200e\\u200f]/g, "")
-      .replace(/\\s+/g, " ")
+      .replace(/[\u0591-\u05C7]/g, "")
+      .replace(/[\u200e\u200f]/g, "")
+      .replace(/\s+/g, " ")
       .trim()
       .toLocaleLowerCase("he");
   }
