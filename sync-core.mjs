@@ -166,3 +166,85 @@ export function createAsyncGate({ onBusy = () => {}, onError = () => {} } = {}) 
     }
   };
 }
+
+/**
+ * Coordinates Supabase auth refresh with browser connectivity and visibility.
+ * Calling startAutoRefresh/stopAutoRefresh disables Supabase's managed
+ * visibility listener, so this controller deliberately owns that lifecycle.
+ */
+export function createNetworkLifecycle({
+  auth,
+  windowRef = globalThis.window,
+  documentRef = globalThis.document,
+  navigatorRef = globalThis.navigator,
+  onOnline = () => {},
+  onOffline = () => {},
+} = {}) {
+  if (
+    !auth ||
+    typeof auth.startAutoRefresh !== "function" ||
+    typeof auth.stopAutoRefresh !== "function"
+  ) {
+    throw new TypeError("auth must expose startAutoRefresh and stopAutoRefresh");
+  }
+
+  let disposed = false;
+
+  const shouldRefresh = () =>
+    navigatorRef?.onLine !== false &&
+    documentRef?.visibilityState !== "hidden";
+
+  const notify = (callback) => {
+    try {
+      const result = callback();
+      if (result && typeof result.then === "function") {
+        result.catch(() => {});
+      }
+    } catch {
+      // Event callbacks must not create unhandled browser event errors.
+    }
+  };
+
+  const refreshAuth = () => {
+    if (disposed) return false;
+    const active = shouldRefresh();
+    if (active) {
+      void Promise.resolve(auth.startAutoRefresh()).catch(() => {});
+    } else {
+      void Promise.resolve(auth.stopAutoRefresh()).catch(() => {});
+    }
+    return active;
+  };
+
+  const handleOnline = () => {
+    if (refreshAuth()) notify(onOnline);
+  };
+
+  const handleOffline = () => {
+    refreshAuth();
+    if (navigatorRef?.onLine === false) notify(onOffline);
+  };
+
+  const handleVisibilityChange = () => {
+    if (refreshAuth()) notify(onOnline);
+  };
+
+  windowRef?.addEventListener?.("online", handleOnline);
+  windowRef?.addEventListener?.("offline", handleOffline);
+  documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
+
+  refreshAuth();
+  if (navigatorRef?.onLine === false) notify(onOffline);
+
+  return Object.freeze({
+    refresh: refreshAuth,
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      windowRef?.removeEventListener?.("online", handleOnline);
+      windowRef?.removeEventListener?.("offline", handleOffline);
+      documentRef?.removeEventListener?.("visibilitychange", handleVisibilityChange);
+      void Promise.resolve(auth.stopAutoRefresh()).catch(() => {});
+    },
+  });
+}
