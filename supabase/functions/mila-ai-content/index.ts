@@ -19,6 +19,7 @@ const MAX_BODY_BYTES = 1024;
 const USER_DAILY_LIMIT = 10;
 const USER_PER_MINUTE_LIMIT = 2;
 const PROJECT_DAILY_LIMIT = 500;
+const CONSENT_VERSION = "gemini-free-v1-2026-11-22";
 const GEMINI_TIMEOUT_MS = 20_000;
 
 const json = (body: unknown, status = 200, headers: HeadersInit = {}) =>
@@ -149,6 +150,39 @@ async function reportContent(cacheKey: string, cors: Record<string, string>): Pr
     return json({ code: "content_not_found" }, 404, cors);
   }
   return json({ status: "reported" }, 200, cors);
+}
+
+async function storeUserConsent(userId: string, accepted: boolean): Promise<boolean> {
+  const now = new Date().toISOString();
+  const response = await supabaseRest("ai_user_consents?on_conflict=user_id", {
+    method: "POST",
+    headers: { "Prefer": "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({
+      user_id: userId,
+      consent_version: CONSENT_VERSION,
+      accepted_at: accepted ? now : null,
+      revoked_at: accepted ? null : now,
+      updated_at: now
+    })
+  });
+  return response.ok;
+}
+
+async function hasCurrentUserConsent(userId: string): Promise<boolean | null> {
+  const query = new URLSearchParams({
+    user_id: `eq.${userId}`,
+    consent_version: `eq.${CONSENT_VERSION}`,
+    accepted_at: "not.is.null",
+    revoked_at: "is.null",
+    select: "user_id",
+    limit: "1"
+  });
+  const response = await supabaseRest(`ai_user_consents?${query.toString()}`, {
+    method: "GET"
+  });
+  if (!response.ok) return null;
+  const rows = await response.json();
+  return Array.isArray(rows) && rows.length === 1;
 }
 
 async function claimGeneration(input: {
@@ -308,6 +342,12 @@ Deno.serve(async request => {
     return json({ code: "invalid_request" }, 400, cors);
   }
 
+  const action = requestBody.action === undefined ? "generate" : requestBody.action;
+  if (typeof action !== "string" ||
+      !["generate", "report", "consent", "revoke-consent"].includes(action)) {
+    return json({ code: "invalid_action" }, 400, cors);
+  }
+
   const word = catalog.words[requestBody.wordId];
   if (!word || !["stage", "academic", "expanded"].includes(word.source)) {
     return json({ code: "word_not_supported" }, 404, cors);
@@ -322,11 +362,35 @@ Deno.serve(async request => {
     fingerprint
   });
 
-  if (requestBody.action === "report") {
+  if (action === "consent" || action === "revoke-consent") {
+    let saved: boolean;
+    try {
+      saved = await storeUserConsent(userId, action === "consent");
+    } catch {
+      saved = false;
+    }
+    if (!saved) return json({ code: "consent_storage_unavailable" }, 503, cors);
+    return json({
+      status: action === "consent" ? "consented" : "revoked",
+      consentVersion: CONSENT_VERSION
+    }, 200, cors);
+  }
+
+  if (action === "report") {
     return await reportContent(cacheKey, cors);
   }
-  if (requestBody.action !== undefined && requestBody.action !== "generate") {
-    return json({ code: "invalid_action" }, 400, cors);
+
+  let consent: boolean | null;
+  try {
+    consent = await hasCurrentUserConsent(userId);
+  } catch {
+    consent = null;
+  }
+  if (consent === null) {
+    return json({ code: "consent_check_unavailable" }, 503, cors);
+  }
+  if (!consent) {
+    return json({ code: "consent_required" }, 403, cors);
   }
 
   const leaseToken = crypto.randomUUID();
