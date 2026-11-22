@@ -340,7 +340,7 @@ test("returnToPlatform renders newly saved adaptive answers and analytics in the
   const context = {
     document, localStorage: storage, console, Element: FakeElement,
     navigator: {}, crypto: { randomUUID: () => "live-return-test" },
-    scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
   };
   context.window = context;
   vm.createContext(context);
@@ -499,7 +499,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v14"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v15"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
@@ -576,4 +576,157 @@ test("adaptive analytics safely handles malformed snapshots and empty sessions",
   assert.equal(result.directions.length, 2);
   assert.ok(result.directions.every(item => item.attempts === 0 && item.accuracy === 0));
   assert.deepEqual(result.sessions, []);
+});
+
+
+test("main session count is applied after shuffle and no-repeat-off cycles the shuffled pool", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.doesNotMatch(app, /targets\s*=\s*targets\.slice\(/);
+
+  const shortRun = require("../static/quiz-engine.js").buildSession(words, {
+    count: 2, distractorPool: words, shuffle: true, noRepeat: true, random: fixedRandom
+  });
+  assert.deepEqual(shortRun.questions.map(question => question.targetWordId), ["w2", "w3"]);
+
+  const repeatedRun = require("../static/quiz-engine.js").buildSession(words, {
+    count: 8, distractorPool: words, shuffle: true, noRepeat: false, random: fixedRandom
+  });
+  assert.deepEqual(
+    repeatedRun.questions.map(question => question.targetWordId),
+    ["w2", "w3", "w4", "w5", "w6", "w1", "w2", "w3"]
+  );
+});
+
+
+test("sidebar close helper clears the backdrop on navigation, Escape, backdrop click and desktop resize", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /function closeSidebar\(\)[\s\S]*?classList\.remove\("sidebar-open"\)[\s\S]*?backdrop\.hidden = true/);
+  assert.match(app, /function navigate\([\s\S]*?closeSidebar\(\)/);
+  assert.match(app, /if\(event\.key==="Escape"\)[\s\S]*?closeSidebar\(\)/);
+  assert.match(app, /addEventListener\("click", closeSidebar\)/);
+  assert.match(app, /addEventListener\("resize", \(\) => \{\s*if \(window\.innerWidth > 920\) closeSidebar\(\)/);
+});
+
+
+test("stage workspace eyebrow interpolates the numeric stage and has no quoted placeholder", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /pageHead\(`STAGE WORKSPACE · \$\{stage\.number\}`/);
+  assert.doesNotMatch(app, /pageHead\("STAGE WORKSPACE · \$\{stage\.number\}"/);
+});
+
+
+test("main learning progress auto-masters after three spaced successes and keeps mastery on a later miss", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    documentElement: { dataset: {} },
+    getElementById() { return null; },
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "mastery-test-uuid" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const bridge = context.__MilaTestBridge;
+  const word = context.YaelCatalog.officialWords()[0];
+  assert.ok(word?.id);
+
+  for (let i = 0; i < 3; i += 1) {
+    const result = bridge.recordAdaptiveAnswer({ eventId: "mastery-correct-" + i, wordId: word.id, correct: true });
+    assert.equal(result.accepted, true);
+  }
+  let saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(saved.progress[word.id].repetitions, 3);
+  assert.ok(saved.progress[word.id].intervalDays >= 6);
+  assert.equal(saved.progress[word.id].mastered, true);
+
+  const restored = context.YaelStorage.loadState(storage, context.YaelCatalog.officialWords());
+  assert.equal(restored.progress[word.id].mastered, true);
+
+  const laterMiss = bridge.recordAdaptiveAnswer({ eventId: "mastery-later-miss", wordId: word.id, correct: false });
+  assert.equal(laterMiss.accepted, true);
+  saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(saved.progress[word.id].mastered, true);
+});
+
+
+test("beginSession creates the declared config, defers end feedback, and saves compatible history settings", () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    documentElement: { dataset: {} },
+    body: { classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } } },
+    getElementById() { return null; },
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "begin-session-test" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  const originalAppSource = appSource;
+  appSource = appSource.replace(
+    /  initialize\(\);\r?\n\}\)\(\);/,
+    "  render = () => {}; renderSession = () => {}; renderSessionSummary = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\n})();"
+  );
+  assert.notEqual(appSource, originalAppSource, "test hooks must replace app initialization");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const hooks = context.__MilaTestHooks;
+  hooks.beginSession(words, {
+    source: "all", difficulty: "medium", feedback: "end", distractorScope: "library",
+    shuffle: false, noRepeat: false, optionCount: 4, timerSeconds: 0,
+    mode: "ar-he", count: 2, distractorPool: words
+  }, "config-regression");
+  const session = hooks.ui.session;
+  assert.ok(session);
+  assert.equal(session.config.source, "all");
+  assert.equal(session.config.difficulty, "medium");
+  assert.equal(session.config.feedback, "end");
+  assert.equal(session.config.distractorScope, "library");
+  assert.equal(session.config.shuffle, false);
+  assert.equal(session.config.noRepeat, false);
+  assert.equal(session.config.optionCount, 4);
+  assert.equal(session.config.timerSeconds, 0);
+  assert.equal(session.config.mode, "ar-he");
+  assert.equal(session.config.targetCount, session.questions.length);
+  assert.equal(session.questions.length, 2);
+
+  const question = session.questions[0];
+  hooks.submitCurrent(true, question.correctWordId);
+  assert.equal(session.feedbackVisible, false);
+  hooks.finishSession();
+
+  const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  const record = saved.sessions.at(-1);
+  assert.equal(record.settings.mode, "ar-he");
+  assert.equal(record.settings.source, "all");
+  assert.equal(Object.hasOwn(record.settings, "feedback"), false);
 });

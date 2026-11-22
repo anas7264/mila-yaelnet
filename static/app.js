@@ -359,7 +359,7 @@
       body = `<div class="stats-grid">${statCard("مفردات المرحلة",words.length,"◇","الكلمات الرسمية في هذه المرحلة")}${statCard("إجابات",a.attempted,"✓","إجابات من هذه المرحلة فقط")}${statCard("دقة",a.accuracy+"%","◎","صحة إجابات هذه المرحلة")}${statCard("متقنة",mastered,"✦","من إجمالي "+words.length+" كلمة")}</div><div class="panel-card"><div class="panel-heading"><h2>تقدم إتقان المرحلة</h2><span class="badge badge-gold">${Math.round(mastered/Math.max(1,words.length)*100)}%</span></div>${progressTrack(mastered/Math.max(1,words.length)*100)}<div class="progress-meta"><span>${mastered} متقنة</span><span>${words.length-mastered} لم تتقن بعد</span></div><div class="section-divider"></div><div class="history-list"><div class="history-row"><strong>الأخطاء المسجلة</strong><span>${stageMistakes(stage.id).length}</span></div><div class="history-row"><strong>الكلمات المفضلة</strong><span>${favoriteWords(words).length}</span></div><div class="history-row"><strong>المراجعات المستحقة</strong><span>${dueWords(words).length}</span></div></div></div>`;
     }
     $("appView").innerHTML = `
-      ${pageHead("STAGE WORKSPACE · ${stage.number}", stage.title, stage.description, '<button class="button button-primary" data-action="open-studio-stage" data-stage-id="' + esc(stage.id) + '">✳ تمرين مخصص</button>')}
+      ${pageHead(`STAGE WORKSPACE · ${stage.number}`, stage.title, stage.description, '<button class="button button-primary" data-action="open-studio-stage" data-stage-id="' + esc(stage.id) + '">✳ تمرين مخصص</button>')}
       <section class="stats-grid">${statCard("عدد المفردات",words.length,"◇","في هذه المرحلة فقط")}${statCard("الإجابات",a.attempted,"✓","سجل المرحلة")}${statCard("الدقة",a.accuracy+"%","◎","لا تشمل المراحل الأخرى")}${statCard("المراجعة",stageMistakes(stage.id).length,"↻","أخطاء هذه المرحلة")}</section>
       ${stageTabsMarkup()}<section class="stack">${body}</section>`;
   }
@@ -626,6 +626,12 @@
     else if (ui.view === "session") renderSession();
   }
 
+  function closeSidebar() {
+    document.body.classList.remove("sidebar-open");
+    const backdrop = $("sidebarBackdrop");
+    if (backdrop) backdrop.hidden = true;
+  }
+
   function navigate(view, params = {}) {
     if (ui.session && view !== "session") {
       if (!confirm("الجلسة الحالية لم تكتمل. هل تريد الخروج منها؟")) return;
@@ -636,7 +642,7 @@
     if (params.stageId) ui.stageId = params.stageId;
     if (params.tab) ui.stageTab = params.tab;
     if (view === "review" && params.filter) ui.reviewFilter = params.filter;
-    document.body.classList.remove("sidebar-open");
+    closeSidebar();
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -666,6 +672,7 @@
     };
     const schedule = ENGINE.scheduleReview(previous, correct ? "good" : "again", now);
     Object.assign(next, schedule);
+    if (correct && next.repetitions >= 3 && next.intervalDays >= 6) next.mastered = true;
     state.progress[wordId] = next;
     if (!correct) {
       state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: source || ui.session?.title || "جلسة تدريب" });
@@ -834,7 +841,18 @@
       remainingSeconds: mode === "matching" ? 0 : (Number(config.timerSeconds) || 0),
       startedAt: Date.now(),
       currentAdaptiveOptions: Number(config.optionCount) || adaptiveOptions,
-      config: { ...persistableConfig, mode, targetCount: targetIds.length },
+      config: {
+        source: config.source || "all",
+        difficulty,
+        feedback: config.feedback === "end" ? "end" : "instant",
+        distractorScope: config.distractorScope || "library",
+        shuffle: config.shuffle !== false,
+        noRepeat: config.noRepeat !== false,
+        optionCount: Number(config.optionCount) || adaptiveOptions,
+        timerSeconds: Number(config.timerSeconds) || 0,
+        mode,
+        targetCount: targetIds.length
+      },
       distractorPool: pool,
       warnings: sessionData.warnings,
       matchState: null,
@@ -860,7 +878,6 @@
     if (config.excludeMastered) targets = targets.filter((w) => !progressOf(w.id).mastered);
     if (config.search) targets = targets.filter((w) => ENGINE.normalizeText(w.he + " " + w.ar).includes(ENGINE.normalizeText(config.search)));
     if (config.category && config.category !== "all") targets = targets.filter((w) => w.category === config.category);
-    if (config.count !== "all") targets = targets.slice(0, Math.max(1, Number(config.count) || 10));
     if (!targets.length) { toast("المصدر المحدد لا يحتوي على كلمات متاحة.", "error"); return; }
     const pool = config.distractorScope === "question-source" ? targets : allWords();
     beginSession(targets, { ...config, distractorPool: pool }, "مختبر التدريب · " + sourceLabel(source));
@@ -1530,7 +1547,7 @@
     document.addEventListener("keydown",(event)=>{
       if(event.key==="Escape"){
         if($("modalRoot").innerHTML){$("modalRoot").innerHTML="";return;}
-        if(document.body.classList.contains("sidebar-open"))document.body.classList.remove("sidebar-open");
+        closeSidebar();
         return;
       }
       if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
@@ -1548,7 +1565,10 @@
       }
     });
 
-    $("sidebarBackdrop")?.addEventListener("click",()=>{document.body.classList.remove("sidebar-open");$("sidebarBackdrop").hidden=true;});
+    $("sidebarBackdrop")?.addEventListener("click", closeSidebar);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 920) closeSidebar();
+    });
   }
 
   function registerPwa() {
