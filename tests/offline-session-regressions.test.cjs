@@ -125,7 +125,9 @@ test("service-worker cache version invalidates the previous static script cache"
 test("sync card keeps its own light color scheme when the application theme is dark", () => {
   const sync = read("sync.js");
   const index = read("index.html");
-  const cardRule = sync.match(/#mila-sync-card\\{([^}]*)\\}/)?.[1] || "";
+  const cardRuleStart = sync.indexOf("#mila-sync-card{");
+  assert.notEqual(cardRuleStart, -1, "sync card CSS rule must exist");
+  const cardRule = sync.slice(cardRuleStart, sync.indexOf("}", cardRuleStart));
 
   for (const required of [
     "color-scheme:light",
