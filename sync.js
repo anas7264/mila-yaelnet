@@ -29,7 +29,8 @@ let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localSt
 let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING));
 window.MilaSyncBridge = Object.freeze({
   invokeAiContent: async ({ wordId, action = "generate" } = {}) => {
-    if (!session?.access_token) {
+    const { data: authData, error: authError } = await sb.auth.getSession();
+    if (authError || !authData?.session?.access_token) {
       const error = new Error("auth_required");
       error.code = "auth_required";
       throw error;
