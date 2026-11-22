@@ -5,7 +5,7 @@ Mila is a browser-based Hebrew vocabulary and YAELNET learning workspace. The cu
 ## Current release
 
 - Main vocabulary workspace with stages, custom vocabulary, review, analytics, and settings.
-- 377 former academic terms moved into five official learning stages (general academic vocabulary, mathematics and physics, electrical engineering, computing, and academic verbs/adjectives). 357 unique entries become stage words; entries already present in earlier stages or duplicated within the academic set are merged into their existing canonical word.
+- 377 former academic terms moved into five official learning stages (general academic vocabulary, mathematics and physics, electrical engineering, computing, and academic verbs/adjectives). 370 unique entries become stage words; entries already present in earlier stages or duplicated within the academic set are merged into their existing canonical word.
 - 1,050 supplied vocabulary entries across 21 thematic groups, integrated into the main library, custom practice, typed answers, and adaptive recall. Repeated Hebrew headwords are consolidated into one trainable entry while their topic tags and distinct glosses are retained.
 - 1,250 additional unique Hebrew headwords arranged in 10 progressive learning stages (from daily vocabulary to advanced reading and analytical expressions). The new stages are part of the official stage path, independent stage quizzes, progress, mistakes, review, and adaptive practice.
 - Adaptive active recall in both directions: Hebrew → Arabic and Arabic → Hebrew.
@@ -39,7 +39,7 @@ The earlier Flask deployment wrapper served the browser assets. The current rele
 
 ## Content and limitations
 
-The 377 former academic terms are represented in five official stages. After normalized deduplication, 357 unique academic headwords are added as stage words; overlapping entries preserve their additional Arabic gloss and group metadata on the existing canonical word. The additional 1,050 entries remain organized into 21 thematic groups. Neither collection has undergone a complete independent linguistic/editorial review. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
+The 377 former academic terms are represented in five official stages. After normalized deduplication, 370 unique academic headwords are added as stage words; overlapping entries preserve their additional Arabic gloss and group metadata on the existing canonical word. The additional 1,050 entries remain organized into 21 thematic groups. Neither collection has undergone a complete independent linguistic/editorial review. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
 
 The adaptive scheduler is a bounded P0 short-term scheduler, not FSRS. Contextual prompts, written production, validated morphology, and advanced analytics remain outside this release.
 
