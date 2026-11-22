@@ -102,3 +102,8 @@ test("new stage modules pass syntax and service-worker cache expectations", () =
   assert.match(pkg.scripts.test, /static\/academic-stage-data\.js/);
   assert.match(pkg.scripts.test, /static\/stage-vocabulary\.js/);
 });
+
+test("failed academic migration persistence restores the pre-migration runtime state", () => {
+  const app = fs.readFileSync(path.join(root, "static/app.js"), "utf8");
+  assert.match(app, /const previousState = state;[\s\S]*?state = migration\.state;[\s\S]*?if \(STORE\.saveState\(state, localStorage\)\)[\s\S]*?state = previousState;/);
+});
