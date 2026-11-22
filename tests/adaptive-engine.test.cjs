@@ -577,3 +577,22 @@ test("adaptive analytics safely handles malformed snapshots and empty sessions",
   assert.ok(result.directions.every(item => item.attempts === 0 && item.accuracy === 0));
   assert.deepEqual(result.sessions, []);
 });
+
+
+test("main session count is applied after shuffle and no-repeat-off cycles the shuffled pool", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.doesNotMatch(app, /targets\\s*=\\s*targets\\.slice\\(/);
+
+  const shortRun = require("../static/quiz-engine.js").buildSession(words, {
+    count: 2, distractorPool: words, shuffle: true, noRepeat: true, random: fixedRandom
+  });
+  assert.deepEqual(shortRun.questions.map(question => question.targetWordId), ["w2", "w3"]);
+
+  const repeatedRun = require("../static/quiz-engine.js").buildSession(words, {
+    count: 8, distractorPool: words, shuffle: true, noRepeat: false, random: fixedRandom
+  });
+  assert.deepEqual(
+    repeatedRun.questions.map(question => question.targetWordId),
+    ["w2", "w3", "w4", "w5", "w6", "w1", "w2", "w3"]
+  );
+});

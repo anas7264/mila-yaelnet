@@ -871,7 +871,6 @@
     if (config.excludeMastered) targets = targets.filter((w) => !progressOf(w.id).mastered);
     if (config.search) targets = targets.filter((w) => ENGINE.normalizeText(w.he + " " + w.ar).includes(ENGINE.normalizeText(config.search)));
     if (config.category && config.category !== "all") targets = targets.filter((w) => w.category === config.category);
-    if (config.count !== "all") targets = targets.slice(0, Math.max(1, Number(config.count) || 10));
     if (!targets.length) { toast("المصدر المحدد لا يحتوي على كلمات متاحة.", "error"); return; }
     const pool = config.distractorScope === "question-source" ? targets : allWords();
     beginSession(targets, { ...config, distractorPool: pool }, "مختبر التدريب · " + sourceLabel(source));

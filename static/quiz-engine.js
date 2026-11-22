@@ -95,7 +95,7 @@
     const count = config.count === "all" ? targets.length : clamp(Number(config.count) || 10, 1, 200);
     const ordered = config.shuffle === false ? [...targets] : shuffle(targets, random);
     const selected = config.noRepeat === false
-      ? Array.from({ length: count }, (_, i) => targets[i % Math.max(1, targets.length)]).filter(Boolean)
+      ? Array.from({ length: count }, (_, i) => ordered[i % Math.max(1, ordered.length)]).filter(Boolean)
       : ordered.slice(0, count);
     const questions = [];
     const warnings = [];
