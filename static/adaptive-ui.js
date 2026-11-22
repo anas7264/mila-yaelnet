@@ -335,8 +335,12 @@
     if (open) {
       event.preventDefault();
       try {
-        if (!opened) openMode();
-        else renderHome();
+        if (!opened) {
+          // Do not let a hidden main-app quiz timer continue while adaptive
+          // training replaces its view.
+          window.MilaLearningBridge?.pausePlatformSessionForAdaptive?.();
+          openMode();
+        } else renderHome();
       } catch (error) {
         console.error("Adaptive navigation failed:", error);
         toast("تعذر فتح التدريب التكيفي: " + (error?.message || "خطأ غير متوقع"), true);
