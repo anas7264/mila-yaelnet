@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "node --check static/adaptive-engine.js && node --check static/adaptive-ui.js && node --check static/app.js && node --check static/storage.js && node --check academic-terms.js && node --test tests/*.test.cjs"
+    "test": "node --check static/adaptive-engine.js && node --check static/adaptive-ui.js && node --check static/ai-learning-content.js && node --check scripts/build-ai-word-catalog.cjs && node --check static/app.js && node --check static/storage.js && node --check academic-terms.js && node --test tests/*.test.cjs"
   }
 }
