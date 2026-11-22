@@ -656,7 +656,7 @@ test("main learning progress auto-masters after three spaced successes and keeps
   assert.ok(saved.progress[word.id].intervalDays >= 6);
   assert.equal(saved.progress[word.id].mastered, true);
 
-  const restored = context.MilaStorage.loadState(storage, context.YaelCatalog.officialWords());
+  const restored = context.YaelStorage.loadState(storage, context.YaelCatalog.officialWords());
   assert.equal(restored.progress[word.id].mastered, true);
 
   const laterMiss = bridge.recordAdaptiveAnswer({ eventId: "mastery-later-miss", wordId: word.id, correct: false });
