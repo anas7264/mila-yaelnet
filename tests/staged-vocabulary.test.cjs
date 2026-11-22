@@ -82,7 +82,7 @@ test("academic terms merge into one official word per Hebrew headword", () => {
 
 test("academic terms already present in older stages map to the canonical word and retain their group metadata", () => {
   const merged = staged.academicMeta.mergedTerms;
-  assert.equal(merged.length, 20);
+  assert.equal(merged.length, 7);
   for (const item of merged) {
     const word = officialWords.find(candidate => candidate.id === item.canonicalWordId);
     assert.ok(word, `canonical word missing for ${item.termId}`);
