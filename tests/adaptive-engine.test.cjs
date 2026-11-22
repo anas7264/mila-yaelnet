@@ -695,7 +695,7 @@ test("beginSession creates the declared config, defers end feedback, and saves c
   const originalAppSource = appSource;
   appSource = appSource.replace(
     /  initialize\(\);\r?\n\}\)\(\);/,
-    "  render = () => {}; renderSession = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\n})();"
+    "  render = () => {}; renderSession = () => {}; renderSessionSummary = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\n})();"
   );
   assert.notEqual(appSource, originalAppSource, "test hooks must replace app initialization");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
