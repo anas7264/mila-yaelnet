@@ -91,3 +91,7 @@
 .adaptive-ai-card button:focus-visible{outline:3px solid #c9944870;outline-offset:2px}
 .adaptive-ai-card [hidden]{display:none!important}
 @media(max-width:760px){.adaptive-ai-card{margin-top:12px;padding:14px}.adaptive-ai-footer{align-items:flex-start;flex-direction:column;gap:3px}.adaptive-ai-hebrew{font-size:17px}}
+
+.adaptive-ai-disable{min-height:38px;padding:8px 12px;border:1px solid var(--line,#e3e8ee);border-radius:9px;background:transparent;color:var(--muted,#7d899b);font:700 11px Heebo,"IBM Plex Sans Arabic",sans-serif;cursor:pointer}
+.adaptive-ai-disable:hover{border-color:var(--red,#b34f50);color:var(--red,#b34f50)}
+.adaptive-ai-disable:focus-visible{outline:3px solid #c9944870;outline-offset:2px}
