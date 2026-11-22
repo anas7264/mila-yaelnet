@@ -252,8 +252,15 @@
   function handleAction(action) {
     if (action === "exit") {
       if (state.session) {
+        const previousState = state;
         state = Engine.setPaused(state, true);
-        if (!save()) return;
+        if (!save()) {
+          // Keep the visible controls and engine state in sync if local storage
+          // rejects the pause write (for example, quota or privacy-mode errors).
+          state = previousState;
+          renderSession();
+          return;
+        }
       }
       opened = false;
       setNavActive(false);
@@ -261,6 +268,12 @@
       if (!restored) {
         opened = true;
         setNavActive(true);
+        try {
+          if (state.session) renderSession();
+          else renderHome();
+        } catch (renderError) {
+          console.error("Adaptive view recovery failed:", renderError);
+        }
         toast("تعذرت العودة إلى المنصة دون إعادة تحميل. بقيت جلستك محفوظة؛ حاول مرة أخرى.", true);
       }
       return;
