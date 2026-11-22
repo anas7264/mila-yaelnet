@@ -1,4 +1,4 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle}from'./sync-core.mjs?v=3';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout}from'./sync-core.mjs?v=4';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
@@ -26,7 +26,7 @@ else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
-let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve();
+let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0;
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>{const e=card$('mila-sync-status');if(e){e.textContent=m;e.dataset.state=s}},emailRedirect=()=>buildEmailRedirect(location.origin);
 const writeMeta=(r,v)=>{revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,deviceId:device,updatedAt:new Date().toISOString()}))};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
@@ -64,12 +64,14 @@ await flush();
 return recoveryPromise;
 };
 const activate=async s=>{
+const activation=++activationVersion;
 const previousUserId=session?.user?.id;
 if(previousUserId!==s?.user?.id)syncReady=false;
 session=s;setAuth(s?.user||null);
 await pauseRealtime();
-if(!s){syncReady=false;clearConflict();status('غير متصل — بياناتك محفوظة على هذا الجهاز.');return}
-if(navigator.onLine===false){status('لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة عند عودة الاتصال.','info');return}
+if(activation!==activationVersion)return;
+if(!s){syncReady=false;clearConflict();status('لم تسجّل الدخول حاليًا — تقدمك محفوظ على هذا الجهاز، ولن تتم مزامنته حتى تسجّل الدخول.','info');return}
+if(navigator.onLine===false){status('أنت مسجّل الدخول، لكن لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة عند عودة الاتصال.','info');return}
 await recoverOnline();
 };
 const creds=()=>({email:card$('mila-sync-email').value.trim(),password:card$('mila-sync-password').value});
@@ -96,5 +98,41 @@ if(session)status('لا يوجد اتصال بالإنترنت. تقدمك مح�
 onOnline:()=>{void recoverOnline()}
 });
 if(isExpiredConfirmation(location.search)){status('انتهت صلاحية رابط تأكيد البريد أو استُخدم سابقًا. أدخل بريدك واطلب رسالة جديدة.','error');card$('mila-sync-resend').hidden=false}else if(new URLSearchParams(location.search).has('error')){status(new URLSearchParams(location.search).get('error_description')||'تعذر تأكيد البريد. اطلب رابطًا جديدًا.','error');card$('mila-sync-resend').hidden=false}
-const m=meta();revision=Number.isInteger(m.revision)?m.revision:0;baseline=m.baseline||null;const{data,error}=await sb.auth.getSession();if(error)status('تعذر استعادة الجلسة: '+error.message,'error');else await activate(data.session);sb.auth.onAuthStateChange((e,s)=>{if(s?.user?.id!==session?.user?.id)queueMicrotask(()=>activate(s))});
+const m=meta();
+revision=Number.isInteger(m.revision)?m.revision:0;
+baseline=m.baseline||null;
+const restoreVersion=activationVersion;
+try{
+  const{data,error}=await withTimeout(
+    sb.auth.getSession(),
+    10000,
+    'انتهت مهلة التحقق من حالة الحساب.'
+  );
+  if(activationVersion===restoreVersion){
+    if(error){
+      setAuth(null);
+      status('تعذر التحقق من حالة الحساب: '+(error.message||'خطأ غير معروف')+' بياناتك محفوظة محليًا؛ أعد المحاولة.','error');
+      card$('mila-sync-retry').hidden=false;
+    }else{
+      await activate(data?.session||null);
+    }
+  }
+}catch(error){
+  if(activationVersion===restoreVersion){
+    setAuth(null);
+    clearConflict();
+    const message=error?.name==='TimeoutError'
+      ?'استغرق التحقق من حالة الحساب أكثر من 10 ثوانٍ. بياناتك المحلية محفوظة ولم يتم حذفها. أعد المحاولة أو سجّل الدخول.'
+      :'تعذر استعادة حالة الحساب: '+(error?.message||'خطأ غير معروف')+'. بياناتك محفوظة محليًا.';
+    status(message,'error');
+    card$('mila-sync-retry').hidden=false;
+  }
+}
+sb.auth.onAuthStateChange((e,s)=>{
+  if(s?.user?.id!==session?.user?.id){
+    queueMicrotask(()=>activate(s).catch(error=>{
+      status('تعذر تحديث حالة الحساب: '+(error?.message||'خطأ غير معروف'),'error');
+    }));
+  }
+});
 }
