@@ -159,7 +159,7 @@ Use read-through behavior:
 3. persist validated response in IndexedDB;
 4. on offline/network/quota/provider failure, render any cached item or fall back to the current card.
 
-IndexedDB is device-local and does not sync in V1. Server cache is the shared source for newly generated content. Do not store API keys or authorization tokens in IndexedDB.
+IndexedDB is device-local and does not sync in V1. When online, the client rechecks the account-level consent state before displaying locally cached content. When offline, it may display only content already cached on that device while its local consent remains active; server-side revocation cannot be observed until the device reconnects. Server cache is the shared source for newly generated content. Do not store API keys or authorization tokens in IndexedDB.
 
 ## 6. Generated payload contract
 
@@ -190,8 +190,8 @@ Requirements:
 
 ## 7. Frontend experience and consent
 
-- The AI feature is optional and off by default until the legal gate and explicit opt-in are satisfied.
-- Consent is separate from account sign-in and cloud sync. Explain the unpaid-tier data use before the first request; allow disabling the feature at any time.
+- The AI feature is optional and off by default until the legal gate and explicit opt-in are satisfied. The Edge Function must require an active account-level consent record for generation and cached-content requests; a client-side localStorage flag alone is not sufficient.
+- Consent is separate from account sign-in and cloud sync. Explain the unpaid-tier data use before the first request; allow disabling the feature at any time. Persist only the consent version and acceptance/revocation timestamps in a dedicated account-level table so the Edge Function can reject generation after revocation from any device. This consent ledger never leaves Supabase and is never sent to Google.
 - Do not persist the consent toggle in the main learning snapshot. Use a separate, clearly named local preference or account setting only after its privacy implications are reviewed.
 - Show a clear loading state, a retry action after transient failure, and an unobtrusive “AI content unavailable” fallback.
 - Do not block typing, question submission, next-word navigation, session restoration or offline training while content is loading.
