@@ -77,6 +77,8 @@ function safeText(value, maxLength, scriptPattern) {
   const text = value.normalize("NFC").trim();
   if (!text || text.length > maxLength || /[<>\u0000-\u0008\u000B\u000C\u000E-\u001F]/u.test(text)) return null;
   if (!scriptPattern.test(text)) return null;
+  if (scriptPattern === HEBREW && ARABIC.test(text)) return null;
+  if (scriptPattern === ARABIC && HEBREW.test(text)) return null;
   return text;
 }
 
