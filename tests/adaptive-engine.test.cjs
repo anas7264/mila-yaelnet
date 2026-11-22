@@ -383,7 +383,7 @@ test("returnToPlatform renders newly saved adaptive answers and analytics in the
   assert.ok(html.includes("أداء التدريب التكيفي"));
   assert.ok(html.includes("آخر جلسات التدريب التكيفي"));
   assert.ok(html.includes("التدريب التكيفي · عبري إلى عربي"));
-  assert.match(html, /<strong>1<\\/strong>/);
+  assert.ok(html.includes("<strong>1</strong>"));
   const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
   assert.equal(saved.progress[word.id].attempts, 1);
   assert.equal(saved.progress[word.id].incorrect, 1);
