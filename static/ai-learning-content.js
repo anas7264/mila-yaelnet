@@ -333,12 +333,20 @@
     const button = card.querySelector("[data-mila-ai-report]");
     if (button) button.disabled = true;
     try {
-      await invoke(wordId, "report");
-      await storeOperation("readwrite", cacheKey(wordId), null);
-      const target = card.querySelector("[data-mila-ai-content]");
-      if (target) target.hidden = true;
-      setStatus(card, "تم تسجيل البلاغ وإيقاف عرض هذا المحتوى المشترك.", "ok");
-    } catch (error) {
+      const result = await invoke(wordId, "report");
+      if (result?.status === "reported") {
+        await storeOperation("readwrite", cacheKey(wordId), null);
+        const target = card.querySelector("[data-mila-ai-content]");
+        if (target) target.hidden = true;
+        setStatus(card, "تم تسجيل بلاغات كافية وإيقاف عرض هذا المحتوى المشترك.", "ok");
+        return;
+      }
+      if (result?.status === "received") {
+        setStatus(card, "تم استلام بلاغك. سيبقى المحتوى متاحًا مؤقتًا إلى أن تكتمل مراجعة البلاغات.", "ok");
+        return;
+      }
+      throw new Error("invalid_report_response");
+    } catch {
       setStatus(card, "تعذر إرسال البلاغ الآن. يمكنك المحاولة مجددًا لاحقًا.", "error");
       if (button) button.disabled = false;
     }
