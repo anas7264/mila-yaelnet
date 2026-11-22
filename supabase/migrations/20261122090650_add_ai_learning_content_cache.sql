@@ -77,7 +77,7 @@ create or replace function public.claim_mila_ai_generation(
 )
 returns jsonb
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, public
 as $function$
 declare
@@ -95,10 +95,6 @@ begin
      or p_content_schema_version is null or p_content_schema_version <= 0
      or p_max_daily < 1 or p_max_per_minute < 1 or p_max_global_daily < 1 then
     raise exception 'invalid_generation_claim';
-  end if;
-
-  if not exists (select 1 from auth.users u where u.id = p_user_id) then
-    raise exception 'unknown_user';
   end if;
 
   insert into public.ai_learning_content (
