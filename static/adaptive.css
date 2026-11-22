@@ -30,6 +30,13 @@
 .adaptive-answer-form label{display:block;margin-bottom:8px;font-size:12px;font-weight:800}
 .adaptive-answer-form input{width:100%;min-height:54px;padding:12px 15px;border:1px solid var(--line,#e3e8ee);border-radius:12px;background:var(--surface-2,#f7f8fa);color:var(--ink,#172338);font:600 18px Heebo,"IBM Plex Sans Arabic",sans-serif;outline:none}
 .adaptive-answer-form input:focus{border-color:var(--gold,#c99448);box-shadow:0 0 0 3px #c9944825}
+.adaptive-answer-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:8px;margin-top:12px}
+.adaptive-answer-actions .adaptive-button{width:100%;min-width:0;margin-top:0;display:flex;align-items:center;justify-content:center;gap:8px}
+.adaptive-forgot{background:var(--surface-2,#f7f8fa);border-color:var(--line,#e3e8ee);color:var(--ink,#172338)}
+.adaptive-forgot:hover{border-color:var(--gold,#c99448)}
+.adaptive-shortcut{padding:2px 6px;border:1px solid currentColor;border-radius:5px;font:600 10px Heebo,sans-serif;opacity:.72;white-space:nowrap}
+@media(max-width:400px){.adaptive-answer-actions{grid-template-columns:1fr}}
+@media(max-width:760px),(hover:none){.adaptive-shortcut{display:none}}
 .adaptive-feedback{max-width:560px;margin:0 auto;padding:16px;border-radius:13px;display:flex;flex-direction:column;align-items:center;gap:7px}
 .adaptive-feedback.is-correct{background:var(--green-soft,#e8f4ef);color:#226c58}.adaptive-feedback.is-wrong{background:var(--red-soft,#fff0ef);color:#9a4142}
 .adaptive-feedback strong{font-size:13px}.adaptive-feedback small{font-size:11px;line-height:1.7;text-align:center}
