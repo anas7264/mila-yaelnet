@@ -141,14 +141,14 @@ async function reportContent(cacheKey: string, cors: Record<string, string>): Pr
   if (!Array.isArray(rows) || rows.length === 0) {
     const existingQuery = new URLSearchParams({ cache_key: `eq.${cacheKey}`, select: "status" });
     const existing = await supabaseRest(`ai_learning_content?${existingQuery.toString()}`, { method: "GET" });
-    if (!existing.ok) return json({ code: "storage_unavailable" }, 503);
+    if (!existing.ok) return json({ code: "storage_unavailable" }, 503, cors);
     const current = await existing.json();
     if (Array.isArray(current) && current[0]?.status === "reported") {
       return json({ status: "reported" }, 200, cors);
     }
     return json({ code: "content_not_found" }, 404, cors);
   }
-  return json({ status: "reported" });
+  return json({ status: "reported" }, 200, cors);
 }
 
 async function claimGeneration(input: {
