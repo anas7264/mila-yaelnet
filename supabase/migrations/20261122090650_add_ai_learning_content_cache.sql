@@ -28,6 +28,16 @@ create index if not exists ai_learning_content_status_lease_idx
   on public.ai_learning_content (status, lease_until)
   where status = 'pending';
 
+create table if not exists public.ai_user_consents (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  consent_version text not null check (length(consent_version) between 1 and 120),
+  accepted_at timestamptz,
+  revoked_at timestamptz,
+  updated_at timestamptz not null default now(),
+  constraint ai_user_consents_state
+    check (accepted_at is not null or revoked_at is not null)
+);
+
 create table if not exists public.ai_generation_usage (
   user_id uuid not null references auth.users(id) on delete cascade,
   usage_date date not null,
@@ -50,16 +60,19 @@ create table if not exists public.ai_generation_global_usage (
 alter table public.ai_learning_content enable row level security;
 alter table public.ai_generation_usage enable row level security;
 alter table public.ai_generation_global_usage enable row level security;
+alter table public.ai_user_consents enable row level security;
 
 -- The browser has no direct access to these tables. The Edge Function's
 -- server-only service_role client is the only intended data-plane caller.
 revoke all on table public.ai_learning_content from public, anon, authenticated;
 revoke all on table public.ai_generation_usage from public, anon, authenticated;
 revoke all on table public.ai_generation_global_usage from public, anon, authenticated;
+revoke all on table public.ai_user_consents from public, anon, authenticated;
 
 grant select, insert, update, delete on table public.ai_learning_content to service_role;
 grant select, insert, update, delete on table public.ai_generation_usage to service_role;
 grant select, insert, update, delete on table public.ai_generation_global_usage to service_role;
+grant select, insert, update, delete on table public.ai_user_consents to service_role;
 
 create or replace function public.claim_mila_ai_generation(
   p_cache_key text,
@@ -204,3 +217,6 @@ comment on table public.ai_generation_usage is
   'Minimal per-user generation counters only; stores no prompts, answers, vocabulary history or personal text.';
 comment on table public.ai_generation_global_usage is
   'Project-wide daily generation ceiling for abuse and free-tier quota protection.';
+
+comment on table public.ai_user_consents is
+  'Minimal account-linked consent version and timestamps for Gemini learning content. Never sent to Google.';
