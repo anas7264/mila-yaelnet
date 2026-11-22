@@ -420,8 +420,8 @@ test("adaptive forgot button exposes Alt+N and routes through the guarded forgot
   const css = fs.readFileSync(path.join(__dirname, "../static/adaptive.css"), "utf8");
   assert.match(ui, /data-adaptive-action="forgot"/);
   assert.match(ui, /aria-keyshortcuts="Alt\+N"/);
-  assert.match(ui, /event\\.altKey/);
-  assert.match(ui, /event\\.code\\s*===\\s*"KeyN"/);
+  assert.ok(ui.includes("event.altKey"));
+  assert.ok(ui.includes('event.code === "KeyN"'));
   assert.match(ui, /state\.session\.paused\s*\|\|\s*state\.session\.answered/);
   assert.ok(ui.includes('if (action === "forgot")'));
   assert.ok(ui.includes('submitAdaptiveAnswer("")'));
