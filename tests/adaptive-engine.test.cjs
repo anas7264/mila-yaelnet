@@ -340,7 +340,7 @@ test("returnToPlatform renders newly saved adaptive answers and analytics in the
   const context = {
     document, localStorage: storage, console, Element: FakeElement,
     navigator: {}, crypto: { randomUUID: () => "live-return-test" },
-    scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
   };
   context.window = context;
   vm.createContext(context);
@@ -499,7 +499,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v14"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v15"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
@@ -641,7 +641,7 @@ test("main learning progress auto-masters after three spaced successes and keeps
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
-  appSource = appSource.replace("  initialize();\\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\\n})();");
+  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const bridge = context.__MilaTestBridge;
   const word = context.YaelCatalog.officialWords()[0];
