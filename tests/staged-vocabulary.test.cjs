@@ -35,7 +35,8 @@ const addedWords = added.stages.flatMap(stage => stage.words);
 test("adds at least 1,000 new unique Hebrew headwords in ten progressive stages", () => {
   assert.equal(added.meta.stageCount, 10);
   assert.equal(added.stages.length, 10);
-  assert.ok(added.meta.addedWordCount >= 1000, `expected at least 1,000 new words, got ${added.meta.addedWordCount}`);
+  assert.equal(added.meta.addedWordCount, 1250);
+  assert.ok(added.stages.every(stage => stage.words.length >= 100), "every stage must contain at least 100 new words");
   assert.equal(added.meta.addedWordCount, addedWords.length);
   assert.equal(added.meta.invalidCount, 0);
   assert.deepEqual(added.meta.invalidRows, []);
