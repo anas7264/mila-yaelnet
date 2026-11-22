@@ -294,12 +294,12 @@
       ${pageHead("LEARNING PATH", "المراحل التعليمية", "كل مرحلة منفصلة في الكلمات والاختبارات والأخطاء والإحصاءات، ويمكن مراجعتها دون خلطها بالمراحل الأخرى.", '<button class="button button-primary" data-action="open-studio">✳ مختبر التدريب</button>')}
       <section class="stats-grid">
         ${statCard("عدد المراحل", CATALOG.stages.length, "▤", "المراحل المعرفة حاليًا")}
-        ${statCard("كلمات المرحلة الأولى", OFFICIAL.length, "◇", "مفردات موثقة من درسنا")}
+        ${statCard("مفردات المراحل", OFFICIAL.length, "◇", "المفردات الرسمية الموزعة على المراحل")}
         ${statCard("أخطاء مسجلة", state.mistakes.length, "↻", "تظل مرتبطة بكلمتها ومرحلتها")}
         ${statCard("جلسات تدريب", state.sessions.length, "◷", "محفوظة محليًا")}
       </section>
       <section class="stage-grid">${cards}</section>
-      <div class="helper-note" style="margin-top:18px">تُضاف المراحل الجديدة من تمارينك القادمة. لن أملأ المراحل بكلمات عامة لا تظهر في مواد التدريب.</div>`;
+      <div class="helper-note" style="margin-top:18px">تضمّ المراحل الجديدة مفردات متدرجة من الأساسيات إلى التحليل الأكاديمي، ويمكن دراسة كل مرحلة واختبارها بصورة مستقلة.</div>`;
   }
 
   function stageTabsMarkup() {
