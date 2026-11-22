@@ -137,6 +137,22 @@ Use an atomic database claim operation (transaction/RPC) restricted to the serve
 
 Do not use a publicly callable `SECURITY DEFINER` function as a shortcut. Prefer invoker rights. If a definer function is proven necessary, put it in a non-exposed schema, explicitly revoke execution from `PUBLIC`, `anon` and `authenticated`, grant only the intended server role, and add an explicit authorization guard.
 
+### Account-level consent ledger
+
+Create a separate `public.ai_user_consents` table keyed by authenticated `user_id`, containing only:
+- current consent-version identifier;
+- `accepted_at` timestamp;
+- `revoked_at` timestamp;
+- `updated_at` timestamp.
+
+This table must have RLS enabled, no direct grants or policies for browser roles, and server-only access through the Edge Function. It contains no vocabulary text, prompt, answer, study history or analytics, and is never sent to Google. The Edge Function must:
+- store consent only after the user presses the explicit consent action;
+- verify an active record for the current consent version before returning shared or generating new AI content;
+- mark the record revoked when the user chooses to disable AI content;
+- fail closed if consent state cannot be checked or persisted.
+
+The browser keeps a separate local consent flag only to control the UI and offline access. Online requests recheck the account-level record, so revocation on one device blocks new Gemini requests from other devices on their next connection. If a device is offline, it may display only AI content already cached on that device while its local consent flag remains active; it cannot observe a remote revocation until it reconnects.
+
 ### Usage / abuse-control table
 
 Create a separate `public.ai_generation_usage` table containing only:
