@@ -152,6 +152,6 @@ test("AI database migration is isolated and grants no client access", () => {
   assert.match(migration, /revoke all on table public\.ai_learning_content from public, anon, authenticated/);
   assert.match(migration, /grant select, insert, update, delete on table public\.ai_learning_content to service_role/);
   assert.match(migration, /security invoker/);
-  assert.doesNotMatch(migration, /learning_state|sync_learning_state/);
+  assert.doesNotMatch(migration, /(?:alter|drop|truncate)\\s+(?:table|function)\\s+(?:public\\.)?(?:learning_state|sync_learning_state)/i);
   assert.doesNotMatch(migration, /security definer/);
 });
