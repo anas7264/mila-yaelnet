@@ -664,3 +664,67 @@ test("main learning progress auto-masters after three spaced successes and keeps
   saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
   assert.equal(saved.progress[word.id].mastered, true);
 });
+
+
+test("beginSession creates the declared config, defers end feedback, and saves compatible history settings", () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    documentElement: { dataset: {} },
+    body: { classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } } },
+    getElementById() { return null; },
+    querySelectorAll() { return []; },
+    querySelector() { return null; },
+    addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "begin-session-test" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout, setInterval, clearInterval
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"]) {
+    vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  }
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  appSource = appSource.replace(
+    "  initialize();\\n})();",
+    "  render = () => {}; renderSession = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\\n})();"
+  );
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const hooks = context.__MilaTestHooks;
+  hooks.beginSession(words, {
+    source: "all", difficulty: "medium", feedback: "end", distractorScope: "library",
+    shuffle: false, noRepeat: false, optionCount: 4, timerSeconds: 0,
+    mode: "ar-he", count: 2, distractorPool: words
+  }, "config-regression");
+  const session = hooks.ui.session;
+  assert.ok(session);
+  assert.equal(session.config.source, "all");
+  assert.equal(session.config.difficulty, "medium");
+  assert.equal(session.config.feedback, "end");
+  assert.equal(session.config.distractorScope, "library");
+  assert.equal(session.config.shuffle, false);
+  assert.equal(session.config.noRepeat, false);
+  assert.equal(session.config.optionCount, 4);
+  assert.equal(session.config.timerSeconds, 0);
+  assert.equal(session.config.mode, "ar-he");
+  assert.equal(session.config.targetCount, session.questions.length);
+  assert.equal(session.questions.length, 2);
+
+  const question = session.questions[0];
+  hooks.submitCurrent(true, question.correctWordId);
+  assert.equal(session.feedbackVisible, false);
+  hooks.finishSession();
+
+  const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  const record = saved.sessions.at(-1);
+  assert.equal(record.settings.mode, "ar-he");
+  assert.equal(record.settings.source, "all");
+  assert.equal(Object.hasOwn(record.settings, "feedback"), false);
+});
