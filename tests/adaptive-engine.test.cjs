@@ -401,6 +401,32 @@ test("service worker cache is versioned so updated scripts replace stale cached 
 });
 
 
+test("an empty response used by the forgot action records one incorrect attempt and schedules a retry", () => {
+  let state = start();
+  const question = Engine.currentQuestion(state, words);
+  const result = Engine.submitAnswer(state, words, "", {
+    questionId: question.questionId, now: 9000, random: () => 0
+  });
+  assert.equal(result.accepted, true);
+  assert.equal(result.correct, false);
+  assert.equal(result.retryAfter, 2);
+  assert.equal(result.state.session.attempts, 1);
+  assert.equal(result.state.session.incorrect, 1);
+  assert.equal(Engine.getCard(result.state, question.wordId, "he-ar").incorrect, 1);
+});
+
+test("adaptive forgot button exposes Alt+N and routes through the guarded forgot action", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../static/adaptive.css"), "utf8");
+  assert.match(ui, /data-adaptive-action="forgot"/);
+  assert.match(ui, /aria-keyshortcuts="Alt\+N"/);
+  assert.match(ui, /event\.altKey[\s\S]*?event\.key\s*\|\|\s*""\)\.toLowerCase\(\)\s*===\s*"n"/);
+  assert.match(ui, /state\.session\.paused\s*\|\|\s*state\.session\.answered/);
+  assert.match(ui, /if \(action === "forgot"\)[\s\S]*?submitAdaptiveAnswer\("")/);
+  assert.match(css, /\.adaptive-answer-actions/);
+  assert.match(css, /@media\(max-width:400px\)/);
+});
+
 test("adaptive analytics aggregates both directions independently and ranks reinforcement words", () => {
   const raw = Engine.createState();
   raw.progress.w1 = {
