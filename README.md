@@ -42,6 +42,10 @@ The 377 academic terms are retained from the recovered content set. The addition
 
 The adaptive scheduler is a bounded P0 short-term scheduler, not FSRS. Contextual prompts, written production, validated morphology, and advanced analytics remain outside this release.
 
+## AI learning-content design
+
+The proposed Gemini free-tier integration, data minimization, Supabase cache isolation, Edge Function security, legal/audience gate, test requirements, and production release gates are documented in [AI_LEARNING_CONTENT_GEMINI_SPEC.md](docs/AI_LEARNING_CONTENT_GEMINI_SPEC.md). The document is design-only; it does not deploy or change production.
+
 ## Verification
 
 Run:
