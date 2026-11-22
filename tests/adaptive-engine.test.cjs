@@ -307,7 +307,9 @@ test("adaptive exit restores the existing platform view without reloading the do
   assert.match(app, /window\.MilaLearningBridge = Object\.freeze\([\s\S]*?returnToPlatform/);
   assert.match(adaptive, /window\.MilaLearningBridge\?\.returnToPlatform\?\.\(\)/);
   assert.doesNotMatch(adaptive, /window\.location\.reload\(\)/);
-  assert.match(adaptive, /if \(!save\(\)\) return;/);
+  assert.match(adaptive, /const previousState = state/);
+  assert.match(adaptive, /if \(!save\(\)\)[\s\S]*?state = previousState;[\s\S]*?renderSession\(\);/);
+  assert.match(adaptive, /if \(!restored\)[\s\S]*?if \(state\.session\) renderSession\(\)/);
 });
 
 test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
