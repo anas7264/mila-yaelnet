@@ -234,3 +234,17 @@ test("one account cannot suppress shared AI content with a single report", () =>
   assert.match(aiClient, /result\?\.status === "received"/);
   assert.match(aiClient, /سيبقى المحتوى متاحًا مؤقتًا/);
 });
+
+
+test("online cached content checks shared status and evicts content disabled by reports", () => {
+  const start = aiClient.indexOf("async function loadForWord");
+  const end = aiClient.indexOf("async function acceptConsent", start);
+  const loader = aiClient.slice(start, end);
+  const consent = loader.indexOf('invoke(wordId, "consent-status")');
+  const check = loader.indexOf('invoke(wordId, "check-content")');
+  const renderCached = loader.indexOf("renderPayload(card, cached.payload)");
+  assert.ok(consent >= 0 && check > consent && renderCached > check);
+  assert.match(loader, /remoteStatus\?\.status === "unavailable"[\s\S]*?storeOperation\("readwrite", key, null\)/);
+  assert.match(edge, /action === "check-content"[\s\S]*?checkCachedContent\(cacheKey, cors\)/);
+  assert.match(edge, /status === "reported" \|\| status === "rejected"/);
+});
