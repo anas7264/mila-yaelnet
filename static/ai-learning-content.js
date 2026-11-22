@@ -238,23 +238,38 @@
       if (panel) panel.hidden = false;
       return;
     }
-    if (!navigator.onLine) {
-      setStatus(card, "لا يوجد اتصال. جرّب عند عودة الإنترنت، أو تابع التدريب دون المحتوى السياقي.", "error");
-      return;
-    }
 
     const key = cacheKey(wordId);
     const cached = await storeOperation("readonly", key);
-    if (cached?.payload) {
-      renderPayload(card, cached.payload);
-      setStatus(card, "تم تحميل المحتوى من الذاكرة المحلية.", "ok");
+
+    if (!navigator.onLine) {
+      if (cached?.payload) {
+        renderPayload(card, cached.payload);
+        setStatus(card, "لا يوجد اتصال؛ عُرض المثال المحفوظ على هذا الجهاز دون الاتصال بـ Gemini.", "ok");
+      } else {
+        setStatus(card, "لا يوجد اتصال ولا توجد نسخة محفوظة لهذه المفردة. تابع التدريب دون المحتوى السياقي.", "error");
+      }
       return;
     }
 
     const button = card.querySelector("[data-mila-ai-load]");
     if (button) button.disabled = true;
-    setStatus(card, "جارٍ إعداد المثال والشرح لهذه المفردة…");
+    setStatus(card, "جارٍ التحقق من موافقة الحساب…");
     try {
+      const consent = await invoke(wordId, "consent-status");
+      if (consent?.status !== "consented" || consent.consentVersion !== CONSENT_VERSION) {
+        const error = new Error("consent_required");
+        error.code = "consent_required";
+        throw error;
+      }
+
+      if (cached?.payload) {
+        renderPayload(card, cached.payload);
+        setStatus(card, "تم تحميل المحتوى من الذاكرة المحلية بعد التحقق من موافقة الحساب.", "ok");
+        return;
+      }
+
+      setStatus(card, "جارٍ إعداد المثال والشرح لهذه المفردة…");
       const result = await invoke(wordId, "generate");
       if (!result || result.status !== "ready" || !result.payload) {
         const error = new Error(result?.code || "invalid_response");
@@ -276,8 +291,10 @@
         try { localStorage.removeItem(CONSENT_KEY); } catch {}
         const panel = card.querySelector("[data-mila-ai-consent-panel]");
         const disable = card.querySelector("[data-mila-ai-disable]");
+        const target = card.querySelector("[data-mila-ai-content]");
         if (panel) panel.hidden = false;
         if (disable) disable.hidden = true;
+        if (target) target.hidden = true;
       }
       setStatus(card, explainError(error), "error");
     } finally {
