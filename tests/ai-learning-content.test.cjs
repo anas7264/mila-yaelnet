@@ -214,5 +214,7 @@ test("online cached content is checked against server consent; offline mode uses
   const end = aiClient.indexOf("async function acceptConsent", start);
   const loader = aiClient.slice(start, end);
   assert.ok(loader.indexOf('if (!navigator.onLine)') < loader.indexOf('invoke(wordId, "consent-status")'));
-  assert.ok(loader.indexOf('invoke(wordId, "consent-status")') < loader.indexOf('if (cached?.payload)'));
+  const consentCheck = loader.indexOf('invoke(wordId, "consent-status")');
+  const onlineCacheRead = loader.indexOf('if (cached?.payload)', consentCheck);
+  assert.ok(consentCheck >= 0 && consentCheck < onlineCacheRead);
 });
