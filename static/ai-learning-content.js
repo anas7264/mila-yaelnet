@@ -106,8 +106,31 @@
         <div class="adaptive-ai-content" data-mila-ai-content hidden></div>
         <div class="adaptive-ai-actions">
           <button class="adaptive-ai-action" type="button" data-mila-ai-load>عرض المثال والسياق</button>
+          <button class="adaptive-ai-disable" type="button" data-mila-ai-disable ${hasConsent() ? "" : "hidden"}>إيقاف المحتوى الذكي</button>
         </div>
       </aside>`;
+  }
+
+  function revokeConsent(card) {
+    try {
+      localStorage.removeItem(CONSENT_KEY);
+    } catch {
+      setStatus(card, "تعذر إيقاف الموافقة بسبب إعدادات التخزين في المتصفح.", "error");
+      return false;
+    }
+    const panel = card.querySelector("[data-mila-ai-consent-panel]");
+    const target = card.querySelector("[data-mila-ai-content]");
+    const load = card.querySelector("[data-mila-ai-load]");
+    const disable = card.querySelector("[data-mila-ai-disable]");
+    if (panel) panel.hidden = true;
+    if (target) {
+      target.replaceChildren();
+      target.hidden = true;
+    }
+    if (disable) disable.hidden = true;
+    if (load) load.disabled = false;
+    setStatus(card, "أوقفت الموافقة. لن تُرسل طلبات جديدة إلى Gemini من هذا الجهاز.");
+    return true;
   }
 
   function setStatus(card, message, state = "info") {
@@ -258,7 +281,7 @@
   }
 
   function handleClick(event) {
-    const button = event.target instanceof Element ? event.target.closest("[data-mila-ai-load],[data-mila-ai-consent],[data-mila-ai-cancel],[data-mila-ai-report]") : null;
+    const button = event.target instanceof Element ? event.target.closest("[data-mila-ai-load],[data-mila-ai-consent],[data-mila-ai-cancel],[data-mila-ai-report],[data-mila-ai-disable]") : null;
     if (!button) return;
     const card = button.closest("[data-mila-ai-card]");
     const wordId = card?.dataset.wordId;
@@ -279,6 +302,11 @@
       event.preventDefault();
       const panel = card.querySelector("[data-mila-ai-consent-panel]");
       if (panel) panel.hidden = true;
+      return;
+    }
+    if (button.hasAttribute("data-mila-ai-disable")) {
+      event.preventDefault();
+      revokeConsent(card);
       return;
     }
     if (button.hasAttribute("data-mila-ai-report")) {
