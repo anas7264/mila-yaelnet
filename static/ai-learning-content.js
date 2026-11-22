@@ -295,6 +295,8 @@
         return;
       }
       if (panel) panel.hidden = true;
+      const disable = card.querySelector("[data-mila-ai-disable]");
+      if (disable) disable.hidden = false;
       void loadForWord(card, wordId);
       return;
     }
