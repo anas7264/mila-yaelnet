@@ -172,7 +172,12 @@
       <form id="adaptiveAnswerForm" class="adaptive-answer-form" autocomplete="off">
         <label for="adaptiveAnswer">${q.direction === "he-ar" ? "اكتب الترجمة العربية" : "اكتب الكلمة العبرية"}</label>
         <input id="adaptiveAnswer" name="answer" type="text" dir="${answerDir}" lang="${q.direction === "he-ar" ? "ar" : "he"}" autocapitalize="off" spellcheck="false" required maxlength="240" placeholder="${q.direction === "he-ar" ? "اكتب المعنى بالعربية…" : "اكتب الكلمة بالعبرية…"}">
-        <button class="adaptive-button adaptive-primary adaptive-full" type="submit">تحقّق من الإجابة</button>
+        <div class="adaptive-answer-actions">
+          <button class="adaptive-button adaptive-forgot" type="button" data-adaptive-action="forgot" aria-keyshortcuts="Alt+N">
+            نسيت <kbd class="adaptive-shortcut" aria-hidden="true">Alt + N</kbd>
+          </button>
+          <button class="adaptive-button adaptive-primary adaptive-submit" type="submit">تحقّق من الإجابة</button>
+        </div>
       </form>`;
     $("appView").innerHTML = `
       <section class="adaptive-page adaptive-study" dir="rtl">
@@ -215,6 +220,35 @@
     } catch (error) { toast(error.message || "تعذر بدء الجلسة.", true); }
   }
 
+  function submitAdaptiveAnswer(answer) {
+    if (!state.session || state.session.answered || state.session.paused) return;
+    const q = Engine.currentQuestion(state, words);
+    if (!q) {
+      toast("تعذر تحديد السؤال الحالي. أعد تحميل الصفحة لاستعادة الجلسة.", true);
+      return;
+    }
+    const result = Engine.submitAnswer(state, words, answer, { questionId: q.questionId });
+    if (!result.accepted) {
+      toast("تم تجاهل الإرسال المكرر أو القديم.", true);
+      return;
+    }
+    const bridge = window.MilaLearningBridge;
+    const integrated = bridge?.recordAdaptiveAnswer({
+      eventId: q.questionId,
+      wordId: q.wordId,
+      correct: result.correct,
+      direction: q.direction,
+      at: result.state.session?.lastResult?.at
+    });
+    if (!integrated?.accepted) {
+      toast("لم تُحفظ هذه الإجابة في سجل المنصة الرئيسي؛ أعد المحاولة دون الانتقال للسؤال التالي.", true);
+      return;
+    }
+    state = result.state;
+    if (!save()) toast("حُفظت النتيجة العامة، لكن تعذر حفظ حالة الطابور التكيفي محليًا.", true);
+    renderSession();
+  }
+
   function handleAction(action) {
     if (action === "exit") {
       if (state.session) {
@@ -228,6 +262,10 @@
       state = Engine.setPaused(state, false);
       save();
       renderSession();
+      return;
+    }
+    if (action === "forgot") {
+      submitAdaptiveAnswer("");
       return;
     }
     if (action === "pause") {
@@ -302,34 +340,24 @@
     }
   }, true);
 
+  document.addEventListener("keydown", event => {
+    const isForgotShortcut = event.altKey && !event.ctrlKey && !event.metaKey &&
+      !event.shiftKey && event.code === "KeyN";
+    if (!isForgotShortcut || !opened || !state.session ||
+        state.session.paused || state.session.answered) return;
+    event.preventDefault();
+    event.stopPropagation();
+    try { handleAction("forgot"); }
+    catch (error) {
+      console.error("Adaptive forgot shortcut failed:", error);
+      toast("تعذر تسجيل الإجابة المنسية: " + (error?.message || "خطأ غير متوقع"), true);
+    }
+  }, true);
+
   document.addEventListener("submit", event => {
     if (event.target?.id !== "adaptiveAnswerForm") return;
     event.preventDefault();
-    if (!state.session || state.session.answered || state.session.paused) return;
-    const q = Engine.currentQuestion(state, words);
-    if (!q) { toast("تعذر تحديد السؤال الحالي. أعد تحميل الصفحة لاستعادة الجلسة.", true); return; }
-    const input = event.target.elements.answer;
-    const answer = input.value;
-    const result = Engine.submitAnswer(state, words, answer, { questionId: q.questionId });
-    if (!result.accepted) {
-      toast("تم تجاهل الإرسال المكرر أو القديم.", true);
-      return;
-    }
-    const bridge = window.MilaLearningBridge;
-    const integrated = bridge?.recordAdaptiveAnswer({
-      eventId: q.questionId,
-      wordId: q.wordId,
-      correct: result.correct,
-      direction: q.direction,
-      at: result.state.session?.lastResult?.at
-    });
-    if (!integrated?.accepted) {
-      toast("لم تُحفظ هذه الإجابة في سجل المنصة الرئيسي؛ أعد المحاولة دون الانتقال للسؤال التالي.", true);
-      return;
-    }
-    state = result.state;
-    if (!save()) toast("حُفظت النتيجة العامة، لكن تعذر حفظ حالة الطابور التكيفي محليًا.", true);
-    renderSession();
+    submitAdaptiveAnswer(event.target.elements.answer?.value ?? "");
   }, true);
 
   function init() {

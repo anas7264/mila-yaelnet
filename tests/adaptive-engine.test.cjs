@@ -393,13 +393,41 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v12"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v13"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
   assert.match(sw, /await self\.clients\.claim\(\)/);
 });
 
+
+test("an empty response used by the forgot action records one incorrect attempt and schedules a retry", () => {
+  let state = start();
+  const question = Engine.currentQuestion(state, words);
+  const result = Engine.submitAnswer(state, words, "", {
+    questionId: question.questionId, now: 9000, random: () => 0
+  });
+  assert.equal(result.accepted, true);
+  assert.equal(result.correct, false);
+  assert.equal(result.retryAfter, 2);
+  assert.equal(result.state.session.attempts, 1);
+  assert.equal(result.state.session.incorrect, 1);
+  assert.equal(Engine.getCard(result.state, question.wordId, "he-ar").incorrect, 1);
+});
+
+test("adaptive forgot button exposes Alt+N and routes through the guarded forgot action", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../static/adaptive.css"), "utf8");
+  assert.match(ui, /data-adaptive-action="forgot"/);
+  assert.match(ui, /aria-keyshortcuts="Alt\+N"/);
+  assert.ok(ui.includes("event.altKey"));
+  assert.ok(ui.includes('event.code === "KeyN"'));
+  assert.match(ui, /state\.session\.paused\s*\|\|\s*state\.session\.answered/);
+  assert.ok(ui.includes('if (action === "forgot")'));
+  assert.ok(ui.includes('submitAdaptiveAnswer("")'));
+  assert.match(css, /\.adaptive-answer-actions/);
+  assert.match(css, /@media\(max-width:400px\)/);
+});
 
 test("adaptive analytics aggregates both directions independently and ranks reinforcement words", () => {
   const raw = Engine.createState();
