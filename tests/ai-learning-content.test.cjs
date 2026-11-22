@@ -171,3 +171,8 @@ test("AI content consent can be revoked locally without touching learning progre
   assert.doesNotMatch(aiClient, /localStorage\.clear\(/);
   assert.doesNotMatch(aiClient, /mila-yaelnet-studio-v3|learning_state/);
 });
+
+test("AI consent revoke control becomes visible immediately after opt-in", () => {
+  assert.match(aiClient, /if \(disable\) disable\.hidden = false/);
+  assert.match(aiClient, /if \(disable\) disable\.hidden = true/);
+});
