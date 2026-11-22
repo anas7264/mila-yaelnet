@@ -99,7 +99,7 @@
         </div>
         <p class="adaptive-ai-notice">يمكنك طلب مثال عبري مع ترجمته وشرح استعمال الكلمة. لا يؤثر هذا المحتوى في تصحيح الإجابة أو ترتيب المراجعة.</p>
         <div class="adaptive-ai-consent" data-mila-ai-consent-panel hidden>
-          <p>عند التفعيل، يُرسل إلى Gemini نص المفردة العبرية ومعناها العربي فقط. في الخطة المجانية، قد تستخدم Google المدخلات والمخرجات لتحسين منتجاتها وقد يراجعها أشخاص. لن نرسل إجاباتك أو سجل تعلمك أو بيانات حسابك إلى Gemini. سنحفظ نسخة الموافقة وتاريخها المرتبط بحسابك في MILA فقط لإدارة الموافقة وإلغائها.</p>
+          <p>عند التفعيل، يُرسل إلى Gemini نص المفردة العبرية ومعناها العربي فقط. في الخطة المجانية، قد تستخدم Google المدخلات والمخرجات لتحسين منتجاتها وقد يراجعها أشخاص. لن نرسل إجاباتك أو سجل تعلمك أو بيانات حسابك إلى Gemini. يتطلب حفظ الموافقة تسجيل الدخول، وسنخزن رقم نسخة الموافقة وتاريخ قبولها أو إلغائها في MILA فقط لإدارة الموافقة بين أجهزتك.</p>
           <button class="adaptive-ai-action" type="button" data-mila-ai-consent>أوافق وأفعّل المحتوى الذكي</button>
           <button class="adaptive-ai-cancel" type="button" data-mila-ai-cancel>إلغاء</button>
         </div>
@@ -216,7 +216,7 @@
 
   function explainError(error) {
     const code = error?.code || error?.message || "";
-    if (code === "consent_required") return "أُلغيت الموافقة على هذا الحساب. أعد قراءتها ووافق مجددًا قبل طلب محتوى جديد.";
+    if (code === "consent_required") return "لا توجد موافقة فعّالة لهذا الحساب، أو ربما أُلغيت من جهاز آخر. اقرأ الإشعار ووافق مجددًا قبل طلب محتوى جديد." ;
     if (code === "consent_storage_unavailable" || code === "consent_check_unavailable") return "تعذر التحقق من موافقة حسابك الآن. لا نرسل طلب التوليد إلى Gemini حتى ينجح التحقق.";
     if (code === "consent_local_storage_unavailable") return "تعذر حفظ الموافقة على هذا الجهاز؛ لم نفعّل المحتوى الذكي. تحقّق من إعدادات التخزين ثم أعد المحاولة." ;
     if (code === "auth_required" || code === "FunctionsHttpError") {
