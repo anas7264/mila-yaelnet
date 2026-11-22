@@ -9,9 +9,12 @@ const expanded = require("../static/expanded-vocabulary.js");
 
 // Load the exact academic content without initializing its browser-only UI.
 const academicSource = fs.readFileSync(path.join(root, "academic-terms.js"), "utf8");
-const groupsSource = academicSource.match(/const GROUPS = (\\[.*?\\]);\\s*const TERMS/s)?.[1];
-assert.ok(groupsSource, "academic group data must be parseable");
-globalThis.YaelAcademicTerms = JSON.parse(groupsSource).flatMap(group => group.terms);
+const marker = "const GROUPS = ";
+const groupsStart = academicSource.indexOf(marker);
+const groupsEnd = academicSource.indexOf(";\n  const TERMS", groupsStart);
+assert.ok(groupsStart >= 0 && groupsEnd > groupsStart, "academic group data must be parseable");
+globalThis.YaelAcademicTerms = JSON.parse(academicSource.slice(groupsStart + marker.length, groupsEnd))
+  .flatMap(group => group.terms);
 
 const existingWords = [
   ...catalog.officialWords(),
@@ -19,9 +22,9 @@ const existingWords = [
   ...expanded.terms
 ];
 const normalizeHebrew = value => String(value ?? "").normalize("NFC")
-  .replace(/[\\u0591-\\u05C7]/g, "")
-  .replace(/[\\u200e\\u200f]/g, "")
-  .replace(/\\s+/g, " ")
+  .replace(/[\u0591-\u05C7]/g, "")
+  .replace(/[\u200e\u200f]/g, "")
+  .replace(/\s+/g, " ")
   .trim()
   .toLocaleLowerCase("he");
 const existingHeadwords = new Set(existingWords.map(word => normalizeHebrew(word.he)));
@@ -68,6 +71,7 @@ test("new stages join the official stage path before the application loads", () 
   assert.ok(catalogIndex >= 0 && expandedIndex > catalogIndex);
   assert.ok(stagedIndex > expandedIndex && appIndex > stagedIndex);
   assert.match(sw, /mila-yaelnet-v17/);
-  assert.match(sw, /"\\/static\\/stage-vocabulary\\.js\\?v=1"/);
-  assert.equal(catalog.officialWords().length, existingWords.length - globalThis.YaelAcademicTerms.length - expanded.terms.length + addedWords.length);
+  assert.ok(sw.includes('"/static/stage-vocabulary.js?v=1"'));
+  assert.equal(catalog.officialWords().length,
+    existingWords.length - globalThis.YaelAcademicTerms.length - expanded.terms.length + addedWords.length);
 });
