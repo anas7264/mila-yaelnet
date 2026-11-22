@@ -30,10 +30,12 @@
       OFFICIAL
     );
     if (migration?.migrated && migration.state) {
+      const previousState = state;
       state = migration.state;
       if (STORE.saveState(state, localStorage)) {
         academicMigrationNotice = "تم دمج تقدم المصطلحات الأكاديمية السابق في المراحل التعليمية.";
       } else {
+        state = previousState;
         academicMigrationNotice = "تعذّر حفظ دمج التقدم الأكاديمي. بقيت النسخة القديمة محفوظة؛ تحقّق من مساحة التخزين قبل المتابعة.";
       }
     }
