@@ -1529,7 +1529,7 @@
 
   globalThis.YaelAdditionalStagesMeta = Object.freeze({
     stageCount: addedStages.length,
-    candidateCount: definitions.reduce((sum, item) => sum + item.rows.split(/\\r?\\n/).filter(line => line.trim()).length, 0),
+    candidateCount: definitions.reduce((sum, item) => sum + item.rows.split(/\r?\n/).filter(line => line.trim()).length, 0),
     addedWordCount: addedStages.reduce((sum, stage) => sum + stage.words.length, 0),
     duplicateCount: duplicateRows.length,
     invalidCount: invalidRows.length,
