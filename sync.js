@@ -27,6 +27,35 @@ const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000})
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING));
+window.MilaSyncBridge = Object.freeze({
+  invokeAiContent: async ({ wordId, action = "generate" } = {}) => {
+    if (!session?.access_token) {
+      const error = new Error("auth_required");
+      error.code = "auth_required";
+      throw error;
+    }
+    if (typeof wordId !== "string" || !wordId || wordId.length > 120 ||
+        !["generate", "report"].includes(action)) {
+      const error = new Error("invalid_request");
+      error.code = "invalid_request";
+      throw error;
+    }
+    const { data, error } = await sb.functions.invoke("mila-ai-content", {
+      body: { wordId, action }
+    });
+    if (error) {
+      let code = "ai_request_failed";
+      try {
+        const response = error.context instanceof Response ? await error.context.clone().json() : null;
+        if (typeof response?.code === "string") code = response.code;
+      } catch {}
+      const wrapped = new Error(code);
+      wrapped.code = code;
+      throw wrapped;
+    }
+    return data;
+  }
+});
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>{const e=card$('mila-sync-status');if(e){e.textContent=m;e.dataset.state=s}},emailRedirect=()=>buildEmailRedirect(location.origin);
 const writeMeta=(r,v)=>{revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,deviceId:device,updatedAt:new Date().toISOString()}))};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
