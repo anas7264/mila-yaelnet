@@ -11,7 +11,6 @@ export const RESPONSE_SCHEMA = Object.freeze({
     usage_note_ar: { type: "STRING" },
     collocations: {
       type: "ARRAY",
-      minItems: 1,
       maxItems: 3,
       items: {
         type: "OBJECT",
@@ -19,13 +18,11 @@ export const RESPONSE_SCHEMA = Object.freeze({
           he: { type: "STRING" },
           ar: { type: "STRING" }
         },
-        required: ["he", "ar"],
-        propertyOrdering: ["he", "ar"]
+        required: ["he", "ar"]
       }
     }
   },
-  required: ["definition_ar", "example_he", "example_ar", "usage_note_ar", "collocations"],
-  propertyOrdering: ["definition_ar", "example_he", "example_ar", "usage_note_ar", "collocations"]
+  required: ["definition_ar", "example_he", "example_ar", "usage_note_ar", "collocations"]
 });
 
 export function normalizeLexeme(value) {
