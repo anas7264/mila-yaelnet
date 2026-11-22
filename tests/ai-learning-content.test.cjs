@@ -163,7 +163,7 @@ test("Gemini configuration selects the documented free translation model", async
   assert.doesNotMatch(edge, /gemini-3\\.8-flash/);
 });
 
-test("AI content consent can be revoked locally without touching learning progress", () => {
+test("AI content consent is account-level and revocation never touches learning progress", () => {
   assert.match(aiClient, /function revokeConsent\(card\)/);
   assert.match(aiClient, /localStorage\.removeItem\(CONSENT_KEY\)/);
   assert.match(aiClient, /target\.replaceChildren\(\)/);
@@ -175,4 +175,28 @@ test("AI content consent can be revoked locally without touching learning progre
 test("AI consent revoke control becomes visible immediately after opt-in", () => {
   assert.match(aiClient, /if \(disable\) disable\.hidden = false/);
   assert.match(aiClient, /if \(disable\) disable\.hidden = true/);
+});
+
+test("server requires active account-level Gemini consent before serving or generating content", () => {
+  const migration = fs.readFileSync(path.join(root, "supabase/migrations/20261122090650_add_ai_learning_content_cache.sql"), "utf8");
+  assert.match(migration, /create table if not exists public\.ai_user_consents/);
+  assert.match(migration, /alter table public\.ai_user_consents enable row level security/);
+  assert.match(migration, /revoke all on table public\.ai_user_consents from public, anon, authenticated/);
+  assert.match(migration, /grant select, insert, update, delete on table public\.ai_user_consents to service_role/);
+  assert.match(edge, /async function storeUserConsent\(userId: string, accepted: boolean\)/);
+  assert.match(edge, /async function hasCurrentUserConsent\(userId: string\)/);
+  assert.match(edge, /action === "consent-status"/);
+  assert.match(edge, /if \(!consent\)[\s\S]*?consent_required/);
+  assert.match(sync, /"consent-status"/);
+  assert.match(aiClient, /invoke\(wordId, "consent-status"\)/);
+  assert.match(aiClient, /invoke\(wordId, "revoke-consent"\)/);
+});
+
+test("offline AI content can be served only from IndexedDB when local consent remains active", () => {
+  const start = aiClient.indexOf("async function loadForWord");
+  const end = aiClient.indexOf("async function acceptConsent", start);
+  const loader = aiClient.slice(start, end);
+  assert.match(loader, /const cached = await storeOperation\("readonly", key\)/);
+  assert.match(loader, /if \(!navigator\.onLine\)[\s\S]*?cached\?\.payload[\s\S]*?renderPayload/);
+  assert.match(loader, /invoke\(wordId, "consent-status"\)[\s\S]*?if \(cached\?\.payload\)/);
 });
