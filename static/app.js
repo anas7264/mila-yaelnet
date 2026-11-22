@@ -105,8 +105,12 @@
     node.textContent = message;
     node.className = "toast " + (kind === "error" ? "error" : "success");
     node.hidden = false;
+    document.body?.classList.add("toast-visible");
     clearTimeout(ui.toastTimer);
-    ui.toastTimer = setTimeout(() => { node.hidden = true; }, 3400);
+    ui.toastTimer = setTimeout(() => {
+      node.hidden = true;
+      document.body?.classList.remove("toast-visible");
+    }, 3400);
   }
 
   function setTheme(theme) {
@@ -793,6 +797,26 @@
     }
     const wordsMap = wordMap();
     const targetIds = sessionData.questions.map((q) => q.targetWordId);
+    // Store only the serializable session settings. Runtime objects such as
+    // distractorPool and derived functions must never enter the saved summary.
+    const persistableConfig = {
+      mode,
+      source: typeof config.source === "string" ? config.source : "all",
+      stageId: typeof config.stageId === "string" ? config.stageId : null,
+      stageIds: Array.isArray(config.stageIds) ? config.stageIds.filter((id) => typeof id === "string") : [],
+      scopeStageOnly: config.scopeStageOnly === true,
+      excludeMastered: config.excludeMastered === true,
+      search: typeof config.search === "string" ? config.search : "",
+      category: typeof config.category === "string" ? config.category : "all",
+      count: config.count === "all" ? "all" : (Number(config.count) || targetWords.length),
+      optionCount: Number(config.optionCount) || adaptiveOptions,
+      difficulty,
+      timerSeconds: Math.max(0, Number(config.timerSeconds) || 0),
+      feedback: config.feedback === "end" ? "end" : "instant",
+      shuffle: config.shuffle !== false,
+      noRepeat: config.noRepeat !== false,
+      distractorScope: config.distractorScope === "question-source" ? "question-source" : "library"
+    };
     ui.session = {
       id: sessionData.id,
       title,
