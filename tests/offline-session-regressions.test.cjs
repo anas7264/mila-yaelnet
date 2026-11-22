@@ -118,8 +118,8 @@ test("sync tears down realtime offline and restores it after connectivity return
 
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v20"'));
-  assert.ok(sw.includes('"/sync.js?v=5"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v21"'));
+  assert.ok(sw.includes('"/sync.js?v=6"'));
 });
 
 test("sync card remains visually light and independent of the application dark theme", () => {
@@ -154,6 +154,31 @@ test("sync card remains visually light and independent of the application dark t
 
   assert.ok(index.includes("background:#fff;color:#17233a;color-scheme:light"),
     "the sync-load fallback card must stay light too");
-  assert.ok(index.includes("import('/sync.js?v=5')"),
+  assert.ok(index.includes("import('/sync.js?v=6')"),
     "the updated sync stylesheet must bypass a cached older module");
+});
+
+
+test("session restoration timeout settles a never-resolving auth initialization", async () => {
+  const { withTimeout } = await import("../sync-core.mjs");
+  await assert.rejects(
+    withTimeout(new Promise(() => {}), 5, "restore timed out"),
+    (error) => error.name === "TimeoutError" && error.message === "restore timed out"
+  );
+});
+
+test("session restoration helper clears its timer after a successful result", async () => {
+  const { withTimeout } = await import("../sync-core.mjs");
+  assert.deepEqual(await withTimeout(Promise.resolve({ session: null }), 100, "timeout"), { session: null });
+});
+
+test("sync distinguishes a signed-out user from an offline signed-in user and bounds session restoration", () => {
+  const sync = read("sync.js");
+  const core = read("sync-core.mjs");
+  assert.ok(sync.includes("await withTimeout("), "initial auth restoration must be bounded");
+  assert.ok(sync.includes("10000,"), "initial auth restoration must have a finite timeout");
+  assert.ok(sync.includes("لم تسجّل الدخول حاليًا"), "a missing session must have an explicit signed-out state");
+  assert.ok(sync.includes("أنت مسجّل الدخول، لكن لا يوجد اتصال بالإنترنت"), "offline and signed-out states must not share wording");
+  assert.ok(sync.includes("card$('mila-sync-retry').hidden=false"), "failed restoration must expose retry");
+  assert.ok(core.includes("export function withTimeout"), "the timeout helper must be testable");
 });
