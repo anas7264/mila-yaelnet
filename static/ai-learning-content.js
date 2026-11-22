@@ -61,22 +61,29 @@
     if (!db) return null;
     return await new Promise(resolve => {
       let transaction;
+      let result = null;
+      let failed = false;
       try { transaction = db.transaction(STORE_NAME, mode); }
       catch { db.close(); return resolve(null); }
       const store = transaction.objectStore(STORE_NAME);
       let request;
       try {
         request = mode === "readonly" ? store.get(key) :
-          mode === "readwrite" && value === null ? store.delete(key) :
-          store.put(value);
+          value === null ? store.delete(key) : store.put(value);
       } catch {
         db.close();
         return resolve(null);
       }
-      request.onsuccess = () => resolve(mode === "readonly" ? request.result ?? null : true);
-      request.onerror = () => resolve(null);
-      transaction.oncomplete = () => db.close();
-      transaction.onerror = () => { db.close(); resolve(null); };
+      request.onsuccess = () => {
+        if (mode === "readonly") result = request.result ?? null;
+      };
+      request.onerror = () => { failed = true; };
+      transaction.oncomplete = () => {
+        db.close();
+        resolve(failed ? null : mode === "readonly" ? result : true);
+      };
+      transaction.onerror = () => { failed = true; db.close(); resolve(null); };
+      transaction.onabort = () => { failed = true; db.close(); resolve(null); };
     });
   }
 
@@ -224,9 +231,10 @@
         cachedAt: Date.now(),
         model: typeof result.model === "string" ? result.model : "shared-cache"
       };
-      await storeOperation("readwrite", key, entry);
+      const storedLocally = await storeOperation("readwrite", key, entry);
       renderPayload(card, result.payload);
-      setStatus(card, result.cached ? "تم استرجاع المحتوى من المكتبة المشتركة." : "تم إنشاء المحتوى وحفظه لإعادة استخدامه.", "ok");
+      const message = result.cached ? "تم استرجاع المحتوى من المكتبة المشتركة." : "تم إنشاء المحتوى وحفظه في المكتبة المشتركة.";
+      setStatus(card, storedLocally ? message + " وحُفظ على هذا الجهاز." : message + "؛ سيُسترجع من الخادم عند الحاجة.", "ok");
     } catch (error) {
       setStatus(card, explainError(error), "error");
     } finally {
