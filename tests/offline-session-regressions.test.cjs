@@ -118,11 +118,11 @@ test("sync tears down realtime offline and restores it after connectivity return
 
 test("service-worker cache version invalidates the previous static script cache", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v19"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v20"'));
   assert.ok(sw.includes('"/sync.js?v=4"'));
 });
 
-test("sync card keeps its own light color scheme when the application theme is dark", () => {
+test("sync card remains visually light and independent of the application dark theme", () => {
   const sync = read("sync.js");
   const index = read("index.html");
   const cardRuleStart = sync.indexOf("#mila-sync-card{");
@@ -130,16 +130,30 @@ test("sync card keeps its own light color scheme when the application theme is d
   const cardRule = sync.slice(cardRuleStart, sync.indexOf("}", cardRuleStart));
 
   for (const required of [
-    "color-scheme:light",
-    "--mila-sync-surface:#fff",
-    "--mila-sync-text:#17233a",
-    "--mila-sync-input:#fff"
+    "color-scheme:light!important",
+    "--bg:#fff",
+    "--surface:#fff",
+    "--ink:#172338",
+    "--line:#d9deea",
+    "background:#fff!important",
+    "color:#17233a!important"
   ]) {
-    assert.ok(cardRule.includes(required), "sync card must define " + required);
+    assert.ok(cardRule.includes(required), "sync card must explicitly reset " + required);
+  }
+
+  for (const required of [
+    "#mila-sync-card *{box-sizing:border-box;color-scheme:light!important}",
+    "#mila-sync-card input{",
+    "background:#fff!important;color:#17233a!important",
+    "#mila-sync-card .status[data-state=ok]",
+    "#mila-sync-card .status[data-state=error]",
+    "#mila-sync-card .conflict{"
+  ]) {
+    assert.ok(sync.includes(required), "sync card child styling must include " + required);
   }
 
   assert.ok(index.includes("background:#fff;color:#17233a;color-scheme:light"),
     "the sync-load fallback card must stay light too");
-  assert.ok(index.includes("import('/sync.js?v=4')"),
+  assert.ok(index.includes("import('/sync.js?v=5')"),
     "the updated sync stylesheet must bypass a cached older module");
 });
