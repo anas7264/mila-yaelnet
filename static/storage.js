@@ -24,6 +24,7 @@
   function createDefaultState() {
     return {
       version: 3,
+      migrations: {},
       extras: [],
       progress: {},
       mistakes: [],
@@ -200,6 +201,19 @@
     return {
       ...base,
       version: 3,
+      migrations: (() => {
+        const value = raw.migrations && typeof raw.migrations === "object" && !Array.isArray(raw.migrations)
+          ? raw.migrations.academicProgressV1 : null;
+        return value && typeof value === "object" && !Array.isArray(value) ? {
+          academicProgressV1: {
+            completedAt: Math.max(0, Number(value.completedAt) || 0),
+            migratedTermCount: Math.max(0, Math.min(1000, Number(value.migratedTermCount) || 0)),
+            mappedTermCount: Math.max(0, Math.min(1000, Number(value.mappedTermCount) || 0)),
+            mergedProgressCount: Math.max(0, Math.min(1000, Number(value.mergedProgressCount) || 0)),
+            skippedTermCount: Math.max(0, Math.min(1000, Number(value.skippedTermCount) || 0))
+          }
+        } : {};
+      })(),
       extras: uniqueExtras(raw.extras),
       progress: cleanedProgress,
       mistakes: Array.isArray(raw.mistakes) ? raw.mistakes.slice(-500).filter((m) => m && typeof m.wordId === "string").map((m) => ({
@@ -230,6 +244,130 @@
       lastSessionSummary: raw.lastSessionSummary && typeof raw.lastSessionSummary === "object" && !Array.isArray(raw.lastSessionSummary)
         ? sessions.find((item) => item.id === raw.lastSessionSummary.id) || null : null,
       completedStageIds: Array.isArray(raw.completedStageIds) ? raw.completedStageIds.filter((id) => typeof id === "string").slice(0, 100) : []
+    };
+  }
+
+  function normalizeHebrewHeadword(value) {
+    return String(value ?? "").normalize("NFC")
+      .replace(/[\\u0591-\\u05C7]/g, "")
+      .replace(/[\\u200e\\u200f]/g, "")
+      .replace(/\\s+/g, " ")
+      .trim()
+      .toLocaleLowerCase("he");
+  }
+
+  function mergeProgressWithoutDoubleCounting(...records) {
+    const valid = records.filter((item) => item && typeof item === "object" && !Array.isArray(item));
+    if (!valid.length) return null;
+    const latest = valid.reduce((winner, item) => {
+      const winnerAt = Math.max(Number(winner?.lastReviewedAt) || 0, Number(winner?.lastAnswerAt) || 0);
+      const itemAt = Math.max(Number(item?.lastReviewedAt) || 0, Number(item?.lastAnswerAt) || 0);
+      return itemAt >= winnerAt ? item : winner;
+    }, valid[0]);
+    const positiveDueDates = valid.map(item => Number(item.dueAt) || 0).filter(value => value > 0);
+    return {
+      attempts: Math.max(0, ...valid.map(item => Number(item.attempts) || 0)),
+      correct: Math.max(0, ...valid.map(item => Number(item.correct) || 0)),
+      incorrect: Math.max(0, ...valid.map(item => Number(item.incorrect) || 0)),
+      mistakes: Math.max(0, ...valid.map(item => Number(item.mistakes) || Number(item.incorrect) || 0)),
+      favorite: valid.some(item => Boolean(item.favorite)),
+      mastered: Boolean(latest.mastered),
+      dueAt: positiveDueDates.length ? Math.min(...positiveDueDates) : 0,
+      intervalDays: Math.max(0, ...valid.map(item => Number(item.intervalDays) || 0)),
+      repetitions: Math.max(0, ...valid.map(item => Number(item.repetitions) || 0)),
+      ease: Number(latest.ease) || Math.max(1.3, ...valid.map(item => Number(item.ease) || 2.3)),
+      lapses: Math.max(0, ...valid.map(item => Number(item.lapses) || 0)),
+      lastReviewedAt: Math.max(0, ...valid.map(item => Number(item.lastReviewedAt) || 0)),
+      lastAnswerAt: Math.max(0, ...valid.map(item => Number(item.lastAnswerAt) || 0))
+    };
+  }
+
+  function migrateAcademicProgress(state, academicSnapshot, academicTerms, officialWords = []) {
+    const next = sanitizeState({ ...state, version: 3 });
+    if (!next) return { state: null, migrated: false, reason: "invalid-main-state" };
+    if (next.migrations?.academicProgressV1) return { state: next, migrated: false, alreadyMigrated: true };
+    if (!academicSnapshot || academicSnapshot.version !== 1 ||
+        !academicSnapshot.progress || typeof academicSnapshot.progress !== "object" ||
+        Array.isArray(academicSnapshot.progress) || !Array.isArray(academicTerms) ||
+        !academicTerms.length || !Array.isArray(officialWords) || !officialWords.length) {
+      return { state: next, migrated: false, pending: true, reason: "academic-data-not-ready" };
+    }
+
+    const byHebrew = new Map();
+    const byId = new Map();
+    for (const word of officialWords) {
+      if (!word || typeof word.id !== "string") continue;
+      byId.set(word.id, word);
+      const key = normalizeHebrewHeadword(word.he);
+      if (key && !byHebrew.has(key)) byHebrew.set(key, word);
+    }
+
+    const idMap = new Map();
+    let mappedTermCount = 0;
+    let skippedTermCount = 0;
+    for (const term of academicTerms) {
+      if (!term || typeof term.id !== "string") { skippedTermCount += 1; continue; }
+      const target = byHebrew.get(normalizeHebrewHeadword(term.he)) || byId.get(term.id);
+      if (!target) { skippedTermCount += 1; continue; }
+      idMap.set(term.id, target.id);
+      mappedTermCount += 1;
+    }
+
+    if (!mappedTermCount) {
+      return { state: next, migrated: false, pending: true, reason: "no-academic-terms-matched" };
+    }
+
+    const migratedTargets = new Set();
+    let mergedProgressCount = 0;
+    for (const term of academicTerms) {
+      const targetId = idMap.get(term?.id);
+      if (!targetId) continue;
+      const oldAcademicProgress = academicSnapshot.progress[term.id];
+      const mainAcademicProgress = next.progress[term.id];
+      const currentTargetProgress = next.progress[targetId];
+      if (oldAcademicProgress || mainAcademicProgress || currentTargetProgress) {
+        const merged = mergeProgressWithoutDoubleCounting(
+          currentTargetProgress,
+          mainAcademicProgress,
+          oldAcademicProgress
+        );
+        if (merged) next.progress[targetId] = merged;
+        mergedProgressCount += 1;
+      }
+      if (targetId !== term.id) delete next.progress[term.id];
+      migratedTargets.add(targetId);
+    }
+
+    next.mistakes = next.mistakes.map(item => ({
+      ...item,
+      wordId: idMap.get(item.wordId) || item.wordId,
+      selectedWordId: item.selectedWordId ? (idMap.get(item.selectedWordId) || item.selectedWordId) : null
+    }));
+    next.sessions = next.sessions.map(item => ({
+      ...item,
+      wrongWordIds: item.wrongWordIds.map(id => idMap.get(id) || id)
+    }));
+    next.lastSessionSummary = next.lastSessionSummary ? {
+      ...next.lastSessionSummary,
+      wrongWordIds: next.lastSessionSummary.wrongWordIds.map(id => idMap.get(id) || id)
+    } : null;
+    next.migrations = {
+      ...next.migrations,
+      academicProgressV1: {
+        completedAt: Date.now(),
+        migratedTermCount: academicTerms.length,
+        mappedTermCount,
+        mergedProgressCount,
+        skippedTermCount
+      }
+    };
+    return {
+      state: next,
+      migrated: true,
+      mappedTermCount,
+      mergedProgressCount,
+      skippedTermCount,
+      canonicalWordCount: migratedTargets.size
     };
   }
 
@@ -293,6 +431,7 @@
     uniqueExtras,
     migrateLegacy,
     sanitizeState,
+    migrateAcademicProgress,
     saveState,
     loadState,
     validateBackup,
