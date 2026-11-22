@@ -152,6 +152,13 @@ test("AI database migration is isolated and grants no client access", () => {
   assert.match(migration, /revoke all on table public\.ai_learning_content from public, anon, authenticated/);
   assert.match(migration, /grant select, insert, update, delete on table public\.ai_learning_content to service_role/);
   assert.match(migration, /security invoker/);
-  assert.doesNotMatch(migration, /(?:alter|drop|truncate)\\s+(?:table|function)\\s+(?:public\\.)?(?:learning_state|sync_learning_state)/i);
+  assert.doesNotMatch(migration, /(?:alter|drop|truncate)\s+(?:table|function)\s+(?:public\.)?(?:learning_state|sync_learning_state)/i);
   assert.doesNotMatch(migration, /security definer/);
+});
+
+test("Gemini configuration selects the documented free translation model", async () => {
+  const api = await contract();
+  assert.equal(api.DEFAULT_MODEL, "gemini-3.5-flash-lite");
+  assert.match(edge, /DEFAULT_MODEL/);
+  assert.doesNotMatch(edge, /gemini-3\\.8-flash/);
 });
