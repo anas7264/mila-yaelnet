@@ -220,3 +220,80 @@ comment on table public.ai_generation_global_usage is
 
 comment on table public.ai_user_consents is
   'Minimal account-linked consent version and timestamps for Gemini learning content. Never sent to Google.';
+
+
+-- Deduplicate reports per account and suppress shared content only after
+-- multiple independent reports, preventing a single account from disabling it.
+create table if not exists public.ai_learning_content_reports (
+  cache_key text not null references public.ai_learning_content(cache_key) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (cache_key, user_id)
+);
+
+alter table public.ai_learning_content_reports enable row level security;
+revoke all on table public.ai_learning_content_reports from public, anon, authenticated;
+grant select, insert, update, delete on table public.ai_learning_content_reports to service_role;
+
+create or replace function public.record_mila_ai_content_report(
+  p_cache_key text,
+  p_user_id uuid,
+  p_min_reports integer default 3
+)
+returns jsonb
+language plpgsql
+security invoker
+set search_path = pg_catalog, public
+as $function$
+declare
+  v_report_count integer;
+  v_content_status text;
+begin
+  if p_cache_key is null or length(p_cache_key) > 320
+     or p_user_id is null
+     or p_min_reports is null or p_min_reports < 2 or p_min_reports > 10 then
+    raise exception 'invalid_content_report';
+  end if;
+
+  perform 1
+  from public.ai_learning_content
+  where cache_key = p_cache_key
+    and status in ('ready', 'reported')
+  for update;
+
+  if not found then
+    return jsonb_build_object('status', 'not_found');
+  end if;
+
+  insert into public.ai_learning_content_reports (cache_key, user_id)
+  values (p_cache_key, p_user_id)
+  on conflict (cache_key, user_id) do nothing;
+
+  select count(*)::integer
+  into v_report_count
+  from public.ai_learning_content_reports
+  where cache_key = p_cache_key;
+
+  if v_report_count >= p_min_reports then
+    update public.ai_learning_content
+    set status = 'reported',
+        updated_at = clock_timestamp()
+    where cache_key = p_cache_key
+      and status = 'ready';
+  end if;
+
+  select status
+  into v_content_status
+  from public.ai_learning_content
+  where cache_key = p_cache_key;
+
+  return jsonb_build_object(
+    'status', case when v_content_status = 'reported' then 'reported' else 'received' end
+  );
+end;
+$function$;
+
+revoke all on function public.record_mila_ai_content_report(text, uuid, integer)
+  from public, anon, authenticated;
+grant execute on function public.record_mila_ai_content_report(text, uuid, integer)
+  to service_role;
