@@ -342,7 +342,7 @@
 
   document.addEventListener("keydown", event => {
     const isForgotShortcut = event.altKey && !event.ctrlKey && !event.metaKey &&
-      !event.shiftKey && String(event.key || "").toLowerCase() === "n";
+      !event.shiftKey && event.code === "KeyN";
     if (!isForgotShortcut || !opened || !state.session ||
         state.session.paused || state.session.answered) return;
     event.preventDefault();
