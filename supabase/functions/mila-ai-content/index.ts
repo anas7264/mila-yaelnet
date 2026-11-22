@@ -344,7 +344,7 @@ Deno.serve(async request => {
 
   const action = requestBody.action === undefined ? "generate" : requestBody.action;
   if (typeof action !== "string" ||
-      !["generate", "report", "consent", "revoke-consent"].includes(action)) {
+      !["generate", "report", "consent", "revoke-consent", "consent-status"].includes(action)) {
     return json({ code: "invalid_action" }, 400, cors);
   }
 
@@ -372,6 +372,22 @@ Deno.serve(async request => {
     if (!saved) return json({ code: "consent_storage_unavailable" }, 503, cors);
     return json({
       status: action === "consent" ? "consented" : "revoked",
+      consentVersion: CONSENT_VERSION
+    }, 200, cors);
+  }
+
+  if (action === "consent-status") {
+    let consentStatus: boolean | null;
+    try {
+      consentStatus = await hasCurrentUserConsent(userId);
+    } catch {
+      consentStatus = null;
+    }
+    if (consentStatus === null) {
+      return json({ code: "consent_check_unavailable" }, 503, cors);
+    }
+    return json({
+      status: consentStatus ? "consented" : "consent_required",
       consentVersion: CONSENT_VERSION
     }, 200, cors);
   }
