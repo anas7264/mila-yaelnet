@@ -1,10 +1,12 @@
-const CACHE_NAME = "mila-yaelnet-v16";
+const CACHE_NAME = "mila-yaelnet-v21";
 const CORE_ASSETS = [
   "/",
   "/health",
   "/static/style.css",
   "/static/catalog.js",
   "/static/expanded-vocabulary.js?v=1",
+  "/static/academic-stage-data.js?v=1",
+  "/static/stage-vocabulary.js?v=1",
   "/static/quiz-engine.js",
   "/static/storage.js",
   "/static/app.js",
@@ -18,15 +20,11 @@ const CORE_ASSETS = [
   "/sync-core.mjs",
   "/sync-settings-core.mjs",
   "/static/vendor/supabase.umd.js",
-  "/academic-terms.js",
-  "/academic-terms.js?v=2",
-  "/academic-terms.css?v=2",
   "/static/adaptive-engine.js?v=2",
   "/static/adaptive-ui.js?v=2",
-  "/academic-terms.css",
   "/sync-config.js?v=3",
-  "/sync.js?v=3",
-  "/sync-core.mjs?v=3",
+  "/sync.js?v=6",
+  "/sync-core.mjs?v=4",
   "/sync-settings-core.mjs?v=3"
 ];
 

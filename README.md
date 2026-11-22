@@ -5,20 +5,21 @@ Mila is a browser-based Hebrew vocabulary and YAELNET learning workspace. The cu
 ## Current release
 
 - Main vocabulary workspace with stages, custom vocabulary, review, analytics, and settings.
-- 377 academic terms in a dedicated section and shared global vocabulary/review map.
+- 377 former academic terms moved into five official learning stages (general academic vocabulary, mathematics and physics, electrical engineering, computing, and academic verbs/adjectives). 370 unique entries become stage words; entries already present in earlier stages or duplicated within the academic set are merged into their existing canonical word.
 - 1,050 supplied vocabulary entries across 21 thematic groups, integrated into the main library, custom practice, typed answers, and adaptive recall. Repeated Hebrew headwords are consolidated into one trainable entry while their topic tags and distinct glosses are retained.
+- 1,250 additional unique Hebrew headwords arranged in 10 progressive learning stages (from daily vocabulary to advanced reading and analytical expressions). The new stages are part of the official stage path, independent stage quizzes, progress, mistakes, review, and adaptive practice.
 - Adaptive active recall in both directions: Hebrew → Arabic and Arabic → Hebrew.
 - Direction-specific adaptive scheduling and short-term retry queue (2–4 intervening questions, at most 3 retries per word per cycle).
 - Resumable adaptive sessions with duplicate/stale answer protection.
-- Adaptive answers update the canonical learning progress, daily goal, general review/mistakes, academic-term progress, and session analytics.
-- Idempotency keys are persisted in the main learning store and academic store to avoid duplicate counts after reload/retry.
+- Adaptive answers update the canonical learning progress, daily goal, general review/mistakes, and session analytics across every stage, including the former academic vocabulary.
+- The one-time academic-progress migration maps old academic IDs to canonical stage-word IDs, merges overlapping counters without double-counting shared adaptive answers, and records a migration marker in the main store. The original academic storage key is retained.
 
 ## Data and synchronization
 
 The browser uses these local storage namespaces:
 
 - `mila-yaelnet-studio-v3` — canonical progress, mistakes, daily goal, sessions, settings, and adaptive idempotency ledger.
-- `mila-yaelnet-academic-v1` — academic-term progress and academic idempotency ledger.
+- `mila-yaelnet-academic-v1` — retained as a read-only legacy source until its progress has been migrated into the main stage progress store. It is not deleted, so the original academic records remain recoverable.
 - `mila-yaelnet-adaptive-v1` — direction-specific adaptive scheduling and resumable queue.
 
 The existing Supabase snapshot synchronizer includes all keys beginning with `mila-yaelnet-`. It uses the existing `public.learning_state` table and `sync_learning_state` RPC. No competing sync client, schema migration, RLS change, or database write is introduced by this release.
@@ -38,7 +39,7 @@ The earlier Flask deployment wrapper served the browser assets. The current rele
 
 ## Content and limitations
 
-The 377 academic terms are retained from the recovered content set. The additional 1,050 entries are organized into 21 thematic groups. Duplicate Hebrew headwords are merged across the new groups and existing catalog; alternate Arabic glosses are accepted as explicit aliases. Neither collection has undergone a complete independent linguistic/editorial review. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
+The 377 former academic terms are represented in five official stages. After normalized deduplication, 370 unique academic headwords are added as stage words; overlapping entries preserve their additional Arabic gloss and group metadata on the existing canonical word. The additional 1,050 entries remain organized into 21 thematic groups. Neither collection has undergone a complete independent linguistic/editorial review. The adaptive evaluator accepts normalized exact forms and explicitly listed aliases; it does not infer morphology, synonyms, or typo corrections.
 
 The adaptive scheduler is a bounded P0 short-term scheduler, not FSRS. Contextual prompts, written production, validated morphology, and advanced analytics remain outside this release.
 

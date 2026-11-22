@@ -198,32 +198,11 @@ test("main storage preserves adaptive idempotency keys and long session totals",
 });
 
 
-test("academic progress bridge is idempotent and persists adaptive attempts", () => {
-  const source = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
-  const values = new Map();
-  const context = {
-    window: { addEventListener() {} },
-    document: { getElementById() { return null; }, addEventListener() {} },
-    localStorage: {
-      getItem(key) { return values.has(key) ? values.get(key) : null; },
-      setItem(key, value) { values.set(key, value); }
-    },
-    Date, Math, setTimeout, clearTimeout
-  };
-  vm.runInNewContext(source, context);
-  const bridge = context.window.MilaAcademicProgressBridge;
-  assert.equal(bridge.recordAdaptiveAnswer("adaptive:q-1", "academic-001", false, 1000), true);
-  assert.equal(bridge.recordAdaptiveAnswer("adaptive:q-1", "academic-001", false, 1000), true);
-  const saved = JSON.parse(values.get("mila-yaelnet-academic-v1"));
-  assert.equal(saved.progress["academic-001"].attempts, 1);
-  assert.equal(saved.progress["academic-001"].incorrect, 1);
-  assert.equal(saved.progress["academic-001"].dueAt, 1000 + 30 * 60000);
-  assert.deepEqual(saved.adaptiveEvents, ["adaptive:q-1"]);
-});
-
-
-test("main learning bridge records adaptive answers, review errors and sessions exactly once", () => {
-  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js", "academic-terms.js"];
+test("academic words are official stage words and the main bridge records them once", () => {
+  const files = [
+    "static/catalog.js", "static/quiz-engine.js", "static/storage.js",
+    "static/expanded-vocabulary.js", "static/academic-stage-data.js", "static/stage-vocabulary.js"
+  ];
   const values = new Map();
   let failMainSave = false;
   const storage = {
@@ -251,35 +230,37 @@ test("main learning bridge records adaptive answers, review errors and sessions 
   for (const file of files) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }
+  const term = context.YaelAcademicTerms.find(item => item.id === "academic-001");
+  const official = context.YaelCatalog.officialWords().find(item => item.id === "academic-001");
+  assert.ok(term);
+  assert.ok(official);
+  assert.equal(official.source, "stage");
+  assert.equal(official.stageId, "stage-academic-general");
+
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   assert.equal((appSource.match(/  initialize\(\);\n\}\)\(\);/) || []).length, 1);
   appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const bridge = context.__MilaTestBridge;
   assert.ok(bridge);
-  assert.equal(context.YaelAcademicTerms.length, 377);
 
   failMainSave = true;
-  const failed = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  const failed = bridge.recordAdaptiveAnswer({ eventId: "q-stage-retry", wordId: "academic-001", correct: false, at: 1000 });
   assert.equal(failed.accepted, false);
-  const academicAfterFailure = JSON.parse(values.get("mila-yaelnet-academic-v1"));
-  assert.equal(academicAfterFailure.progress["academic-001"].attempts, 1);
-  assert.equal(values.has("mila-yaelnet-studio-v3"), true);
-  const mainAfterFailure = JSON.parse(values.get("mila-yaelnet-studio-v3"));
-  assert.equal(mainAfterFailure.progress["academic-001"], undefined);
-  assert.equal(mainAfterFailure.daily.completed, 0);
+  assert.equal(values.has("mila-yaelnet-academic-v1"), false);
+  const failedState = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.equal(failedState.progress["academic-001"], undefined);
+  assert.equal(failedState.daily.completed, 0);
 
   failMainSave = false;
-  const accepted = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  const accepted = bridge.recordAdaptiveAnswer({ eventId: "q-stage-retry", wordId: "academic-001", correct: false, at: 1000 });
   assert.equal(accepted.accepted, true);
   assert.equal(accepted.duplicate, false);
-  const duplicate = bridge.recordAdaptiveAnswer({ eventId: "q-retry", wordId: "academic-001", correct: false, at: 1000 });
+  const duplicate = bridge.recordAdaptiveAnswer({ eventId: "q-stage-retry", wordId: "academic-001", correct: false, at: 1000 });
   assert.equal(duplicate.accepted, true);
   assert.equal(duplicate.duplicate, true);
 
-  const academic = JSON.parse(values.get("mila-yaelnet-academic-v1"));
   const main = JSON.parse(values.get("mila-yaelnet-studio-v3"));
-  assert.equal(academic.progress["academic-001"].attempts, 1);
   assert.equal(main.progress["academic-001"].attempts, 1);
   assert.equal(main.progress["academic-001"].incorrect, 1);
   assert.equal(main.mistakes.filter(item => item.wordId === "academic-001").length, 1);
@@ -406,21 +387,25 @@ test("adaptive exit restores the existing platform view without reloading the do
   assert.match(adaptive, /if \(!restored\)[\s\S]*?if \(state\.session\) renderSession\(\)/);
 });
 
-test("adaptive integration writes to canonical and academic progress without replacing the adaptive view", () => {
+test("adaptive integration uses the unified stage catalog and removes the standalone academic page", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
-  const academic = fs.readFileSync(path.join(__dirname, "../academic-terms.js"), "utf8");
   const adaptive = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  const stageData = fs.readFileSync(path.join(__dirname, "../static/academic-stage-data.js"), "utf8");
   assert.match(app, /window\.MilaLearningBridge = Object\.freeze/);
   assert.match(app, /recordAdaptiveAnswer/);
   assert.match(app, /recordAdaptiveSession/);
-  assert.match(app, /source: "academic"/);
-  assert.match(academic, /window\.MilaAcademicProgressBridge/);
-  assert.match(academic, /academicViewOpen && ui\.mode === "list"/);
-  assert.match(adaptive, /bridge\?\.recordAdaptiveAnswer/);
-  assert.match(adaptive, /bridge\?\.recordAdaptiveSession/);
-  assert.match(adaptive, /session\.attempts > 0 \? bridge\?\.recordAdaptiveSession/);
-  assert.ok(html.indexOf("academic-terms.js") < html.indexOf("static/app.js"));
+  assert.match(app, /STORE\.migrateAcademicProgress/);
+  assert.doesNotMatch(app, /MilaAcademicProgressBridge/);
+  assert.doesNotMatch(app, /source: "academic"/);
+  assert.match(adaptive, /const legacyAcademicTerms = window.YaelAcademicTerms \|\| \[\]/);
+  assert.doesNotMatch(adaptive, /const academic = Array\.isArray\(window\.YaelAcademicTerms/);
+  assert.doesNotMatch(adaptive, /MilaAcademicProgressBridge/);
+  assert.match(stageData, /YaelAcademicGroups/);
+  assert.match(stageData, /YaelAcademicTerms/);
+  assert.ok(html.includes("static/academic-stage-data.js"));
+  assert.ok(!html.includes("academic-terms.js"));
+  assert.ok(!html.includes("academic-terms.css"));
 });
 
 // Keep this deterministic suite runnable with Node's built-in test runner.
@@ -499,7 +484,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v16"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v21"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);

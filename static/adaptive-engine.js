@@ -33,7 +33,7 @@
     return Boolean(normalizeText(answer)) && aliases(word[direction === "he-ar" ? "ar" : "he"]).includes(normalizeText(answer));
   }
   function createState() {
-    return { version: VERSION, progress: {}, session: null, policy: { ...DEFAULT_POLICY } };
+    return { version: VERSION, progress: {}, session: null, policy: { ...DEFAULT_POLICY }, migrations: {} };
   }
   function normalizeCard(card) {
     const source = card && typeof card === "object" ? card : {};
@@ -65,6 +65,8 @@
       maxRetries: Math.round(clamp(policy.maxRetries ?? DEFAULT_POLICY.maxRetries, 1, 5))
     };
     if (state.policy.maxDelay < state.policy.minDelay) state.policy.maxDelay = state.policy.minDelay;
+    const migrations = raw.migrations && typeof raw.migrations === "object" && !Array.isArray(raw.migrations) ? raw.migrations : {};
+    state.migrations = { academicWordIdsV1: Boolean(migrations.academicWordIdsV1) };
     const session = raw.session;
     if (session && typeof session === "object" && DIRECTIONS.includes(session.direction) &&
         Array.isArray(session.queue) && session.queue.every(id => typeof id === "string") && session.queue.length <= 10000) {
@@ -89,6 +91,77 @@
     }
     return state;
   }
+  function mergeAdaptiveCards(target, source) {
+    if (!target) return normalizeCard(source);
+    if (!source) return normalizeCard(target);
+    const a = normalizeCard(target);
+    const b = normalizeCard(source);
+    const latest = b.lastSeenAt >= a.lastSeenAt ? b : a;
+    return normalizeCard({
+      attempts: a.attempts + b.attempts,
+      correct: a.correct + b.correct,
+      incorrect: a.incorrect + b.incorrect,
+      consecutiveCorrect: latest.consecutiveCorrect,
+      failures: a.failures + b.failures,
+      priority: Math.max(a.priority, b.priority),
+      cooldownCycles: Math.max(a.cooldownCycles, b.cooldownCycles),
+      lastSeenAt: Math.max(a.lastSeenAt, b.lastSeenAt),
+      lastResult: latest.lastResult
+    });
+  }
+
+  function migrateWordIds(rawState, idMap = {}) {
+    const state = normalizeState(rawState);
+    if (state.migrations.academicWordIdsV1) {
+      return { state, migrated: false, alreadyMigrated: true, mappedProgressCount: 0, mappedSessionReferenceCount: 0 };
+    }
+    const mappings = idMap instanceof Map ? Object.fromEntries(idMap) :
+      (idMap && typeof idMap === "object" && !Array.isArray(idMap) ? idMap : {});
+    let mappedProgressCount = 0;
+    let mappedSessionReferenceCount = 0;
+
+    for (const [oldId, newIdValue] of Object.entries(mappings)) {
+      const newId = String(newIdValue || "");
+      if (!oldId || !newId || oldId === newId || !state.progress[oldId]) continue;
+      const source = state.progress[oldId];
+      const target = state.progress[newId];
+      const sourceRecord = {
+        heToAr: normalizeCard(source.heToAr),
+        arToHe: normalizeCard(source.arToHe)
+      };
+      state.progress[newId] = {
+        heToAr: mergeAdaptiveCards(target?.heToAr, sourceRecord.heToAr),
+        arToHe: mergeAdaptiveCards(target?.arToHe, sourceRecord.arToHe)
+      };
+      delete state.progress[oldId];
+      mappedProgressCount += 1;
+    }
+
+    const mapId = id => typeof id === "string" ? String(mappings[id] || id) : id;
+    if (state.session) {
+      const session = state.session;
+      session.queue = session.queue.map(id => {
+        const mapped = mapId(id);
+        if (mapped !== id) mappedSessionReferenceCount += 1;
+        return mapped;
+      });
+      const retryCounts = {};
+      for (const [id, count] of Object.entries(session.retryCounts || {})) {
+        const mapped = mapId(id);
+        retryCounts[mapped] = Math.max(Number(retryCounts[mapped]) || 0, Number(count) || 0);
+      }
+      session.retryCounts = retryCounts;
+      session.results = session.results.map(item => ({ ...item, wordId: mapId(item.wordId) }));
+      session.wrongWordIds = [...new Set(session.wrongWordIds.map(mapId))];
+      if (session.lastResult && typeof session.lastResult.wordId === "string") {
+        session.lastResult = { ...session.lastResult, wordId: mapId(session.lastResult.wordId) };
+      }
+    }
+
+    state.migrations.academicWordIdsV1 = true;
+    return { state, migrated: true, mappedProgressCount, mappedSessionReferenceCount };
+  }
+
   function shuffle(items, random) {
     const result = [...items];
     for (let i = result.length - 1; i > 0; i -= 1) {
@@ -266,6 +339,6 @@
     return normalizeCard(record?.[direction === "he-ar" ? "heToAr" : "arToHe"]);
   }
   return { VERSION, DIRECTIONS, DEFAULT_POLICY, normalizeText, aliases, uniqueWords, gradeAnswer,
-    createState, normalizeState, startSession, currentQuestion, submitAnswer, advance,
+    createState, normalizeState, migrateWordIds, startSession, currentQuestion, submitAnswer, advance,
     setPaused, endSession, getCard, getAnalytics };
 });

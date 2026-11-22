@@ -106,6 +106,42 @@ export function createSupabaseLoader({
   };
 }
 
+/**
+ * Bounds initialization calls that may stall without rejecting, while still
+ * observing a late rejection from the original promise.
+ */
+export function withTimeout(value, timeoutMs = 10000, message = 'Operation timed out') {
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    throw new RangeError('timeoutMs must be a non-negative finite number');
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const timerId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      const error = new Error(message);
+      error.name = 'TimeoutError';
+      reject(error);
+    }, timeoutMs);
+
+    Promise.resolve(value).then(
+      (result) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timerId);
+        resolve(result);
+      },
+      (error) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timerId);
+        reject(error);
+      }
+    );
+  });
+}
+
 export function createTimeoutFetch(fetchImpl, {
   timeoutMs = 20000,
   AbortControllerImpl = globalThis.AbortController,

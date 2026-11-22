@@ -18,12 +18,25 @@
 
   function collectWords() {
     const core = window.YaelCatalog?.officialWords?.() || [];
-    const academic = Array.isArray(window.YaelAcademicTerms) ? window.YaelAcademicTerms.map(term => ({
-      ...term,
-      category: term.groupTitle || "مصطلحات أكاديمية",
-      level: "أكاديمي",
-      source: "academic"
-    })) : [];
+    const legacyAcademicTerms = window.YaelAcademicTerms || [];
+    if (legacyAcademicTerms.length) {
+      const byHebrew = new Map();
+      for (const word of core) {
+        const key = Engine.normalizeText(word.he);
+        if (key && !byHebrew.has(key)) byHebrew.set(key, word);
+      }
+      const idMap = new Map();
+      for (const term of legacyAcademicTerms) {
+        const canonical = byHebrew.get(Engine.normalizeText(term.he));
+        if (canonical && canonical.id !== term.id) idMap.set(term.id, canonical.id);
+      }
+      const migration = Engine.migrateWordIds(state, idMap);
+      if (migration.migrated) {
+        const previous = state;
+        state = migration.state;
+        if (!save()) state = previous;
+      }
+    }
     let extras = [];
     try {
       const legacy = window.YaelStorage?.loadState?.(localStorage, core);
@@ -31,7 +44,7 @@
         ...item, category: "كلمات شخصية", level: "مخصص", source: "extra"
       })) : [];
     } catch (_) {}
-    const base = [...core, ...academic, ...extras];
+    const base = [...core, ...extras];
     const combined = window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
     const seen = new Set();
     words = combined.filter(word => {
@@ -189,7 +202,7 @@
         </header>
         <div class="adaptive-progress"><span>الدورة ${session.cycle}</span><span>السؤال ${q.position} · ${q.totalInCycle}</span><div><i style="width:${pct}%"></i></div></div>
         <article class="adaptive-question">
-          <span class="adaptive-question-label">${q.word.source === "academic" ? "مصطلح أكاديمي" : q.word.source === "expanded" ? "مفردة موسّعة" : q.word.source === "extra" ? "كلمة شخصية" : "مفردة أساسية"}</span>
+          <span class="adaptive-question-label">${q.word.source === "expanded" ? "مفردة موسّعة" : q.word.source === "extra" ? "كلمة شخصية" : "مفردة من مرحلة"}</span>
           <div class="adaptive-prompt" dir="${promptDir}" lang="${q.direction === "he-ar" ? "he" : "ar"}">${esc(q.word[promptField])}</div>
           <div class="adaptive-meta"><span>${esc(q.word.category || "مفردات")}</span><span>محاولات هذه الكلمة: ${card.attempts}</span><span>أخطاء: ${card.incorrect}</span></div>
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
