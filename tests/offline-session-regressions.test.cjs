@@ -101,6 +101,7 @@ test("network lifecycle pauses Supabase auth refresh offline and while hidden", 
 
 test("sync tears down realtime offline and restores it after connectivity returns", () => {
   const sync = read("sync.js");
+  assert.ok(sync.includes("autoRefreshToken:false"), "auth refresh must be controlled by network lifecycle");
   for (const required of [
     "const pauseRealtime=",
     "sb.removeChannel(active)",
