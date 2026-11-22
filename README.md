@@ -44,7 +44,7 @@ The adaptive scheduler is a bounded P0 short-term scheduler, not FSRS. Contextua
 
 ## AI learning-content design
 
-The proposed Gemini free-tier integration, data minimization, Supabase cache isolation, Edge Function security, legal/audience gate, test requirements, and production release gates are documented in [AI_LEARNING_CONTENT_GEMINI_SPEC.md](docs/AI_LEARNING_CONTENT_GEMINI_SPEC.md). The document is design-only; it does not deploy or change production.
+The Gemini free-tier integration is implemented as a disabled-by-default, unmerged code proposal in [PR #13](https://github.com/anas7264/mila-yaelnet/pull/13). Its architecture, data minimization, account-level consent, isolated Supabase cache, Edge Function security, legal gate and production release gates are documented in [AI_LEARNING_CONTENT_GEMINI_SPEC.md](docs/AI_LEARNING_CONTENT_GEMINI_SPEC.md). No migration or Edge Function has been deployed, and production is unchanged.
 
 ## Verification
 
