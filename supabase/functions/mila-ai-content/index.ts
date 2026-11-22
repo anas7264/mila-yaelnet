@@ -59,7 +59,7 @@ const env = {
   )
 };
 
-function corsHeaders(origin: string | null): HeadersInit | null {
+function corsHeaders(origin: string | null): Record<string, string> | null {
   if (!origin) return {};
   if (!env.allowedOrigins.has(origin)) return null;
   return {
@@ -126,7 +126,7 @@ async function releaseLease(cacheKey: string, leaseToken: string): Promise<void>
   }
 }
 
-async function reportContent(cacheKey: string): Promise<Response> {
+async function reportContent(cacheKey: string, cors: Record<string, string>): Promise<Response> {
   const query = new URLSearchParams({
     cache_key: `eq.${cacheKey}`,
     status: "eq.ready"
@@ -136,7 +136,7 @@ async function reportContent(cacheKey: string): Promise<Response> {
     headers: { "Prefer": "return=representation" },
     body: JSON.stringify({ status: "reported", updated_at: new Date().toISOString() })
   });
-  if (!response.ok) return json({ code: "storage_unavailable" }, 503);
+  if (!response.ok) return json({ code: "storage_unavailable" }, 503, cors);
   const rows = await response.json();
   if (!Array.isArray(rows) || rows.length === 0) {
     const existingQuery = new URLSearchParams({ cache_key: `eq.${cacheKey}`, select: "status" });
@@ -144,9 +144,9 @@ async function reportContent(cacheKey: string): Promise<Response> {
     if (!existing.ok) return json({ code: "storage_unavailable" }, 503);
     const current = await existing.json();
     if (Array.isArray(current) && current[0]?.status === "reported") {
-      return json({ status: "reported" });
+      return json({ status: "reported" }, 200, cors);
     }
-    return json({ code: "content_not_found" }, 404);
+    return json({ code: "content_not_found" }, 404, cors);
   }
   return json({ status: "reported" });
 }
@@ -274,10 +274,24 @@ Deno.serve(async request => {
 
   let body: unknown;
   try {
-    const raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_BODY_BYTES) {
-      return json({ code: "request_too_large" }, 413, cors);
+    if (!request.body) return json({ code: "invalid_json" }, 400, cors);
+    const reader = request.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+    while (true) {
+      const part = await reader.read();
+      if (part.done) break;
+      totalBytes += part.value.byteLength;
+      if (totalBytes > MAX_BODY_BYTES) {
+        await reader.cancel();
+        return json({ code: "request_too_large" }, 413, cors);
+      }
+      chunks.push(part.value);
     }
+    const bytes = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+    const raw = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     body = JSON.parse(raw);
   } catch {
     return json({ code: "invalid_json" }, 400, cors);
@@ -309,9 +323,7 @@ Deno.serve(async request => {
   });
 
   if (requestBody.action === "report") {
-    return await reportContent(cacheKey).then(async response =>
-      new Response(response.body, { status: response.status, headers: { ...Object.fromEntries(response.headers), ...cors } })
-    );
+    return await reportContent(cacheKey, cors);
   }
   if (requestBody.action !== undefined && requestBody.action !== "generate") {
     return json({ code: "invalid_action" }, 400, cors);
