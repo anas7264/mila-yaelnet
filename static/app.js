@@ -754,9 +754,23 @@
     return { accepted: true, duplicate: false, record };
   }
 
+  function returnToPlatform() {
+    try {
+      // The platform state has already been updated and persisted by the adaptive
+      // learning bridge. Re-render the existing view from that same in-memory
+      // state instead of forcing a full document reload.
+      render();
+      return true;
+    } catch (error) {
+      console.error("Mila platform view restore failed:", error);
+      return false;
+    }
+  }
+
   window.MilaLearningBridge = Object.freeze({
     recordAdaptiveAnswer,
-    recordAdaptiveSession
+    recordAdaptiveSession,
+    returnToPlatform
   });
 
   function setReviewRating(wordId, rating) {
