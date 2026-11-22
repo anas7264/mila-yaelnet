@@ -692,10 +692,12 @@ test("beginSession creates the declared config, defers end feedback, and saves c
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  const originalAppSource = appSource;
   appSource = appSource.replace(
-    "  initialize();\\n})();",
-    "  render = () => {}; renderSession = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\\n})();"
+    /  initialize\(\);\r?\n\}\)\(\);/,
+    "  render = () => {}; renderSession = () => {}; window.__MilaTestHooks = { beginSession, submitCurrent, finishSession, ui };\n})();"
   );
+  assert.notEqual(appSource, originalAppSource, "test hooks must replace app initialization");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const hooks = context.__MilaTestHooks;
   hooks.beginSession(words, {
