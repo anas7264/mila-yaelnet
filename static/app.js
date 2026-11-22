@@ -19,7 +19,27 @@
   };
   const uid = () => (window.crypto?.randomUUID?.() || "id-" + Date.now() + "-" + Math.random().toString(36).slice(2, 9));
   const OFFICIAL = CATALOG.officialWords();
-  const state = STORE.loadState(localStorage, OFFICIAL);
+  let state = STORE.loadState(localStorage, OFFICIAL);
+  let academicMigrationNotice = "";
+  try {
+    const academicSnapshot = JSON.parse(localStorage.getItem("mila-yaelnet-academic-v1") || "null");
+    const migration = STORE.migrateAcademicProgress(
+      state,
+      academicSnapshot,
+      window.YaelAcademicTerms || [],
+      OFFICIAL
+    );
+    if (migration?.migrated && migration.state) {
+      state = migration.state;
+      if (STORE.saveState(state, localStorage)) {
+        academicMigrationNotice = "تم دمج تقدم المصطلحات الأكاديمية السابق في المراحل التعليمية.";
+      } else {
+        academicMigrationNotice = "تعذّر حفظ دمج التقدم الأكاديمي. بقيت النسخة القديمة محفوظة؛ تحقّق من مساحة التخزين قبل المتابعة.";
+      }
+    }
+  } catch (error) {
+    console.warn("Academic progress migration deferred; legacy data remains intact.", error);
+  }
   if (!Array.isArray(state.completedStageIds)) state.completedStageIds = [];
   if (!Array.isArray(state.mistakes)) state.mistakes = [];
   if (!Array.isArray(state.sessions)) state.sessions = [];
@@ -56,12 +76,11 @@
   };
 
   const allWords = () => {
-    const academic = Array.isArray(window.YaelAcademicTerms) ? window.YaelAcademicTerms.map((term) => ({
-      ...term, source: "academic", stageId: null, stageTitle: term.groupTitle || "مصطلحات أكاديمية",
-      category: term.groupTitle || "مصطلحات أكاديمية"
-    })) : [];
-    const extras = state.extras.map((w) => ({ ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية", category: w.category || "إضافية" }));
-    const base = [...new Map([...OFFICIAL, ...academic, ...extras].map((word) => [word.id, word])).values()];
+    const extras = state.extras.map((w) => ({
+      ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية",
+      category: w.category || "إضافية"
+    }));
+    const base = [...new Map([...OFFICIAL, ...extras].map((word) => [word.id, word])).values()];
     return window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
   };
   const wordMap = () => new Map(allWords().map((w) => [w.id, w]));
@@ -703,12 +722,6 @@
     }
     const ledgerKey = "answer:" + eventId;
     if (state.adaptiveEventIds[ledgerKey]) return { accepted: true, duplicate: true };
-    if (wordId.startsWith("academic-")) {
-      const academicBridge = window.MilaAcademicProgressBridge;
-      if (!academicBridge || !academicBridge.recordAdaptiveAnswer(eventId, wordId, event.correct, Number(event.at) || Date.now())) {
-        return { accepted: false, reason: "academic-progress-save-failed" };
-      }
-    }
     const previousProgress = state.progress[wordId] ? { ...state.progress[wordId] } : undefined;
     const previousDaily = { ...state.daily };
     const previousMistakes = state.mistakes.slice();
@@ -1588,6 +1601,7 @@
     applySettings();
     bindEvents();
     render();
+    if (academicMigrationNotice) toast(academicMigrationNotice, "success");
     registerPwa();
     if(!Array.isArray(state.extras))state.extras=[];
   }
