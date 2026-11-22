@@ -394,7 +394,9 @@ test("adaptive exit restores the existing platform view without reloading the do
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   const adaptive = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
   assert.match(app, /function returnToPlatform\(\)[\s\S]*?render\(\);[\s\S]*?return true/);
-  assert.match(app, /window\.MilaLearningBridge = Object\.freeze\([\s\S]*?returnToPlatform/);
+  assert.match(app, /function pausePlatformSessionForAdaptive\(\)[\s\S]*?pauseSession\(\)/);
+  assert.match(app, /window\.MilaLearningBridge = Object\.freeze\([\s\S]*?pausePlatformSessionForAdaptive[\s\S]*?returnToPlatform/);
+  assert.match(adaptive, /pausePlatformSessionForAdaptive\?\.\(\)/);
   assert.match(adaptive, /window\.MilaLearningBridge\?\.returnToPlatform\?\.\(\)/);
   assert.doesNotMatch(adaptive, /window\.location\.reload\(\)/);
   assert.match(adaptive, /const previousState = state/);
