@@ -175,6 +175,14 @@ test("session restoration helper clears its timer after a successful result", as
 test("sync distinguishes a signed-out user from an offline signed-in user and bounds session restoration", () => {
   const sync = read("sync.js");
   const core = read("sync-core.mjs");
+  const listenerAt = sync.indexOf("sb.auth.onAuthStateChange(");
+  const restoreAt = sync.indexOf("sb.auth.getSession()");
+  assert.ok(listenerAt >= 0 && listenerAt < restoreAt,
+    "the auth-state listener must be attached before the explicit session read");
+  assert.ok(sync.includes("event==='INITIAL_SESSION'"),
+    "INITIAL_SESSION must be able to settle the initial UI state");
+  assert.ok(sync.includes("if(activationVersion===0)"),
+    "late initial-session events must not overwrite a newer user action");
   assert.ok(sync.includes("await withTimeout("), "initial auth restoration must be bounded");
   assert.ok(sync.includes("10000,"), "initial auth restoration must have a finite timeout");
   assert.ok(sync.includes("لم تسجّل الدخول حاليًا"), "a missing session must have an explicit signed-out state");
