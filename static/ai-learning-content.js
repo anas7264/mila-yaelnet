@@ -3,6 +3,7 @@
   if (!root || !root.document) return;
 
   const CONSENT_KEY = "mila-ai-consent-v1";
+  const CONSENT_VERSION = "gemini-free-v1-2026-11-22";
   const DB_NAME = "mila-ai-content-v1";
   const DB_VERSION = 1;
   const STORE_NAME = "contents";
@@ -21,13 +22,13 @@
   }
 
   function hasConsent() {
-    try { return localStorage.getItem(CONSENT_KEY) === "accepted-v1"; }
+    try { return localStorage.getItem(CONSENT_KEY) === CONSENT_VERSION; }
     catch { return false; }
   }
 
   function saveConsent() {
     try {
-      localStorage.setItem(CONSENT_KEY, "accepted-v1");
+      localStorage.setItem(CONSENT_KEY, CONSENT_VERSION);
       return true;
     } catch {
       return false;
@@ -98,7 +99,7 @@
         </div>
         <p class="adaptive-ai-notice">يمكنك طلب مثال عبري مع ترجمته وشرح استعمال الكلمة. لا يؤثر هذا المحتوى في تصحيح الإجابة أو ترتيب المراجعة.</p>
         <div class="adaptive-ai-consent" data-mila-ai-consent-panel hidden>
-          <p>عند التفعيل، يُرسل إلى Gemini نص المفردة العبرية ومعناها العربي فقط. في الخطة المجانية، قد تستخدم Google المدخلات والمخرجات لتحسين منتجاتها وقد يراجعها أشخاص. لن نرسل إجاباتك أو سجل تعلمك أو بيانات حسابك إلى Gemini.</p>
+          <p>عند التفعيل، يُرسل إلى Gemini نص المفردة العبرية ومعناها العربي فقط. في الخطة المجانية، قد تستخدم Google المدخلات والمخرجات لتحسين منتجاتها وقد يراجعها أشخاص. لن نرسل إجاباتك أو سجل تعلمك أو بيانات حسابك إلى Gemini. سنحفظ نسخة الموافقة وتاريخها المرتبط بحسابك في MILA فقط لإدارة الموافقة وإلغائها.</p>
           <button class="adaptive-ai-action" type="button" data-mila-ai-consent>أوافق وأفعّل المحتوى الذكي</button>
           <button class="adaptive-ai-cancel" type="button" data-mila-ai-cancel>إلغاء</button>
         </div>
@@ -111,11 +112,20 @@
       </aside>`;
   }
 
-  function revokeConsent(card) {
+  async function revokeConsent(card, wordId) {
+    if (!navigator.onLine) {
+      setStatus(card, "يلزم الاتصال بالإنترنت لإلغاء الموافقة من حسابك على جميع الأجهزة.", "error");
+      return false;
+    }
+    const button = card.querySelector("[data-mila-ai-disable]");
+    if (button) button.disabled = true;
     try {
+      const result = await invoke(wordId, "revoke-consent");
+      if (result?.status !== "revoked") throw new Error("consent_storage_unavailable");
       localStorage.removeItem(CONSENT_KEY);
-    } catch {
-      setStatus(card, "تعذر إيقاف الموافقة بسبب إعدادات التخزين في المتصفح.", "error");
+    } catch (error) {
+      setStatus(card, explainError(error), "error");
+      if (button) button.disabled = false;
       return false;
     }
     const panel = card.querySelector("[data-mila-ai-consent-panel]");
@@ -129,7 +139,7 @@
     }
     if (disable) disable.hidden = true;
     if (load) load.disabled = false;
-    setStatus(card, "أوقفت الموافقة. لن تُرسل طلبات جديدة إلى Gemini من هذا الجهاز.");
+    setStatus(card, "ألغيت الموافقة من حسابك. لن تُقبل طلبات Gemini جديدة على أي جهاز حتى توافق مجددًا.", "ok");
     return true;
   }
 
@@ -206,6 +216,9 @@
 
   function explainError(error) {
     const code = error?.code || error?.message || "";
+    if (code === "consent_required") return "أُلغيت الموافقة على هذا الحساب. أعد قراءتها ووافق مجددًا قبل طلب محتوى جديد.";
+    if (code === "consent_storage_unavailable" || code === "consent_check_unavailable") return "تعذر التحقق من موافقة حسابك الآن. لا نرسل طلب التوليد إلى Gemini حتى ينجح التحقق.";
+    if (code === "consent_local_storage_unavailable") return "حُفظت الموافقة على الخادم، لكن تعذر حفظها محليًا. أعد المحاولة؛ وقد ألغينا موافقة الخادم تلقائيًا.";
     if (code === "auth_required" || code === "FunctionsHttpError") {
       return "سجّل الدخول إلى حسابك لتوليد المحتوى وحفظه في المكتبة المشتركة.";
     }
@@ -259,6 +272,38 @@
       const message = result.cached ? "تم استرجاع المحتوى من المكتبة المشتركة." : "تم إنشاء المحتوى وحفظه في المكتبة المشتركة.";
       setStatus(card, storedLocally ? message + " وحُفظ على هذا الجهاز." : message + "؛ سيُسترجع من الخادم عند الحاجة.", "ok");
     } catch (error) {
+      if (error?.code === "consent_required") {
+        try { localStorage.removeItem(CONSENT_KEY); } catch {}
+        const panel = card.querySelector("[data-mila-ai-consent-panel]");
+        const disable = card.querySelector("[data-mila-ai-disable]");
+        if (panel) panel.hidden = false;
+        if (disable) disable.hidden = true;
+      }
+      setStatus(card, explainError(error), "error");
+    } finally {
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function acceptConsent(card, wordId) {
+    const button = card.querySelector("[data-mila-ai-consent]");
+    if (button) button.disabled = true;
+    setStatus(card, "جارٍ حفظ موافقتك على مستوى الحساب…");
+    try {
+      const result = await invoke(wordId, "consent");
+      if (result?.status !== "consented" || result.consentVersion !== CONSENT_VERSION) {
+        throw new Error("consent_storage_unavailable");
+      }
+      if (!saveConsent()) {
+        try { await invoke(wordId, "revoke-consent"); } catch {}
+        throw new Error("consent_local_storage_unavailable");
+      }
+      const panel = card.querySelector("[data-mila-ai-consent-panel]");
+      const disable = card.querySelector("[data-mila-ai-disable]");
+      if (panel) panel.hidden = true;
+      if (disable) disable.hidden = false;
+      await loadForWord(card, wordId);
+    } catch (error) {
       setStatus(card, explainError(error), "error");
     } finally {
       if (button) button.disabled = false;
@@ -289,15 +334,7 @@
 
     if (button.hasAttribute("data-mila-ai-consent")) {
       event.preventDefault();
-      const panel = card.querySelector("[data-mila-ai-consent-panel]");
-      if (!saveConsent()) {
-        setStatus(card, "تعذر حفظ الموافقة على هذا الجهاز؛ تحقّق من إعدادات التخزين.", "error");
-        return;
-      }
-      if (panel) panel.hidden = true;
-      const disable = card.querySelector("[data-mila-ai-disable]");
-      if (disable) disable.hidden = false;
-      void loadForWord(card, wordId);
+      void acceptConsent(card, wordId);
       return;
     }
     if (button.hasAttribute("data-mila-ai-cancel")) {
@@ -308,7 +345,7 @@
     }
     if (button.hasAttribute("data-mila-ai-disable")) {
       event.preventDefault();
-      revokeConsent(card);
+      void revokeConsent(card, wordId);
       return;
     }
     if (button.hasAttribute("data-mila-ai-report")) {
