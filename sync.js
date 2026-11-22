@@ -36,7 +36,7 @@ window.MilaSyncBridge = Object.freeze({
       throw error;
     }
     if (typeof wordId !== "string" || !wordId || wordId.length > 120 ||
-        !["generate", "report"].includes(action)) {
+        !["generate", "report", "consent", "revoke-consent", "consent-status"].includes(action)) {
       const error = new Error("invalid_request");
       error.code = "invalid_request";
       throw error;
