@@ -15,7 +15,6 @@
   let state = normalize(localStorage.getItem(STORAGE_KEY));
   let words = [];
   let wordMap = new Map();
-  let opened = false;
 
   function collectWords() {
     const core = window.YaelCatalog?.officialWords?.() || [];
@@ -202,7 +201,6 @@
   }
 
   function openMode() {
-    opened = true;
     setNavActive(true);
     if (state.session && !state.session.paused) renderSession();
     else renderHome();
@@ -252,10 +250,28 @@
   function handleAction(action) {
     if (action === "exit") {
       if (state.session) {
+        const previousState = state;
         state = Engine.setPaused(state, true);
-        save();
+        if (!save()) {
+          // Keep the visible controls and engine state in sync if local storage
+          // rejects the pause write (for example, quota or privacy-mode errors).
+          state = previousState;
+          renderSession();
+          return;
+        }
       }
-      window.location.reload();
+      setNavActive(false);
+      const restored = window.MilaLearningBridge?.returnToPlatform?.();
+      if (!restored) {
+        setNavActive(true);
+        try {
+          if (state.session) renderSession();
+          else renderHome();
+        } catch (renderError) {
+          console.error("Adaptive view recovery failed:", renderError);
+        }
+        toast("تعذرت العودة إلى المنصة دون إعادة تحميل. بقيت جلستك محفوظة؛ حاول مرة أخرى.", true);
+      }
       return;
     }
     if (action === "resume") {
@@ -315,8 +331,11 @@
     if (open) {
       event.preventDefault();
       try {
-        if (!opened) openMode();
-        else renderHome();
+        // Always route through openMode so the adaptive nav state is restored
+        // even after the user navigates back to a platform page.
+        // A hidden main-app quiz must not keep counting down in the background.
+        window.MilaLearningBridge?.pausePlatformSessionForAdaptive?.();
+        openMode();
       } catch (error) {
         console.error("Adaptive navigation failed:", error);
         toast("تعذر فتح التدريب التكيفي: " + (error?.message || "خطأ غير متوقع"), true);
@@ -343,7 +362,8 @@
   document.addEventListener("keydown", event => {
     const isForgotShortcut = event.altKey && !event.ctrlKey && !event.metaKey &&
       !event.shiftKey && event.code === "KeyN";
-    if (!isForgotShortcut || !opened || !state.session ||
+    const adaptiveViewActive = Boolean($("appView")?.querySelector?.(".adaptive-study"));
+    if (!isForgotShortcut || !adaptiveViewActive || !state.session ||
         state.session.paused || state.session.answered) return;
     event.preventDefault();
     event.stopPropagation();

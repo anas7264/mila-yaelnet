@@ -172,6 +172,9 @@
   }
 
   function renderShell() {
+    // The adaptive navigation item is injected separately and has no data-view
+    // attribute, so clear its active state whenever the platform renders.
+    $("adaptiveNavButton")?.classList.remove("active");
     document.querySelectorAll("[data-view]").forEach((button) => {
       button.classList.toggle("active", button.dataset.view === ui.view);
     });
@@ -754,9 +757,30 @@
     return { accepted: true, duplicate: false, record };
   }
 
+  function pausePlatformSessionForAdaptive() {
+    if (ui.view !== "session" || !ui.session || ui.session.finished) return false;
+    if (!ui.session.paused) pauseSession();
+    return true;
+  }
+
+  function returnToPlatform() {
+    try {
+      // The platform state has already been updated and persisted by the adaptive
+      // learning bridge. Re-render the existing view from that same in-memory
+      // state instead of forcing a full document reload.
+      render();
+      return true;
+    } catch (error) {
+      console.error("Mila platform view restore failed:", error);
+      return false;
+    }
+  }
+
   window.MilaLearningBridge = Object.freeze({
     recordAdaptiveAnswer,
-    recordAdaptiveSession
+    recordAdaptiveSession,
+    pausePlatformSessionForAdaptive,
+    returnToPlatform
   });
 
   function setReviewRating(wordId, rating) {
