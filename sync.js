@@ -98,6 +98,26 @@ if(session)status('لا يوجد اتصال بالإنترنت. تقدمك مح�
 onOnline:()=>{void recoverOnline()}
 });
 if(isExpiredConfirmation(location.search)){status('انتهت صلاحية رابط تأكيد البريد أو استُخدم سابقًا. أدخل بريدك واطلب رسالة جديدة.','error');card$('mila-sync-resend').hidden=false}else if(new URLSearchParams(location.search).has('error')){status(new URLSearchParams(location.search).get('error_description')||'تعذر تأكيد البريد. اطلب رابطًا جديدًا.','error');card$('mila-sync-resend').hidden=false}
+// Subscribe before getSession so INITIAL_SESSION can settle the UI even if
+// the explicit session read stalls. Defer Supabase work outside its auth callback.
+sb.auth.onAuthStateChange((event,nextSession)=>{
+  queueMicrotask(()=>{
+    let next=null;
+    let shouldActivate=false;
+    if(event==='INITIAL_SESSION'){
+      if(activationVersion===0){next=nextSession;shouldActivate=true}
+    }else if(event==='SIGNED_OUT'){
+      if(session?.user?.id){next=null;shouldActivate=true}
+    }else if(nextSession?.user?.id!==session?.user?.id){
+      next=nextSession;shouldActivate=true;
+    }
+    if(shouldActivate){
+      activate(next).catch(error=>{
+        status('تعذر تحديث حالة الحساب: '+(error?.message||'خطأ غير معروف'),'error');
+      });
+    }
+  });
+});
 const m=meta();
 revision=Number.isInteger(m.revision)?m.revision:0;
 baseline=m.baseline||null;
@@ -128,11 +148,4 @@ try{
     card$('mila-sync-retry').hidden=false;
   }
 }
-sb.auth.onAuthStateChange((e,s)=>{
-  if(s?.user?.id!==session?.user?.id){
-    queueMicrotask(()=>activate(s).catch(error=>{
-      status('تعذر تحديث حالة الحساب: '+(error?.message||'خطأ غير معروف'),'error');
-    }));
-  }
-});
 }
