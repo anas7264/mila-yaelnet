@@ -3,11 +3,12 @@
 
   const catalog = globalThis.YaelCatalog;
   const expanded = globalThis.YaelExpandedVocabulary;
+  const academicGroups = globalThis.YaelAcademicGroups;
   if (!catalog?.stages || typeof catalog.officialWords !== "function") {
     throw new Error("YaelCatalog must load before staged vocabulary.");
   }
-  if (!expanded?.terms || !Array.isArray(globalThis.YaelAcademicTerms)) {
-    throw new Error("Academic and expanded vocabulary must load before staged vocabulary.");
+  if (!expanded?.terms || !Array.isArray(academicGroups) || !Array.isArray(globalThis.YaelAcademicTerms)) {
+    throw new Error("Expanded vocabulary and academic stage data must load before staged vocabulary.");
   }
 
   const definitions = [
