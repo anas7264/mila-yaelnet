@@ -1,0 +1,4 @@
+project_id = "mila-yaelnet"
+
+[functions.mila-ai-content]
+verify_jwt = true
