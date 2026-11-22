@@ -183,6 +183,10 @@ test("sync distinguishes a signed-out user from an offline signed-in user and bo
     "INITIAL_SESSION must be able to settle the initial UI state");
   assert.ok(sync.includes("if(activationVersion===0)"),
     "late initial-session events must not overwrite a newer user action");
+  assert.ok(sync.includes("status=(m,s='info')=>statusController.set(m,s)"),
+    "all status writes must update the controller's stored state");
+  assert.equal(sync.includes("e.textContent=m;e.dataset.state=s"), false,
+    "status updates must not bypass the controller and become stale on rerender");
   assert.ok(sync.includes("await withTimeout("), "initial auth restoration must be bounded");
   assert.ok(sync.includes("10000,"), "initial auth restoration must have a finite timeout");
   assert.ok(sync.includes("لم تسجّل الدخول حاليًا"), "a missing session must have an explicit signed-out state");
