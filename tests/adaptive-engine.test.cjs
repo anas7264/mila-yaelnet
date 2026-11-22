@@ -596,3 +596,13 @@ test("main session count is applied after shuffle and no-repeat-off cycles the s
     ["w2", "w3", "w4", "w5", "w6", "w1", "w2", "w3"]
   );
 });
+
+
+test("sidebar close helper clears the backdrop on navigation, Escape, backdrop click and desktop resize", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /function closeSidebar\(\)[\s\S]*?classList\.remove\("sidebar-open"\)[\s\S]*?backdrop\.hidden = true/);
+  assert.match(app, /function navigate\([\s\S]*?closeSidebar\(\)/);
+  assert.match(app, /if\(event\.key==="Escape"\)[\s\S]*?closeSidebar\(\)/);
+  assert.match(app, /addEventListener\("click", closeSidebar\)/);
+  assert.match(app, /addEventListener\("resize", \(\) => \{\s*if \(window\.innerWidth > 920\) closeSidebar\(\)/);
+});

@@ -626,6 +626,12 @@
     else if (ui.view === "session") renderSession();
   }
 
+  function closeSidebar() {
+    document.body.classList.remove("sidebar-open");
+    const backdrop = $("sidebarBackdrop");
+    if (backdrop) backdrop.hidden = true;
+  }
+
   function navigate(view, params = {}) {
     if (ui.session && view !== "session") {
       if (!confirm("الجلسة الحالية لم تكتمل. هل تريد الخروج منها؟")) return;
@@ -636,7 +642,7 @@
     if (params.stageId) ui.stageId = params.stageId;
     if (params.tab) ui.stageTab = params.tab;
     if (view === "review" && params.filter) ui.reviewFilter = params.filter;
-    document.body.classList.remove("sidebar-open");
+    closeSidebar();
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1540,7 +1546,7 @@
     document.addEventListener("keydown",(event)=>{
       if(event.key==="Escape"){
         if($("modalRoot").innerHTML){$("modalRoot").innerHTML="";return;}
-        if(document.body.classList.contains("sidebar-open"))document.body.classList.remove("sidebar-open");
+        closeSidebar();
         return;
       }
       if(["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
@@ -1558,7 +1564,10 @@
       }
     });
 
-    $("sidebarBackdrop")?.addEventListener("click",()=>{document.body.classList.remove("sidebar-open");$("sidebarBackdrop").hidden=true;});
+    $("sidebarBackdrop")?.addEventListener("click", closeSidebar);
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 920) closeSidebar();
+    });
   }
 
   function registerPwa() {
