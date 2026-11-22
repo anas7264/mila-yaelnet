@@ -1,0 +1,7215 @@
+{
+  "catalogVersion": "mila-vocab-2026-11-22-v1",
+  "words": {
+    "w-focus": {
+      "he": "להתרכז",
+      "ar": "يُركّز / التركيز",
+      "source": "stage"
+    },
+    "w-period": {
+      "he": "בתקופת",
+      "ar": "خلال فترة",
+      "source": "stage"
+    },
+    "w-integrate": {
+      "he": "לשלב",
+      "ar": "يدمج / يجمع بين",
+      "source": "stage"
+    },
+    "w-because": {
+      "he": "מכיוון ש",
+      "ar": "لأن / بما أن",
+      "source": "stage"
+    },
+    "w-reason": {
+      "he": "סיבה",
+      "ar": "سبب",
+      "source": "stage"
+    },
+    "w-first": {
+      "he": "ראשית",
+      "ar": "أولًا",
+      "source": "stage"
+    },
+    "w-not-they": {
+      "he": "אינם",
+      "ar": "ليسوا",
+      "source": "stage"
+    },
+    "w-easy": {
+      "he": "קל",
+      "ar": "سهل / خفيف",
+      "source": "stage"
+    },
+    "w-level": {
+      "he": "רמה",
+      "ar": "مستوى",
+      "source": "stage"
+    },
+    "w-however": {
+      "he": "אולם",
+      "ar": "لكن / إلا أن",
+      "source": "stage"
+    },
+    "w-therefore": {
+      "he": "לכן",
+      "ar": "لذلك",
+      "source": "stage"
+    },
+    "w-since": {
+      "he": "משום ש",
+      "ar": "لأن",
+      "source": "stage"
+    },
+    "w-purpose": {
+      "he": "כדי ש",
+      "ar": "لكي",
+      "source": "stage"
+    },
+    "w-prepare": {
+      "he": "להתכונן",
+      "ar": "يستعد",
+      "source": "stage"
+    },
+    "w-traffic": {
+      "he": "עומסי תנועה",
+      "ar": "ازدحامات مرورية",
+      "source": "stage"
+    },
+    "academic-001": {
+      "he": "מושג",
+      "ar": "مفهوم",
+      "source": "academic"
+    },
+    "academic-002": {
+      "he": "הגדרה",
+      "ar": "تعريف",
+      "source": "academic"
+    },
+    "academic-003": {
+      "he": "תהליך",
+      "ar": "عملية",
+      "source": "academic"
+    },
+    "academic-004": {
+      "he": "תוצאה",
+      "ar": "نتيجة",
+      "source": "academic"
+    },
+    "academic-005": {
+      "he": "מטרה",
+      "ar": "هدف",
+      "source": "academic"
+    },
+    "academic-006": {
+      "he": "שיטה",
+      "ar": "طريقة / منهج",
+      "source": "academic"
+    },
+    "academic-007": {
+      "he": "דוגמה",
+      "ar": "مثال",
+      "source": "academic"
+    },
+    "academic-008": {
+      "he": "הסבר",
+      "ar": "شرح",
+      "source": "academic"
+    },
+    "academic-009": {
+      "he": "הוכחה",
+      "ar": "برهان / إثبات",
+      "source": "academic"
+    },
+    "academic-010": {
+      "he": "פתרון",
+      "ar": "حل",
+      "source": "academic"
+    },
+    "academic-011": {
+      "he": "בעיה",
+      "ar": "مشكلة / مسألة",
+      "source": "academic"
+    },
+    "academic-012": {
+      "he": "שאלה",
+      "ar": "سؤال",
+      "source": "academic"
+    },
+    "academic-013": {
+      "he": "תשובה",
+      "ar": "إجابة",
+      "source": "academic"
+    },
+    "academic-014": {
+      "he": "תרגיל",
+      "ar": "تمرين",
+      "source": "academic"
+    },
+    "academic-015": {
+      "he": "משימה",
+      "ar": "مهمة",
+      "source": "academic"
+    },
+    "academic-016": {
+      "he": "מבחן",
+      "ar": "امتحان",
+      "source": "academic"
+    },
+    "academic-017": {
+      "he": "בחינה",
+      "ar": "اختبار / امتحان",
+      "source": "academic"
+    },
+    "academic-018": {
+      "he": "ציון",
+      "ar": "علامة",
+      "source": "academic"
+    },
+    "academic-019": {
+      "he": "דרישה",
+      "ar": "متطلب",
+      "source": "academic"
+    },
+    "academic-020": {
+      "he": "תנאי",
+      "ar": "شرط",
+      "source": "academic"
+    },
+    "academic-021": {
+      "he": "חובה",
+      "ar": "إلزام / واجب",
+      "source": "academic"
+    },
+    "academic-022": {
+      "he": "רשות",
+      "ar": "اختياري / صلاحية",
+      "source": "academic"
+    },
+    "academic-023": {
+      "he": "הרצאה",
+      "ar": "محاضرة",
+      "source": "academic"
+    },
+    "academic-024": {
+      "he": "מעבדה",
+      "ar": "مختبر",
+      "source": "academic"
+    },
+    "academic-025": {
+      "he": "ניסוי",
+      "ar": "تجربة",
+      "source": "academic"
+    },
+    "academic-026": {
+      "he": "מחקר",
+      "ar": "بحث",
+      "source": "academic"
+    },
+    "academic-027": {
+      "he": "נתונים",
+      "ar": "معطيات / بيانات",
+      "source": "academic"
+    },
+    "academic-028": {
+      "he": "מקור",
+      "ar": "مصدر",
+      "source": "academic"
+    },
+    "academic-029": {
+      "he": "מסקנה",
+      "ar": "استنتاج",
+      "source": "academic"
+    },
+    "academic-030": {
+      "he": "השוואה",
+      "ar": "مقارنة",
+      "source": "academic"
+    },
+    "academic-031": {
+      "he": "הבדל",
+      "ar": "اختلاف",
+      "source": "academic"
+    },
+    "academic-032": {
+      "he": "דמיון",
+      "ar": "تشابه",
+      "source": "academic"
+    },
+    "academic-033": {
+      "he": "יתרון",
+      "ar": "ميزة",
+      "source": "academic"
+    },
+    "academic-034": {
+      "he": "חיסרון",
+      "ar": "عيب / نقطة ضعف",
+      "source": "academic"
+    },
+    "academic-035": {
+      "he": "השפעה",
+      "ar": "تأثير",
+      "source": "academic"
+    },
+    "academic-036": {
+      "he": "גורם",
+      "ar": "عامل / سبب",
+      "source": "academic"
+    },
+    "academic-037": {
+      "he": "שלב",
+      "ar": "مرحلة",
+      "source": "academic"
+    },
+    "academic-038": {
+      "he": "רמה",
+      "ar": "مستوى",
+      "source": "academic"
+    },
+    "academic-039": {
+      "he": "תחום",
+      "ar": "مجال",
+      "source": "academic"
+    },
+    "academic-040": {
+      "he": "יכולת",
+      "ar": "قدرة",
+      "source": "academic"
+    },
+    "academic-041": {
+      "he": "מיומנות",
+      "ar": "مهارة",
+      "source": "academic"
+    },
+    "academic-042": {
+      "he": "ידע",
+      "ar": "معرفة",
+      "source": "academic"
+    },
+    "academic-043": {
+      "he": "הבנה",
+      "ar": "فهم",
+      "source": "academic"
+    },
+    "academic-044": {
+      "he": "זיכרון",
+      "ar": "ذاكرة",
+      "source": "academic"
+    },
+    "academic-045": {
+      "he": "תרגול",
+      "ar": "ممارسة / تدريب",
+      "source": "academic"
+    },
+    "academic-046": {
+      "he": "שיפור",
+      "ar": "تحسين",
+      "source": "academic"
+    },
+    "academic-047": {
+      "he": "התקדמות",
+      "ar": "تقدّم",
+      "source": "academic"
+    },
+    "academic-048": {
+      "he": "הצלחה",
+      "ar": "نجاح",
+      "source": "academic"
+    },
+    "academic-049": {
+      "he": "כישלון",
+      "ar": "فشل",
+      "source": "academic"
+    },
+    "academic-050": {
+      "he": "דיוק",
+      "ar": "دقة",
+      "source": "academic"
+    },
+    "academic-051": {
+      "he": "טעות",
+      "ar": "خطأ",
+      "source": "academic"
+    },
+    "academic-052": {
+      "he": "תיקון",
+      "ar": "تصحيح",
+      "source": "academic"
+    },
+    "academic-053": {
+      "he": "הערכה",
+      "ar": "تقييم",
+      "source": "academic"
+    },
+    "academic-054": {
+      "he": "משוב",
+      "ar": "ملاحظات / تغذية راجعة",
+      "source": "academic"
+    },
+    "academic-055": {
+      "he": "לוח זמנים",
+      "ar": "جدول زمني",
+      "source": "academic"
+    },
+    "academic-056": {
+      "he": "מועד",
+      "ar": "موعد",
+      "source": "academic"
+    },
+    "academic-057": {
+      "he": "הרשמה",
+      "ar": "تسجيل",
+      "source": "academic"
+    },
+    "academic-058": {
+      "he": "קבלה",
+      "ar": "قبول",
+      "source": "academic"
+    },
+    "academic-059": {
+      "he": "תואר",
+      "ar": "درجة جامعية",
+      "source": "academic"
+    },
+    "academic-060": {
+      "he": "פקולטה",
+      "ar": "كلية",
+      "source": "academic"
+    },
+    "academic-061": {
+      "he": "מחלקה",
+      "ar": "قسم",
+      "source": "academic"
+    },
+    "academic-062": {
+      "he": "קורס",
+      "ar": "مساق",
+      "source": "academic"
+    },
+    "academic-063": {
+      "he": "נקודות זכות",
+      "ar": "ساعات / نقاط أكاديمية",
+      "source": "academic"
+    },
+    "academic-064": {
+      "he": "סמסטר",
+      "ar": "فصل دراسي",
+      "source": "academic"
+    },
+    "academic-065": {
+      "he": "שנה אקדמית",
+      "ar": "سنة أكاديمية",
+      "source": "academic"
+    },
+    "academic-066": {
+      "he": "משוואה",
+      "ar": "معادلة",
+      "source": "academic"
+    },
+    "academic-067": {
+      "he": "נעלם",
+      "ar": "مجهول",
+      "source": "academic"
+    },
+    "academic-068": {
+      "he": "משתנה",
+      "ar": "متغيّر",
+      "source": "academic"
+    },
+    "academic-069": {
+      "he": "קבוע",
+      "ar": "ثابت",
+      "source": "academic"
+    },
+    "academic-070": {
+      "he": "פונקציה",
+      "ar": "دالة",
+      "source": "academic"
+    },
+    "academic-071": {
+      "he": "גרף",
+      "ar": "رسم بياني",
+      "source": "academic"
+    },
+    "academic-072": {
+      "he": "ציר",
+      "ar": "محور",
+      "source": "academic"
+    },
+    "academic-073": {
+      "he": "שיפוע",
+      "ar": "ميل",
+      "source": "academic"
+    },
+    "academic-074": {
+      "he": "נקודת חיתוך",
+      "ar": "نقطة تقاطع",
+      "source": "academic"
+    },
+    "academic-075": {
+      "he": "תחום הגדרה",
+      "ar": "مجال التعريف",
+      "source": "academic"
+    },
+    "academic-076": {
+      "he": "ערך",
+      "ar": "قيمة",
+      "source": "academic"
+    },
+    "academic-077": {
+      "he": "ביטוי",
+      "ar": "تعبير رياضي",
+      "source": "academic"
+    },
+    "academic-078": {
+      "he": "שבר",
+      "ar": "كسر",
+      "source": "academic"
+    },
+    "academic-079": {
+      "he": "מכנה",
+      "ar": "مقام",
+      "source": "academic"
+    },
+    "academic-080": {
+      "he": "מונה",
+      "ar": "بسط",
+      "source": "academic"
+    },
+    "academic-081": {
+      "he": "חזקה",
+      "ar": "أسّ",
+      "source": "academic"
+    },
+    "academic-082": {
+      "he": "שורש",
+      "ar": "جذر",
+      "source": "academic"
+    },
+    "academic-083": {
+      "he": "לוגריתם",
+      "ar": "لوغاريتم",
+      "source": "academic"
+    },
+    "academic-084": {
+      "he": "נגזרת",
+      "ar": "مشتقة",
+      "source": "academic"
+    },
+    "academic-085": {
+      "he": "אינטגרל",
+      "ar": "تكامل",
+      "source": "academic"
+    },
+    "academic-086": {
+      "he": "גבול",
+      "ar": "نهاية رياضية",
+      "source": "academic"
+    },
+    "academic-087": {
+      "he": "רציפות",
+      "ar": "استمرارية",
+      "source": "academic"
+    },
+    "academic-088": {
+      "he": "קיצון",
+      "ar": "قيمة قصوى / صغرى",
+      "source": "academic"
+    },
+    "academic-089": {
+      "he": "מקסימום",
+      "ar": "قيمة عظمى",
+      "source": "academic"
+    },
+    "academic-090": {
+      "he": "מינימום",
+      "ar": "قيمة صغرى",
+      "source": "academic"
+    },
+    "academic-091": {
+      "he": "סדרה",
+      "ar": "متتالية",
+      "source": "academic"
+    },
+    "academic-092": {
+      "he": "טור",
+      "ar": "متسلسلة",
+      "source": "academic"
+    },
+    "academic-093": {
+      "he": "מטריצה",
+      "ar": "مصفوفة",
+      "source": "academic"
+    },
+    "academic-094": {
+      "he": "וקטור",
+      "ar": "متجه",
+      "source": "academic"
+    },
+    "academic-095": {
+      "he": "גודל",
+      "ar": "مقدار",
+      "source": "academic"
+    },
+    "academic-096": {
+      "he": "כיוון",
+      "ar": "اتجاه",
+      "source": "academic"
+    },
+    "academic-097": {
+      "he": "זווית",
+      "ar": "زاوية",
+      "source": "academic"
+    },
+    "academic-098": {
+      "he": "מרחק",
+      "ar": "مسافة",
+      "source": "academic"
+    },
+    "academic-099": {
+      "he": "מהירות",
+      "ar": "سرعة",
+      "source": "academic"
+    },
+    "academic-100": {
+      "he": "תאוצה",
+      "ar": "تسارع",
+      "source": "academic"
+    },
+    "academic-101": {
+      "he": "זמן",
+      "ar": "زمن",
+      "source": "academic"
+    },
+    "academic-102": {
+      "he": "מיקום",
+      "ar": "موضع",
+      "source": "academic"
+    },
+    "academic-103": {
+      "he": "תנועה",
+      "ar": "حركة",
+      "source": "academic"
+    },
+    "academic-104": {
+      "he": "כוח",
+      "ar": "قوة",
+      "source": "academic"
+    },
+    "academic-105": {
+      "he": "מסה",
+      "ar": "كتلة",
+      "source": "academic"
+    },
+    "academic-106": {
+      "he": "משקל",
+      "ar": "وزن",
+      "source": "academic"
+    },
+    "academic-107": {
+      "he": "אנרגיה",
+      "ar": "طاقة",
+      "source": "academic"
+    },
+    "academic-108": {
+      "he": "עבודה",
+      "ar": "شغل",
+      "source": "academic"
+    },
+    "academic-109": {
+      "he": "הספק",
+      "ar": "قدرة",
+      "source": "academic"
+    },
+    "academic-110": {
+      "he": "לחץ",
+      "ar": "ضغط",
+      "source": "academic"
+    },
+    "academic-111": {
+      "he": "צפיפות",
+      "ar": "كثافة",
+      "source": "academic"
+    },
+    "academic-112": {
+      "he": "חיכוך",
+      "ar": "احتكاك",
+      "source": "academic"
+    },
+    "academic-113": {
+      "he": "כבידה",
+      "ar": "جاذبية",
+      "source": "academic"
+    },
+    "academic-114": {
+      "he": "תנודה",
+      "ar": "اهتزاز",
+      "source": "academic"
+    },
+    "academic-115": {
+      "he": "תדירות",
+      "ar": "تردد",
+      "source": "academic"
+    },
+    "academic-116": {
+      "he": "מחזור",
+      "ar": "دورة",
+      "source": "academic"
+    },
+    "academic-117": {
+      "he": "גל",
+      "ar": "موجة",
+      "source": "academic"
+    },
+    "academic-118": {
+      "he": "אורך גל",
+      "ar": "طول موجي",
+      "source": "academic"
+    },
+    "academic-119": {
+      "he": "משרעת",
+      "ar": "سعة الموجة",
+      "source": "academic"
+    },
+    "academic-120": {
+      "he": "החזרה",
+      "ar": "انعكاس",
+      "source": "academic"
+    },
+    "academic-121": {
+      "he": "שבירה",
+      "ar": "انكسار",
+      "source": "academic"
+    },
+    "academic-122": {
+      "he": "חום",
+      "ar": "حرارة",
+      "source": "academic"
+    },
+    "academic-123": {
+      "he": "טמפרטורה",
+      "ar": "درجة حرارة",
+      "source": "academic"
+    },
+    "academic-124": {
+      "he": "הולכה",
+      "ar": "توصيل حراري / كهربائي حسب السياق",
+      "source": "academic"
+    },
+    "academic-125": {
+      "he": "שימור אנרגיה",
+      "ar": "حفظ الطاقة",
+      "source": "academic"
+    },
+    "academic-126": {
+      "he": "שיווי משקל",
+      "ar": "اتزان",
+      "source": "academic"
+    },
+    "academic-127": {
+      "he": "רכיב",
+      "ar": "مركّبة / عنصر",
+      "source": "academic"
+    },
+    "academic-128": {
+      "he": "רכיב אופקי",
+      "ar": "مركّبة أفقية",
+      "source": "academic"
+    },
+    "academic-129": {
+      "he": "רכיב אנכי",
+      "ar": "مركّبة عمودية",
+      "source": "academic"
+    },
+    "academic-130": {
+      "he": "חשמל",
+      "ar": "كهرباء",
+      "source": "academic"
+    },
+    "academic-131": {
+      "he": "אלקטרוניקה",
+      "ar": "إلكترونيات",
+      "source": "academic"
+    },
+    "academic-132": {
+      "he": "מעגל חשמלי",
+      "ar": "دائرة كهربائية",
+      "source": "academic"
+    },
+    "academic-133": {
+      "he": "זרם חשמלי",
+      "ar": "تيار كهربائي",
+      "source": "academic"
+    },
+    "academic-134": {
+      "he": "מתח",
+      "ar": "جهد كهربائي",
+      "source": "academic"
+    },
+    "academic-135": {
+      "he": "התנגדות",
+      "ar": "مقاومة كهربائية",
+      "source": "academic"
+    },
+    "academic-136": {
+      "he": "הספק חשמלי",
+      "ar": "قدرة كهربائية",
+      "source": "academic"
+    },
+    "academic-137": {
+      "he": "מטען חשמלי",
+      "ar": "شحنة كهربائية",
+      "source": "academic"
+    },
+    "academic-138": {
+      "he": "שדה חשמלי",
+      "ar": "مجال كهربائي",
+      "source": "academic"
+    },
+    "academic-139": {
+      "he": "פוטנציאל חשמלי",
+      "ar": "جهد / كمون كهربائي",
+      "source": "academic"
+    },
+    "academic-140": {
+      "he": "הארקה",
+      "ar": "تأريض",
+      "source": "academic"
+    },
+    "academic-141": {
+      "he": "קצר חשמלי",
+      "ar": "تماس كهربائي / قصر",
+      "source": "academic"
+    },
+    "academic-142": {
+      "he": "מקור מתח",
+      "ar": "مصدر جهد",
+      "source": "academic"
+    },
+    "academic-143": {
+      "he": "סוללה",
+      "ar": "بطارية",
+      "source": "academic"
+    },
+    "academic-144": {
+      "he": "ספק כוח",
+      "ar": "مزود طاقة",
+      "source": "academic"
+    },
+    "academic-145": {
+      "he": "מפסק",
+      "ar": "مفتاح كهربائي",
+      "source": "academic"
+    },
+    "academic-146": {
+      "he": "מתג",
+      "ar": "قاطع / مفتاح",
+      "source": "academic"
+    },
+    "academic-147": {
+      "he": "נתיך",
+      "ar": "مصهر كهربائي",
+      "source": "academic"
+    },
+    "academic-148": {
+      "he": "פיוז",
+      "ar": "فيوز",
+      "source": "academic"
+    },
+    "academic-149": {
+      "he": "חוט מוליך",
+      "ar": "سلك موصل",
+      "source": "academic"
+    },
+    "academic-150": {
+      "he": "מוליך",
+      "ar": "موصل",
+      "source": "academic"
+    },
+    "academic-151": {
+      "he": "מבודד",
+      "ar": "عازل",
+      "source": "academic"
+    },
+    "academic-152": {
+      "he": "מוליכות",
+      "ar": "موصلية",
+      "source": "academic"
+    },
+    "academic-153": {
+      "he": "מוליכות חשמלית",
+      "ar": "موصلية كهربائية",
+      "source": "academic"
+    },
+    "academic-154": {
+      "he": "נגד",
+      "ar": "مقاومة",
+      "source": "academic"
+    },
+    "academic-155": {
+      "he": "קבל",
+      "ar": "مكثّف",
+      "source": "academic"
+    },
+    "academic-156": {
+      "he": "סליל",
+      "ar": "ملف / وشيعة",
+      "source": "academic"
+    },
+    "academic-157": {
+      "he": "שנאי",
+      "ar": "محوّل كهربائي",
+      "source": "academic"
+    },
+    "academic-158": {
+      "he": "דיודה",
+      "ar": "صمام ثنائي",
+      "source": "academic"
+    },
+    "academic-159": {
+      "he": "דיודה פולטת אור",
+      "ar": "صمام ثنائي باعث للضوء LED",
+      "source": "academic"
+    },
+    "academic-160": {
+      "he": "טרנזיסטור",
+      "ar": "ترانزستور",
+      "source": "academic"
+    },
+    "academic-161": {
+      "he": "מגבר",
+      "ar": "مضخّم",
+      "source": "academic"
+    },
+    "academic-162": {
+      "he": "מגבר שרת",
+      "ar": "مضخّم عمليات",
+      "source": "academic"
+    },
+    "academic-163": {
+      "he": "מיישר",
+      "ar": "مقوّم",
+      "source": "academic"
+    },
+    "academic-164": {
+      "he": "מסנן",
+      "ar": "مرشّح",
+      "source": "academic"
+    },
+    "academic-165": {
+      "he": "ממסר",
+      "ar": "مرحّل كهربائي",
+      "source": "academic"
+    },
+    "academic-166": {
+      "he": "חיישן",
+      "ar": "مستشعر",
+      "source": "academic"
+    },
+    "academic-167": {
+      "he": "מנוע חשמלי",
+      "ar": "محرك كهربائي",
+      "source": "academic"
+    },
+    "academic-168": {
+      "he": "גנרטור",
+      "ar": "مولّد كهربائي",
+      "source": "academic"
+    },
+    "academic-169": {
+      "he": "תדר",
+      "ar": "تردد",
+      "source": "academic"
+    },
+    "academic-170": {
+      "he": "אות",
+      "ar": "إشارة",
+      "source": "academic"
+    },
+    "academic-171": {
+      "he": "אות אנלוגי",
+      "ar": "إشارة تناظرية",
+      "source": "academic"
+    },
+    "academic-172": {
+      "he": "אות דיגיטלי",
+      "ar": "إشارة رقمية",
+      "source": "academic"
+    },
+    "academic-173": {
+      "he": "זרם ישר",
+      "ar": "تيار مستمر",
+      "source": "academic"
+    },
+    "academic-174": {
+      "he": "זרם חילופין",
+      "ar": "تيار متناوب",
+      "source": "academic"
+    },
+    "academic-175": {
+      "he": "תדר תהודה",
+      "ar": "تردد الرنين",
+      "source": "academic"
+    },
+    "academic-176": {
+      "he": "עכבה",
+      "ar": "ممانعة كهربائية",
+      "source": "academic"
+    },
+    "academic-177": {
+      "he": "השראות",
+      "ar": "حثّ",
+      "source": "academic"
+    },
+    "academic-178": {
+      "he": "קיבול",
+      "ar": "سعة كهربائية",
+      "source": "academic"
+    },
+    "academic-179": {
+      "he": "השראה אלקטרומגנטית",
+      "ar": "حث كهرومغناطيسي",
+      "source": "academic"
+    },
+    "academic-180": {
+      "he": "שדה מגנטי",
+      "ar": "مجال مغناطيسي",
+      "source": "academic"
+    },
+    "academic-181": {
+      "he": "שטף מגנטי",
+      "ar": "فيض مغناطيسي",
+      "source": "academic"
+    },
+    "academic-182": {
+      "he": "קוטביות",
+      "ar": "قطبية",
+      "source": "academic"
+    },
+    "academic-183": {
+      "he": "מגע",
+      "ar": "تماس / نقطة اتصال",
+      "source": "academic"
+    },
+    "academic-184": {
+      "he": "מחבר",
+      "ar": "موصل / وصلة",
+      "source": "academic"
+    },
+    "academic-185": {
+      "he": "לוח מעגלים",
+      "ar": "لوحة دوائر",
+      "source": "academic"
+    },
+    "academic-186": {
+      "he": "מעגל מודפס",
+      "ar": "دائرة مطبوعة PCB",
+      "source": "academic"
+    },
+    "academic-187": {
+      "he": "רכיב אלקטרוני",
+      "ar": "مكوّن إلكتروني",
+      "source": "academic"
+    },
+    "academic-188": {
+      "he": "רכיב פעיל",
+      "ar": "عنصر فعّال",
+      "source": "academic"
+    },
+    "academic-189": {
+      "he": "רכיב סביל",
+      "ar": "عنصر سلبي",
+      "source": "academic"
+    },
+    "academic-190": {
+      "he": "נקודת מדידה",
+      "ar": "نقطة قياس",
+      "source": "academic"
+    },
+    "academic-191": {
+      "he": "מד מתח",
+      "ar": "فولتميتر",
+      "source": "academic"
+    },
+    "academic-192": {
+      "he": "מד זרם",
+      "ar": "أميتر",
+      "source": "academic"
+    },
+    "academic-193": {
+      "he": "רב-מודד",
+      "ar": "ملتيميتر",
+      "source": "academic"
+    },
+    "academic-194": {
+      "he": "אוסצילוסקופ",
+      "ar": "راسم إشارة",
+      "source": "academic"
+    },
+    "academic-195": {
+      "he": "מדידה",
+      "ar": "قياس",
+      "source": "academic"
+    },
+    "academic-196": {
+      "he": "כיול",
+      "ar": "معايرة",
+      "source": "academic"
+    },
+    "academic-197": {
+      "he": "תקלה",
+      "ar": "عطل",
+      "source": "academic"
+    },
+    "academic-198": {
+      "he": "עומס",
+      "ar": "حمل كهربائي",
+      "source": "academic"
+    },
+    "academic-199": {
+      "he": "הגנה",
+      "ar": "حماية",
+      "source": "academic"
+    },
+    "academic-200": {
+      "he": "בידוד חשמלי",
+      "ar": "عزل كهربائي",
+      "source": "academic"
+    },
+    "academic-201": {
+      "he": "מעגל פתוח",
+      "ar": "دائرة مفتوحة",
+      "source": "academic"
+    },
+    "academic-202": {
+      "he": "מעגל סגור",
+      "ar": "دائرة مغلقة",
+      "source": "academic"
+    },
+    "academic-203": {
+      "he": "חיבור טורי",
+      "ar": "توصيل على التوالي",
+      "source": "academic"
+    },
+    "academic-204": {
+      "he": "חיבור מקבילי",
+      "ar": "توصيل على التوازي",
+      "source": "academic"
+    },
+    "academic-205": {
+      "he": "חלוקת מתח",
+      "ar": "تقسيم الجهد",
+      "source": "academic"
+    },
+    "academic-206": {
+      "he": "חלוקת זרם",
+      "ar": "تقسيم التيار",
+      "source": "academic"
+    },
+    "academic-207": {
+      "he": "חוק אוהם",
+      "ar": "قانون أوم",
+      "source": "academic"
+    },
+    "academic-208": {
+      "he": "חוק קירכהוף",
+      "ar": "قانون كيرشوف",
+      "source": "academic"
+    },
+    "academic-209": {
+      "he": "הספק נצרך",
+      "ar": "قدرة مستهلكة",
+      "source": "academic"
+    },
+    "academic-210": {
+      "he": "נצילות",
+      "ar": "كفاءة",
+      "source": "academic"
+    },
+    "academic-211": {
+      "he": "הפסדים",
+      "ar": "فواقد",
+      "source": "academic"
+    },
+    "academic-212": {
+      "he": "התחממות",
+      "ar": "ارتفاع حرارة",
+      "source": "academic"
+    },
+    "academic-213": {
+      "he": "קירור",
+      "ar": "تبريد",
+      "source": "academic"
+    },
+    "academic-214": {
+      "he": "מחשב",
+      "ar": "حاسوب",
+      "source": "academic"
+    },
+    "academic-215": {
+      "he": "תוכנה",
+      "ar": "برمجية",
+      "source": "academic"
+    },
+    "academic-216": {
+      "he": "חומרה",
+      "ar": "عتاد",
+      "source": "academic"
+    },
+    "academic-217": {
+      "he": "מערכת",
+      "ar": "نظام",
+      "source": "academic"
+    },
+    "academic-218": {
+      "he": "מערכת משובצת",
+      "ar": "نظام مدمج",
+      "source": "academic"
+    },
+    "academic-219": {
+      "he": "מעבד",
+      "ar": "معالج",
+      "source": "academic"
+    },
+    "academic-220": {
+      "he": "מיקרו-בקר",
+      "ar": "متحكم دقيق",
+      "source": "academic"
+    },
+    "academic-221": {
+      "he": "זיכרון",
+      "ar": "ذاكرة",
+      "source": "academic"
+    },
+    "academic-222": {
+      "he": "זיכרון RAM",
+      "ar": "ذاكرة الوصول العشوائي",
+      "source": "academic"
+    },
+    "academic-223": {
+      "he": "אחסון",
+      "ar": "تخزين",
+      "source": "academic"
+    },
+    "academic-224": {
+      "he": "קלט",
+      "ar": "إدخال",
+      "source": "academic"
+    },
+    "academic-225": {
+      "he": "פלט",
+      "ar": "إخراج",
+      "source": "academic"
+    },
+    "academic-226": {
+      "he": "קוד",
+      "ar": "شفرة برمجية",
+      "source": "academic"
+    },
+    "academic-227": {
+      "he": "תכנות",
+      "ar": "برمجة",
+      "source": "academic"
+    },
+    "academic-228": {
+      "he": "שפת תכנות",
+      "ar": "لغة برمجة",
+      "source": "academic"
+    },
+    "academic-229": {
+      "he": "פקודה",
+      "ar": "تعليمة",
+      "source": "academic"
+    },
+    "academic-230": {
+      "he": "לולאה",
+      "ar": "حلقة تكرار",
+      "source": "academic"
+    },
+    "academic-231": {
+      "he": "תנאי",
+      "ar": "شرط",
+      "source": "academic"
+    },
+    "academic-232": {
+      "he": "משתנה",
+      "ar": "متغير",
+      "source": "academic"
+    },
+    "academic-233": {
+      "he": "מערך",
+      "ar": "مصفوفة برمجية",
+      "source": "academic"
+    },
+    "academic-234": {
+      "he": "פונקציה",
+      "ar": "دالة برمجية",
+      "source": "academic"
+    },
+    "academic-235": {
+      "he": "אלגוריתם",
+      "ar": "خوارزمية",
+      "source": "academic"
+    },
+    "academic-236": {
+      "he": "מבנה נתונים",
+      "ar": "بنية بيانات",
+      "source": "academic"
+    },
+    "academic-237": {
+      "he": "איתור באגים",
+      "ar": "اكتشاف الأخطاء البرمجية",
+      "source": "academic"
+    },
+    "academic-238": {
+      "he": "ניפוי שגיאות",
+      "ar": "تصحيح الأخطاء",
+      "source": "academic"
+    },
+    "academic-239": {
+      "he": "ממשק",
+      "ar": "واجهة",
+      "source": "academic"
+    },
+    "academic-240": {
+      "he": "תקשורת",
+      "ar": "اتصالات",
+      "source": "academic"
+    },
+    "academic-241": {
+      "he": "פרוטוקול",
+      "ar": "بروتوكول",
+      "source": "academic"
+    },
+    "academic-242": {
+      "he": "רשת",
+      "ar": "شبكة",
+      "source": "academic"
+    },
+    "academic-243": {
+      "he": "שרת",
+      "ar": "خادم",
+      "source": "academic"
+    },
+    "academic-244": {
+      "he": "לקוח",
+      "ar": "عميل",
+      "source": "academic"
+    },
+    "academic-245": {
+      "he": "חיישן טמפרטורה",
+      "ar": "مستشعر حرارة",
+      "source": "academic"
+    },
+    "academic-246": {
+      "he": "בקר",
+      "ar": "متحكّم",
+      "source": "academic"
+    },
+    "academic-247": {
+      "he": "מפעיל",
+      "ar": "مشغّل",
+      "source": "academic"
+    },
+    "academic-248": {
+      "he": "זמן תגובה",
+      "ar": "زمن الاستجابة",
+      "source": "academic"
+    },
+    "academic-249": {
+      "he": "השהיה",
+      "ar": "تأخير",
+      "source": "academic"
+    },
+    "academic-250": {
+      "he": "סנכרון",
+      "ar": "مزامنة",
+      "source": "academic"
+    },
+    "academic-251": {
+      "he": "תזמון",
+      "ar": "جدولة / توقيت",
+      "source": "academic"
+    },
+    "academic-252": {
+      "he": "צריכת חשמל",
+      "ar": "استهلاك الكهرباء",
+      "source": "academic"
+    },
+    "academic-253": {
+      "he": "קושחה",
+      "ar": "برنامج ثابت Firmware",
+      "source": "academic"
+    },
+    "academic-254": {
+      "he": "עדכון",
+      "ar": "تحديث",
+      "source": "academic"
+    },
+    "academic-255": {
+      "he": "אבטחה",
+      "ar": "أمن",
+      "source": "academic"
+    },
+    "academic-256": {
+      "he": "הצפנה",
+      "ar": "تشفير",
+      "source": "academic"
+    },
+    "academic-257": {
+      "he": "נתון",
+      "ar": "بيان / قيمة بيانات",
+      "source": "academic"
+    },
+    "academic-258": {
+      "he": "קובץ",
+      "ar": "ملف",
+      "source": "academic"
+    },
+    "academic-259": {
+      "he": "תיקייה",
+      "ar": "مجلد",
+      "source": "academic"
+    },
+    "academic-260": {
+      "he": "מסד נתונים",
+      "ar": "قاعدة بيانات",
+      "source": "academic"
+    },
+    "academic-261": {
+      "he": "להגדיר",
+      "ar": "يعرّف / يحدد",
+      "source": "academic"
+    },
+    "academic-262": {
+      "he": "להסביר",
+      "ar": "يشرح",
+      "source": "academic"
+    },
+    "academic-263": {
+      "he": "להוכיח",
+      "ar": "يثبت",
+      "source": "academic"
+    },
+    "academic-264": {
+      "he": "לחשב",
+      "ar": "يحسب",
+      "source": "academic"
+    },
+    "academic-265": {
+      "he": "למדוד",
+      "ar": "يقيس",
+      "source": "academic"
+    },
+    "academic-266": {
+      "he": "להשוות",
+      "ar": "يقارن",
+      "source": "academic"
+    },
+    "academic-267": {
+      "he": "לנתח",
+      "ar": "يحلّل",
+      "source": "academic"
+    },
+    "academic-268": {
+      "he": "לפתח",
+      "ar": "يطوّر",
+      "source": "academic"
+    },
+    "academic-269": {
+      "he": "לתכנן",
+      "ar": "يخطط / يصمم",
+      "source": "academic"
+    },
+    "academic-270": {
+      "he": "לבנות",
+      "ar": "يبني",
+      "source": "academic"
+    },
+    "academic-271": {
+      "he": "להרכיב",
+      "ar": "يركّب",
+      "source": "academic"
+    },
+    "academic-272": {
+      "he": "לפרק",
+      "ar": "يفكك",
+      "source": "academic"
+    },
+    "academic-273": {
+      "he": "לחבר",
+      "ar": "يوصل / يربط",
+      "source": "academic"
+    },
+    "academic-274": {
+      "he": "לנתק",
+      "ar": "يفصل",
+      "source": "academic"
+    },
+    "academic-275": {
+      "he": "להפעיל",
+      "ar": "يشغّل",
+      "source": "academic"
+    },
+    "academic-276": {
+      "he": "לכבות",
+      "ar": "يطفئ",
+      "source": "academic"
+    },
+    "academic-277": {
+      "he": "לבדוק",
+      "ar": "يفحص",
+      "source": "academic"
+    },
+    "academic-278": {
+      "he": "לוודא",
+      "ar": "يتأكد",
+      "source": "academic"
+    },
+    "academic-279": {
+      "he": "לזהות",
+      "ar": "يتعرّف / يحدد",
+      "source": "academic"
+    },
+    "academic-280": {
+      "he": "לאתר",
+      "ar": "يكتشف / يحدد موقع",
+      "source": "academic"
+    },
+    "academic-281": {
+      "he": "לתקן",
+      "ar": "يصلح",
+      "source": "academic"
+    },
+    "academic-282": {
+      "he": "לשפר",
+      "ar": "يحسّن",
+      "source": "academic"
+    },
+    "academic-283": {
+      "he": "להשפיע",
+      "ar": "يؤثر",
+      "source": "academic"
+    },
+    "academic-284": {
+      "he": "להתרחש",
+      "ar": "يحدث",
+      "source": "academic"
+    },
+    "academic-285": {
+      "he": "להתקיים",
+      "ar": "يوجد / يتحقق",
+      "source": "academic"
+    },
+    "academic-286": {
+      "he": "להשתמש",
+      "ar": "يستخدم",
+      "source": "academic"
+    },
+    "academic-287": {
+      "he": "להתבסס על",
+      "ar": "يستند إلى",
+      "source": "academic"
+    },
+    "academic-288": {
+      "he": "להוביל ל",
+      "ar": "يؤدي إلى",
+      "source": "academic"
+    },
+    "academic-289": {
+      "he": "לגרום ל",
+      "ar": "يسبب",
+      "source": "academic"
+    },
+    "academic-290": {
+      "he": "להציג",
+      "ar": "يعرض",
+      "source": "academic"
+    },
+    "academic-291": {
+      "he": "להדגים",
+      "ar": "يوضح بمثال",
+      "source": "academic"
+    },
+    "academic-292": {
+      "he": "להסיק",
+      "ar": "يستنتج",
+      "source": "academic"
+    },
+    "academic-293": {
+      "he": "להעריך",
+      "ar": "يقدّر / يقيّم",
+      "source": "academic"
+    },
+    "academic-294": {
+      "he": "להניח",
+      "ar": "يفترض",
+      "source": "academic"
+    },
+    "academic-295": {
+      "he": "לפתור",
+      "ar": "يحل",
+      "source": "academic"
+    },
+    "academic-296": {
+      "he": "להתקדם",
+      "ar": "يتقدم",
+      "source": "academic"
+    },
+    "academic-297": {
+      "he": "להתמודד עם",
+      "ar": "يتعامل مع",
+      "source": "academic"
+    },
+    "academic-298": {
+      "he": "להתמקד ב",
+      "ar": "يركّز على",
+      "source": "academic"
+    },
+    "academic-299": {
+      "he": "להשיג",
+      "ar": "يحقق / يحصل على",
+      "source": "academic"
+    },
+    "academic-300": {
+      "he": "לדרוש",
+      "ar": "يتطلب",
+      "source": "academic"
+    },
+    "academic-301": {
+      "he": "לאפשר",
+      "ar": "يتيح",
+      "source": "academic"
+    },
+    "academic-302": {
+      "he": "למנוע",
+      "ar": "يمنع",
+      "source": "academic"
+    },
+    "academic-303": {
+      "he": "להגדיל",
+      "ar": "يزيد",
+      "source": "academic"
+    },
+    "academic-304": {
+      "he": "להקטין",
+      "ar": "يقلل",
+      "source": "academic"
+    },
+    "academic-305": {
+      "he": "לשנות",
+      "ar": "يغيّر",
+      "source": "academic"
+    },
+    "academic-306": {
+      "he": "להישאר",
+      "ar": "يبقى",
+      "source": "academic"
+    },
+    "academic-307": {
+      "he": "להשתנות",
+      "ar": "يتغير",
+      "source": "academic"
+    },
+    "academic-308": {
+      "he": "מדויק",
+      "ar": "دقيق",
+      "source": "academic"
+    },
+    "academic-309": {
+      "he": "מורכב",
+      "ar": "معقّد",
+      "source": "academic"
+    },
+    "academic-310": {
+      "he": "פשוט",
+      "ar": "بسيط",
+      "source": "academic"
+    },
+    "academic-311": {
+      "he": "יעיל",
+      "ar": "فعّال",
+      "source": "academic"
+    },
+    "academic-312": {
+      "he": "אמין",
+      "ar": "موثوق",
+      "source": "academic"
+    },
+    "academic-313": {
+      "he": "יציב",
+      "ar": "مستقر",
+      "source": "academic"
+    },
+    "academic-314": {
+      "he": "זמני",
+      "ar": "مؤقت",
+      "source": "academic"
+    },
+    "academic-315": {
+      "he": "קבוע",
+      "ar": "ثابت",
+      "source": "academic"
+    },
+    "academic-316": {
+      "he": "חיוני",
+      "ar": "ضروري / حيوي",
+      "source": "academic"
+    },
+    "academic-317": {
+      "he": "אפשרי",
+      "ar": "ممكن",
+      "source": "academic"
+    },
+    "academic-318": {
+      "he": "בלתי אפשרי",
+      "ar": "مستحيل",
+      "source": "academic"
+    },
+    "academic-319": {
+      "he": "דומה",
+      "ar": "مشابه",
+      "source": "academic"
+    },
+    "academic-320": {
+      "he": "שונה",
+      "ar": "مختلف",
+      "source": "academic"
+    },
+    "academic-321": {
+      "he": "עיקרי",
+      "ar": "رئيسي",
+      "source": "academic"
+    },
+    "academic-322": {
+      "he": "משני",
+      "ar": "ثانوي",
+      "source": "academic"
+    },
+    "academic-323": {
+      "he": "ממוצע",
+      "ar": "متوسط",
+      "source": "academic"
+    },
+    "academic-324": {
+      "he": "מרבי",
+      "ar": "أقصى",
+      "source": "academic"
+    },
+    "academic-325": {
+      "he": "מזערי",
+      "ar": "أدنى",
+      "source": "academic"
+    },
+    "academic-326": {
+      "he": "ישיר",
+      "ar": "مباشر",
+      "source": "academic"
+    },
+    "academic-327": {
+      "he": "עקיף",
+      "ar": "غير مباشر",
+      "source": "academic"
+    },
+    "academic-328": {
+      "he": "חיובי",
+      "ar": "موجب / إيجابي",
+      "source": "academic"
+    },
+    "academic-329": {
+      "he": "שלילי",
+      "ar": "سالب / سلبي",
+      "source": "academic"
+    },
+    "academic-330": {
+      "he": "יחסי",
+      "ar": "نسبي",
+      "source": "academic"
+    },
+    "academic-331": {
+      "he": "מוחלט",
+      "ar": "مطلق",
+      "source": "academic"
+    },
+    "academic-332": {
+      "he": "תיאורטי",
+      "ar": "نظري",
+      "source": "academic"
+    },
+    "academic-333": {
+      "he": "מעשי",
+      "ar": "عملي",
+      "source": "academic"
+    },
+    "academic-334": {
+      "he": "חשמלי",
+      "ar": "كهربائي",
+      "source": "academic"
+    },
+    "academic-335": {
+      "he": "אלקטרוני",
+      "ar": "إلكتروني",
+      "source": "academic"
+    },
+    "academic-336": {
+      "he": "מכני",
+      "ar": "ميكانيكي",
+      "source": "academic"
+    },
+    "academic-337": {
+      "he": "דיגיטלי",
+      "ar": "رقمي",
+      "source": "academic"
+    },
+    "academic-338": {
+      "he": "אנלוגי",
+      "ar": "تناظري",
+      "source": "academic"
+    },
+    "academic-339": {
+      "he": "אוטומטי",
+      "ar": "تلقائي",
+      "source": "academic"
+    },
+    "academic-340": {
+      "he": "ידני",
+      "ar": "يدوي",
+      "source": "academic"
+    },
+    "academic-341": {
+      "he": "מקביל",
+      "ar": "متوازٍ",
+      "source": "academic"
+    },
+    "academic-342": {
+      "he": "טורי",
+      "ar": "متسلسل / على التوالي",
+      "source": "academic"
+    },
+    "academic-343": {
+      "he": "הפוך",
+      "ar": "عكسي / مقلوب",
+      "source": "academic"
+    },
+    "academic-344": {
+      "he": "שווה",
+      "ar": "متساوٍ",
+      "source": "academic"
+    },
+    "academic-345": {
+      "he": "בקירוב",
+      "ar": "تقريبًا",
+      "source": "academic"
+    },
+    "academic-346": {
+      "he": "בדיוק",
+      "ar": "بالضبط",
+      "source": "academic"
+    },
+    "academic-347": {
+      "he": "לפיכך",
+      "ar": "لذلك / بناءً عليه",
+      "source": "academic"
+    },
+    "academic-348": {
+      "he": "לעומת זאת",
+      "ar": "في المقابل",
+      "source": "academic"
+    },
+    "academic-349": {
+      "he": "בנוסף",
+      "ar": "بالإضافة إلى ذلك",
+      "source": "academic"
+    },
+    "academic-350": {
+      "he": "למרות זאת",
+      "ar": "رغم ذلك",
+      "source": "academic"
+    },
+    "academic-351": {
+      "he": "כתוצאה מכך",
+      "ar": "نتيجة لذلك",
+      "source": "academic"
+    },
+    "academic-352": {
+      "he": "מצד אחד",
+      "ar": "من جهة",
+      "source": "academic"
+    },
+    "academic-353": {
+      "he": "מצד שני",
+      "ar": "من جهة أخرى",
+      "source": "academic"
+    },
+    "academic-354": {
+      "he": "במקרה זה",
+      "ar": "في هذه الحالة",
+      "source": "academic"
+    },
+    "academic-355": {
+      "he": "באופן כללי",
+      "ar": "بشكل عام",
+      "source": "academic"
+    },
+    "academic-356": {
+      "he": "בפרט",
+      "ar": "على وجه الخصوص",
+      "source": "academic"
+    },
+    "academic-357": {
+      "he": "לדוגמה",
+      "ar": "على سبيل المثال",
+      "source": "academic"
+    },
+    "academic-358": {
+      "he": "כלומר",
+      "ar": "أي / بمعنى",
+      "source": "academic"
+    },
+    "academic-359": {
+      "he": "בהתאם ל",
+      "ar": "وفقًا لـ",
+      "source": "academic"
+    },
+    "academic-360": {
+      "he": "ביחס ל",
+      "ar": "بالنسبة إلى",
+      "source": "academic"
+    },
+    "academic-361": {
+      "he": "לפני",
+      "ar": "قبل",
+      "source": "academic"
+    },
+    "academic-362": {
+      "he": "אחרי",
+      "ar": "بعد",
+      "source": "academic"
+    },
+    "academic-363": {
+      "he": "במהלך",
+      "ar": "خلال",
+      "source": "academic"
+    },
+    "academic-364": {
+      "he": "בין",
+      "ar": "بين",
+      "source": "academic"
+    },
+    "academic-365": {
+      "he": "בתוך",
+      "ar": "داخل",
+      "source": "academic"
+    },
+    "academic-366": {
+      "he": "מחוץ ל",
+      "ar": "خارج",
+      "source": "academic"
+    },
+    "academic-367": {
+      "he": "לרבות",
+      "ar": "بما في ذلك",
+      "source": "academic"
+    },
+    "academic-368": {
+      "he": "אלא אם כן",
+      "ar": "إلا إذا",
+      "source": "academic"
+    },
+    "academic-369": {
+      "he": "ככל ש",
+      "ar": "كلما / بقدر ما",
+      "source": "academic"
+    },
+    "academic-370": {
+      "he": "במקום",
+      "ar": "بدلًا من / في مكان",
+      "source": "academic"
+    },
+    "academic-371": {
+      "he": "על אף",
+      "ar": "على الرغم من",
+      "source": "academic"
+    },
+    "academic-372": {
+      "he": "עקב",
+      "ar": "بسبب",
+      "source": "academic"
+    },
+    "academic-373": {
+      "he": "מאחר ש",
+      "ar": "بما أن",
+      "source": "academic"
+    },
+    "academic-374": {
+      "he": "מכיוון ש",
+      "ar": "لأن",
+      "source": "academic"
+    },
+    "academic-375": {
+      "he": "לשם כך",
+      "ar": "لهذا الغرض",
+      "source": "academic"
+    },
+    "academic-376": {
+      "he": "במטרה ל",
+      "ar": "بهدف",
+      "source": "academic"
+    },
+    "academic-377": {
+      "he": "כתנאי ל",
+      "ar": "كشرط لـ",
+      "source": "academic"
+    },
+    "expanded-connectors-001": {
+      "he": "לכן",
+      "ar": "لذلك",
+      "source": "expanded"
+    },
+    "expanded-connectors-002": {
+      "he": "אולם",
+      "ar": "لكن / غير أنّ",
+      "source": "expanded"
+    },
+    "expanded-connectors-003": {
+      "he": "אמנם",
+      "ar": "صحيح أنّ / بالفعل",
+      "source": "expanded"
+    },
+    "expanded-connectors-004": {
+      "he": "מכיוון ש",
+      "ar": "بما أنّ",
+      "source": "expanded"
+    },
+    "expanded-connectors-005": {
+      "he": "למרות ש",
+      "ar": "على الرغم من أنّ",
+      "source": "expanded"
+    },
+    "expanded-connectors-006": {
+      "he": "בגלל",
+      "ar": "بسبب",
+      "source": "expanded"
+    },
+    "expanded-connectors-007": {
+      "he": "כדי ש",
+      "ar": "لكي",
+      "source": "expanded"
+    },
+    "expanded-connectors-008": {
+      "he": "אף על פי כן",
+      "ar": "مع ذلك",
+      "source": "expanded"
+    },
+    "expanded-connectors-009": {
+      "he": "לעומת זאת",
+      "ar": "في المقابل",
+      "source": "expanded"
+    },
+    "expanded-connectors-010": {
+      "he": "כמו כן",
+      "ar": "كذلك",
+      "source": "expanded"
+    },
+    "expanded-connectors-011": {
+      "he": "בנוסף",
+      "ar": "بالإضافة",
+      "source": "expanded"
+    },
+    "expanded-connectors-012": {
+      "he": "יתר על כן",
+      "ar": "علاوة على ذلك",
+      "source": "expanded"
+    },
+    "expanded-connectors-013": {
+      "he": "מצד אחד",
+      "ar": "من جهة",
+      "source": "expanded"
+    },
+    "expanded-connectors-014": {
+      "he": "מצד שני",
+      "ar": "من جهة أخرى",
+      "source": "expanded"
+    },
+    "expanded-connectors-015": {
+      "he": "בעקבות",
+      "ar": "إثر / نتيجةً لـ",
+      "source": "expanded"
+    },
+    "expanded-connectors-016": {
+      "he": "בהתאם ל",
+      "ar": "وفقًا لـ",
+      "source": "expanded"
+    },
+    "expanded-connectors-017": {
+      "he": "לפי",
+      "ar": "حسب",
+      "source": "expanded"
+    },
+    "expanded-connectors-018": {
+      "he": "על פי",
+      "ar": "بحسب",
+      "source": "expanded"
+    },
+    "expanded-connectors-019": {
+      "he": "עקב",
+      "ar": "بسبب",
+      "source": "expanded"
+    },
+    "expanded-connectors-020": {
+      "he": "הואיל ו",
+      "ar": "بما أنّ",
+      "source": "expanded"
+    },
+    "expanded-connectors-021": {
+      "he": "אלא",
+      "ar": "بل / إلا",
+      "source": "expanded"
+    },
+    "expanded-connectors-022": {
+      "he": "אלא אם כן",
+      "ar": "إلا إذا",
+      "source": "expanded"
+    },
+    "expanded-connectors-023": {
+      "he": "ככל ש",
+      "ar": "كلّما",
+      "source": "expanded"
+    },
+    "expanded-connectors-024": {
+      "he": "כל עוד",
+      "ar": "ما دام",
+      "source": "expanded"
+    },
+    "expanded-connectors-025": {
+      "he": "עד ש",
+      "ar": "حتى",
+      "source": "expanded"
+    },
+    "expanded-connectors-026": {
+      "he": "לפני ש",
+      "ar": "قبل أن",
+      "source": "expanded"
+    },
+    "expanded-connectors-027": {
+      "he": "אחרי ש",
+      "ar": "بعد أن",
+      "source": "expanded"
+    },
+    "expanded-connectors-028": {
+      "he": "בעוד ש",
+      "ar": "بينما",
+      "source": "expanded"
+    },
+    "expanded-connectors-029": {
+      "he": "בינתיים",
+      "ar": "في هذه الأثناء",
+      "source": "expanded"
+    },
+    "expanded-connectors-030": {
+      "he": "לבסוף",
+      "ar": "أخيرًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-031": {
+      "he": "בסופו של דבר",
+      "ar": "في النهاية",
+      "source": "expanded"
+    },
+    "expanded-connectors-032": {
+      "he": "למשל",
+      "ar": "مثلًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-033": {
+      "he": "לדוגמה",
+      "ar": "على سبيل المثال",
+      "source": "expanded"
+    },
+    "expanded-connectors-034": {
+      "he": "כלומר",
+      "ar": "أي",
+      "source": "expanded"
+    },
+    "expanded-connectors-035": {
+      "he": "דהיינו",
+      "ar": "أي / بمعنى",
+      "source": "expanded"
+    },
+    "expanded-connectors-036": {
+      "he": "במיוחד",
+      "ar": "مميّز / خاصةً",
+      "source": "expanded"
+    },
+    "expanded-connectors-037": {
+      "he": "בעיקר",
+      "ar": "بشكل رئيسي",
+      "source": "expanded"
+    },
+    "expanded-connectors-038": {
+      "he": "לפחות",
+      "ar": "على الأقل",
+      "source": "expanded"
+    },
+    "expanded-connectors-039": {
+      "he": "לכל היותר",
+      "ar": "على الأكثر",
+      "source": "expanded"
+    },
+    "expanded-connectors-040": {
+      "he": "בדרך כלל",
+      "ar": "عادةً",
+      "source": "expanded"
+    },
+    "expanded-connectors-041": {
+      "he": "לעתים",
+      "ar": "أحيانًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-042": {
+      "he": "לעתים קרובות",
+      "ar": "غالبًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-043": {
+      "he": "לעולם לא",
+      "ar": "أبدًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-044": {
+      "he": "תמיד",
+      "ar": "دائمًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-045": {
+      "he": "מייד",
+      "ar": "فورًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-046": {
+      "he": "בהדרגה",
+      "ar": "تدريجيًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-047": {
+      "he": "כמעט",
+      "ar": "تقريبًا",
+      "source": "expanded"
+    },
+    "expanded-connectors-048": {
+      "he": "בערך",
+      "ar": "حوالي",
+      "source": "expanded"
+    },
+    "expanded-connectors-049": {
+      "he": "אפילו",
+      "ar": "حتى",
+      "source": "expanded"
+    },
+    "expanded-connectors-050": {
+      "he": "דווקא",
+      "ar": "تحديدًا / على عكس المتوقع",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-001": {
+      "he": "סיבה",
+      "ar": "سبب",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-002": {
+      "he": "תוצאה",
+      "ar": "نتيجة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-003": {
+      "he": "השפעה",
+      "ar": "تأثير",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-004": {
+      "he": "משמעות",
+      "ar": "معنى / دلالة / أهمية",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-005": {
+      "he": "מסקנה",
+      "ar": "استنتاج",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-006": {
+      "he": "הנחה",
+      "ar": "افتراض",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-007": {
+      "he": "טענה",
+      "ar": "ادّعاء / قول",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-008": {
+      "he": "טיעון",
+      "ar": "حجّة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-009": {
+      "he": "עמדה",
+      "ar": "موقف",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-010": {
+      "he": "דעה",
+      "ar": "رأي",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-011": {
+      "he": "גישה",
+      "ar": "نهج / مقاربة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-012": {
+      "he": "תפיסה",
+      "ar": "تصوّر",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-013": {
+      "he": "השקפה",
+      "ar": "وجهة نظر",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-014": {
+      "he": "רעיון",
+      "ar": "فكرة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-015": {
+      "he": "מושג",
+      "ar": "مفهوم / مصطلح",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-016": {
+      "he": "הגדרה",
+      "ar": "تعريف",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-017": {
+      "he": "תיאור",
+      "ar": "وصف",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-018": {
+      "he": "הסבר",
+      "ar": "شرح",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-019": {
+      "he": "הערכה",
+      "ar": "تقييم / تقدير",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-020": {
+      "he": "השוואה",
+      "ar": "مقارنة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-021": {
+      "he": "הבדל",
+      "ar": "فرق",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-022": {
+      "he": "דמיון",
+      "ar": "تشابه",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-023": {
+      "he": "קשר",
+      "ar": "علاقة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-024": {
+      "he": "יחס",
+      "ar": "نسبة / علاقة / معاملة / موقف",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-025": {
+      "he": "תהליך",
+      "ar": "عملية",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-026": {
+      "he": "שינוי",
+      "ar": "تغيير",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-027": {
+      "he": "התפתחות",
+      "ar": "تطوّر",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-028": {
+      "he": "מגמה",
+      "ar": "اتجاه",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-029": {
+      "he": "היבט",
+      "ar": "جانب",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-030": {
+      "he": "גורם",
+      "ar": "عامل",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-031": {
+      "he": "מרכיב",
+      "ar": "مكوّن",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-032": {
+      "he": "תנאי",
+      "ar": "شرط",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-033": {
+      "he": "אפשרות",
+      "ar": "إمكانية",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-034": {
+      "he": "סכנה",
+      "ar": "خطر",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-035": {
+      "he": "סיכון",
+      "ar": "مخاطرة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-036": {
+      "he": "סיכוי",
+      "ar": "فرصة / احتمال",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-037": {
+      "he": "הזדמנות",
+      "ar": "فرصة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-038": {
+      "he": "אתגר",
+      "ar": "تحدٍّ",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-039": {
+      "he": "בעיה",
+      "ar": "مشكلة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-040": {
+      "he": "פתרון",
+      "ar": "حلّ",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-041": {
+      "he": "מטרה",
+      "ar": "هدف",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-042": {
+      "he": "יעד",
+      "ar": "هدف محدّد",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-043": {
+      "he": "תכלית",
+      "ar": "غاية",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-044": {
+      "he": "מניע",
+      "ar": "دافع",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-045": {
+      "he": "ראיה",
+      "ar": "دليل / بيّنة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-046": {
+      "he": "הוכחה",
+      "ar": "برهان",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-047": {
+      "he": "עובדה",
+      "ar": "حقيقة",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-048": {
+      "he": "דוגמה",
+      "ar": "مثال",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-049": {
+      "he": "חריג",
+      "ar": "استثناء",
+      "source": "expanded"
+    },
+    "expanded-abstract-nouns-050": {
+      "he": "כלל",
+      "ar": "قاعدة",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-001": {
+      "he": "לבחון",
+      "ar": "يفحص",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-002": {
+      "he": "לבדוק",
+      "ar": "يتحقق",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-003": {
+      "he": "לנתח",
+      "ar": "يحلّل",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-004": {
+      "he": "להסביר",
+      "ar": "يشرح",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-005": {
+      "he": "לתאר",
+      "ar": "يصف",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-006": {
+      "he": "להגדיר",
+      "ar": "يعرّف",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-007": {
+      "he": "להשוות",
+      "ar": "يقارن",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-008": {
+      "he": "להבהיר",
+      "ar": "يوضّح",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-009": {
+      "he": "להדגיש",
+      "ar": "يشدّد على / يبرز",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-010": {
+      "he": "לציין",
+      "ar": "يذكر / يشير",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-011": {
+      "he": "להזכיר",
+      "ar": "يذكر / يذكّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-012": {
+      "he": "לטעון",
+      "ar": "يدّعي",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-013": {
+      "he": "לקבוע",
+      "ar": "يقرّر / يحدّد",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-014": {
+      "he": "להוכיח",
+      "ar": "يثبت",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-015": {
+      "he": "להפריך",
+      "ar": "يدحض",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-016": {
+      "he": "לאשר",
+      "ar": "يصادق / يؤكّد",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-017": {
+      "he": "לשלול",
+      "ar": "ينفي / يرفض",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-018": {
+      "he": "לדחות",
+      "ar": "يؤجّل / يرفض",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-019": {
+      "he": "לקבל",
+      "ar": "يستلم / يقبل",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-020": {
+      "he": "לדרוש",
+      "ar": "يطالب",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-021": {
+      "he": "לבקש",
+      "ar": "يطلب",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-022": {
+      "he": "להציע",
+      "ar": "يقترح",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-023": {
+      "he": "להמליץ",
+      "ar": "يوصي",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-024": {
+      "he": "להחליט",
+      "ar": "يقرّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-025": {
+      "he": "לבחור",
+      "ar": "يختار",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-026": {
+      "he": "להעדיף",
+      "ar": "يفضّل",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-027": {
+      "he": "לתמוך",
+      "ar": "يدعم",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-028": {
+      "he": "להתנגד",
+      "ar": "يعارض",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-029": {
+      "he": "להסכים",
+      "ar": "يوافق",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-030": {
+      "he": "להתווכח",
+      "ar": "يتجادل",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-031": {
+      "he": "לדון",
+      "ar": "يناقش",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-032": {
+      "he": "לשכנע",
+      "ar": "يقنع",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-033": {
+      "he": "להשפיע",
+      "ar": "يؤثّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-034": {
+      "he": "לגרום",
+      "ar": "يتسبّب",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-035": {
+      "he": "לתרום",
+      "ar": "يساهم",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-036": {
+      "he": "להוביל",
+      "ar": "يقود",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-037": {
+      "he": "להנהיג",
+      "ar": "يقود / يتولّى القيادة",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-038": {
+      "he": "לנהל",
+      "ar": "يدير",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-039": {
+      "he": "לארגן",
+      "ar": "ينظّم",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-040": {
+      "he": "לתכנן",
+      "ar": "يخطّط",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-041": {
+      "he": "לבצע",
+      "ar": "ينفّذ",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-042": {
+      "he": "ליישם",
+      "ar": "يطبّق",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-043": {
+      "he": "להשיג",
+      "ar": "يحقّق / ينال",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-044": {
+      "he": "להצליח",
+      "ar": "ينجح",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-045": {
+      "he": "להיכשל",
+      "ar": "يفشل",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-046": {
+      "he": "לנסות",
+      "ar": "يحاول",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-047": {
+      "he": "להתאמץ",
+      "ar": "يبذل جهدًا",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-048": {
+      "he": "להתמודד",
+      "ar": "يواجه",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-049": {
+      "he": "לפתור",
+      "ar": "يحلّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-a-050": {
+      "he": "למנוע",
+      "ar": "يمنع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-001": {
+      "he": "לאפשר",
+      "ar": "يتيح",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-002": {
+      "he": "להגביל",
+      "ar": "يحدّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-003": {
+      "he": "להרחיב",
+      "ar": "يوسّع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-004": {
+      "he": "לצמצם",
+      "ar": "يقلّص",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-005": {
+      "he": "להגדיל",
+      "ar": "يكبّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-006": {
+      "he": "להקטין",
+      "ar": "يصغّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-007": {
+      "he": "להעלות",
+      "ar": "يرفع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-008": {
+      "he": "להוריד",
+      "ar": "يخفض",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-009": {
+      "he": "לשפר",
+      "ar": "يحسّن",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-010": {
+      "he": "להחמיר",
+      "ar": "يزيد سوءًا",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-011": {
+      "he": "לפתח",
+      "ar": "يطوّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-012": {
+      "he": "ליצור",
+      "ar": "يخلق",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-013": {
+      "he": "לייצר",
+      "ar": "ينتج",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-014": {
+      "he": "לבנות",
+      "ar": "يبني",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-015": {
+      "he": "להרוס",
+      "ar": "يهدم",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-016": {
+      "he": "לשמור",
+      "ar": "يحافظ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-017": {
+      "he": "להגן",
+      "ar": "يحمي",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-018": {
+      "he": "לסכן",
+      "ar": "يعرّض للخطر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-019": {
+      "he": "לפגוע",
+      "ar": "يضرّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-020": {
+      "he": "לסייע",
+      "ar": "يساعد",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-021": {
+      "he": "לעודד",
+      "ar": "يشجّع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-022": {
+      "he": "להניע",
+      "ar": "يحفّز",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-023": {
+      "he": "לדרבן",
+      "ar": "يحثّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-024": {
+      "he": "להתרחש",
+      "ar": "يحدث",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-025": {
+      "he": "לקרות",
+      "ar": "يحدث",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-026": {
+      "he": "להימשך",
+      "ar": "يستمر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-027": {
+      "he": "להסתיים",
+      "ar": "ينتهي",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-028": {
+      "he": "להתחיל",
+      "ar": "يبدأ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-029": {
+      "he": "להמשיך",
+      "ar": "يتابع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-030": {
+      "he": "להפסיק",
+      "ar": "يتوقف",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-031": {
+      "he": "לחזור",
+      "ar": "يعود",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-032": {
+      "he": "לשוב",
+      "ar": "يعود",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-033": {
+      "he": "להיעלם",
+      "ar": "يختفي",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-034": {
+      "he": "להופיע",
+      "ar": "يظهر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-035": {
+      "he": "להתגלות",
+      "ar": "يتكشّف",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-036": {
+      "he": "לגלות",
+      "ar": "يكتشف",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-037": {
+      "he": "להמציא",
+      "ar": "يخترع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-038": {
+      "he": "לחקור",
+      "ar": "يبحث / يحقّق",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-039": {
+      "he": "לאסוף",
+      "ar": "يجمع",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-040": {
+      "he": "לסכם",
+      "ar": "يلخّص",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-041": {
+      "he": "לצטט",
+      "ar": "يقتبس",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-042": {
+      "he": "לפרסם",
+      "ar": "ينشر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-043": {
+      "he": "לדווח",
+      "ar": "يبلّغ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-044": {
+      "he": "להודיע",
+      "ar": "يعلن",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-045": {
+      "he": "להתריע",
+      "ar": "يحذّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-046": {
+      "he": "להזהיר",
+      "ar": "يحذّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-047": {
+      "he": "לברר",
+      "ar": "يستفسر",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-048": {
+      "he": "לשאול",
+      "ar": "يسأل",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-049": {
+      "he": "להשיב",
+      "ar": "يردّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-b-050": {
+      "he": "להגיב",
+      "ar": "يعلّق / يتفاعل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-001": {
+      "he": "להכיר",
+      "ar": "يعرف / يتعرّف",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-002": {
+      "he": "להבין",
+      "ar": "يفهم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-003": {
+      "he": "לזהות",
+      "ar": "يحدّد هوية / يتعرّف على",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-004": {
+      "he": "לשער",
+      "ar": "يخمّن",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-005": {
+      "he": "להעריך",
+      "ar": "يقدّر / يقيّم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-006": {
+      "he": "לחשוב",
+      "ar": "يفكّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-007": {
+      "he": "להאמין",
+      "ar": "يؤمن",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-008": {
+      "he": "לחשוד",
+      "ar": "يشتبه",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-009": {
+      "he": "לדאוג",
+      "ar": "يقلق / يهتمّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-010": {
+      "he": "לחשוש",
+      "ar": "يخشى",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-011": {
+      "he": "לקוות",
+      "ar": "يأمل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-012": {
+      "he": "לצפות",
+      "ar": "يتوقّع / يشاهد",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-013": {
+      "he": "לחזות",
+      "ar": "يتنبّأ",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-014": {
+      "he": "להתכוון",
+      "ar": "ينوي / يقصد",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-015": {
+      "he": "לשאוף",
+      "ar": "يطمح",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-016": {
+      "he": "לרצות",
+      "ar": "يريد",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-017": {
+      "he": "להתעניין",
+      "ar": "يهتمّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-018": {
+      "he": "להתרשם",
+      "ar": "يُكوّن انطباعًا / يتأثّر",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-019": {
+      "he": "להתפעל",
+      "ar": "يُعجب بـ / يندهش من",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-020": {
+      "he": "להתאכזב",
+      "ar": "يُصاب بخيبة أمل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-021": {
+      "he": "להתלונן",
+      "ar": "يشتكي",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-022": {
+      "he": "לבקר",
+      "ar": "ينتقد / يزور",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-023": {
+      "he": "להאשים",
+      "ar": "يتّهم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-024": {
+      "he": "לשבח",
+      "ar": "يمدح",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-025": {
+      "he": "להודות",
+      "ar": "يشكر / يعترف",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-026": {
+      "he": "להתנצל",
+      "ar": "يعتذر",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-027": {
+      "he": "לסלוח",
+      "ar": "يسامح",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-028": {
+      "he": "לוותר",
+      "ar": "يتنازل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-029": {
+      "he": "להתפשר",
+      "ar": "يتوصّل إلى حلّ وسط",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-030": {
+      "he": "לחלוק",
+      "ar": "يتشارك / يختلف",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-031": {
+      "he": "לחלק",
+      "ar": "يوزّع",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-032": {
+      "he": "לשתף",
+      "ar": "يُشرك",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-033": {
+      "he": "להשתתף",
+      "ar": "يشارك",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-034": {
+      "he": "להצטרף",
+      "ar": "ينضمّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-035": {
+      "he": "להתארגן",
+      "ar": "يتنظّم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-036": {
+      "he": "להתכונן",
+      "ar": "يستعدّ",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-037": {
+      "he": "להסתגל",
+      "ar": "يتأقلم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-038": {
+      "he": "להשתלב",
+      "ar": "يندمج",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-039": {
+      "he": "להתבודד",
+      "ar": "ينعزل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-040": {
+      "he": "להיפגש",
+      "ar": "يلتقي",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-041": {
+      "he": "להתראות",
+      "ar": "يلتقي (ببعضهم)",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-042": {
+      "he": "להתקשר",
+      "ar": "يتّصل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-043": {
+      "he": "לתקשר",
+      "ar": "يتواصل",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-044": {
+      "he": "להתייעץ",
+      "ar": "يستشير",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-045": {
+      "he": "לייעץ",
+      "ar": "ينصح",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-046": {
+      "he": "להורות",
+      "ar": "يعلّم / يأمر",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-047": {
+      "he": "ללמד",
+      "ar": "يعلّم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-048": {
+      "he": "ללמוד",
+      "ar": "يتعلّم",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-049": {
+      "he": "להשכיל",
+      "ar": "يتثقّف",
+      "source": "expanded"
+    },
+    "expanded-verbs-c-050": {
+      "he": "להתאמן",
+      "ar": "يتدرّب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-001": {
+      "he": "חשוב",
+      "ar": "مهم",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-002": {
+      "he": "מרכזי",
+      "ar": "مركزي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-003": {
+      "he": "עיקרי",
+      "ar": "رئيسي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-004": {
+      "he": "משני",
+      "ar": "ثانوي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-005": {
+      "he": "נוסף",
+      "ar": "إضافي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-006": {
+      "he": "שונה",
+      "ar": "مختلف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-007": {
+      "he": "דומה",
+      "ar": "مشابه",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-008": {
+      "he": "זהה",
+      "ar": "مطابق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-009": {
+      "he": "ברור",
+      "ar": "واضح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-010": {
+      "he": "מעורפל",
+      "ar": "غامض",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-011": {
+      "he": "מסובך",
+      "ar": "معقّد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-012": {
+      "he": "פשוט",
+      "ar": "بسيط",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-013": {
+      "he": "קשה",
+      "ar": "صعب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-014": {
+      "he": "קל",
+      "ar": "سهل / خفيف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-015": {
+      "he": "אפשרי",
+      "ar": "ممكن",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-016": {
+      "he": "בלתי אפשרי",
+      "ar": "مستحيل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-017": {
+      "he": "הכרחי",
+      "ar": "ضروري",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-018": {
+      "he": "מיותר",
+      "ar": "غير ضروري",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-019": {
+      "he": "מספיק",
+      "ar": "كافٍ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-020": {
+      "he": "חסר",
+      "ar": "ناقص",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-021": {
+      "he": "מלא",
+      "ar": "ممتلئ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-022": {
+      "he": "ריק",
+      "ar": "فارغ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-023": {
+      "he": "רחב",
+      "ar": "واسع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-024": {
+      "he": "צר",
+      "ar": "ضيّق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-025": {
+      "he": "עמוק",
+      "ar": "عميق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-026": {
+      "he": "שטחי",
+      "ar": "سطحي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-027": {
+      "he": "כללי",
+      "ar": "عام",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-028": {
+      "he": "מיוחד",
+      "ar": "خاص",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-029": {
+      "he": "ספציפי",
+      "ar": "محدّد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-030": {
+      "he": "מקובל",
+      "ar": "مقبول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-031": {
+      "he": "נפוץ",
+      "ar": "شائع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-032": {
+      "he": "נדיר",
+      "ar": "نادر",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-033": {
+      "he": "חריג",
+      "ar": "استثنائي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-034": {
+      "he": "רגיל",
+      "ar": "عادي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-035": {
+      "he": "טבעי",
+      "ar": "طبيعي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-036": {
+      "he": "מלאכותי",
+      "ar": "اصطناعي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-037": {
+      "he": "אמיתי",
+      "ar": "حقيقي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-038": {
+      "he": "מדומה",
+      "ar": "وهمي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-039": {
+      "he": "נכון",
+      "ar": "صحيح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-040": {
+      "he": "שגוי",
+      "ar": "خاطئ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-041": {
+      "he": "מדויק",
+      "ar": "دقيق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-042": {
+      "he": "מוטעה",
+      "ar": "خاطئ / غير صحيح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-043": {
+      "he": "סביר",
+      "ar": "معقول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-044": {
+      "he": "בלתי סביר",
+      "ar": "غير معقول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-045": {
+      "he": "הגיוני",
+      "ar": "منطقي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-046": {
+      "he": "עקבי",
+      "ar": "متّسق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-047": {
+      "he": "סותר",
+      "ar": "متناقض",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-048": {
+      "he": "תקף",
+      "ar": "صالح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-049": {
+      "he": "רלוונטי",
+      "ar": "ذو صلة",
+      "source": "expanded"
+    },
+    "expanded-adjectives-a-050": {
+      "he": "אובייקטיבי",
+      "ar": "موضوعي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-001": {
+      "he": "סובייקטיבי",
+      "ar": "ذاتي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-002": {
+      "he": "אישי",
+      "ar": "شخصي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-003": {
+      "he": "ציבורי",
+      "ar": "عام / عمومي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-004": {
+      "he": "פרטי",
+      "ar": "خاص",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-005": {
+      "he": "חברתי",
+      "ar": "اجتماعي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-006": {
+      "he": "כלכלי",
+      "ar": "اقتصادي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-007": {
+      "he": "פוליטי",
+      "ar": "سياسي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-008": {
+      "he": "תרבותי",
+      "ar": "ثقافي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-009": {
+      "he": "היסטורי",
+      "ar": "تاريخي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-010": {
+      "he": "מדעי",
+      "ar": "علمي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-011": {
+      "he": "טכנולוגי",
+      "ar": "تكنولوجي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-012": {
+      "he": "מקצועי",
+      "ar": "مهني",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-013": {
+      "he": "אקדמי",
+      "ar": "أكاديمي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-014": {
+      "he": "עכשווי",
+      "ar": "معاصر",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-015": {
+      "he": "מודרני",
+      "ar": "حديث",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-016": {
+      "he": "מסורתי",
+      "ar": "تقليدي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-017": {
+      "he": "קדום",
+      "ar": "قديم جدًا",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-018": {
+      "he": "חדש",
+      "ar": "جديد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-019": {
+      "he": "ישן",
+      "ar": "قديم",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-020": {
+      "he": "עתידי",
+      "ar": "مستقبلي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-021": {
+      "he": "זמני",
+      "ar": "مؤقّت",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-022": {
+      "he": "קבוע",
+      "ar": "ثابت / دائم",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-023": {
+      "he": "יציב",
+      "ar": "مستقرّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-024": {
+      "he": "משתנה",
+      "ar": "متغيّر",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-025": {
+      "he": "מהיר",
+      "ar": "سريع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-026": {
+      "he": "איטי",
+      "ar": "بطيء",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-027": {
+      "he": "הדרגתי",
+      "ar": "تدريجي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-028": {
+      "he": "פתאומי",
+      "ar": "مفاجئ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-029": {
+      "he": "חזק",
+      "ar": "قوي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-030": {
+      "he": "חלש",
+      "ar": "ضعيف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-031": {
+      "he": "משמעותי",
+      "ar": "ملحوظ / ذو معنى",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-032": {
+      "he": "זניח",
+      "ar": "ضئيل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-033": {
+      "he": "חיובי",
+      "ar": "إيجابي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-034": {
+      "he": "שלילי",
+      "ar": "سلبي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-035": {
+      "he": "מועיל",
+      "ar": "مفيد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-036": {
+      "he": "מזיק",
+      "ar": "ضارّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-037": {
+      "he": "בטוח",
+      "ar": "آمن / واثق / مؤكّد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-038": {
+      "he": "מסוכן",
+      "ar": "خطير",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-039": {
+      "he": "אחראי",
+      "ar": "مسؤول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-040": {
+      "he": "עצמאי",
+      "ar": "مستقلّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-041": {
+      "he": "תלוי",
+      "ar": "تابع / يعتمد على",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-042": {
+      "he": "גמיש",
+      "ar": "مرن",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-043": {
+      "he": "קשיח",
+      "ar": "صلب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-044": {
+      "he": "יצירתי",
+      "ar": "مبدع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-045": {
+      "he": "סקרן",
+      "ar": "فضولي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-046": {
+      "he": "סבלני",
+      "ar": "صبور",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-047": {
+      "he": "עקשן",
+      "ar": "عنيد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-048": {
+      "he": "ישר",
+      "ar": "صادق / مستقيم",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-049": {
+      "he": "הוגן",
+      "ar": "عادل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-b-050": {
+      "he": "מוסרי",
+      "ar": "أخلاقي",
+      "source": "expanded"
+    },
+    "expanded-society-politics-001": {
+      "he": "חברה",
+      "ar": "مجتمع / شركة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-002": {
+      "he": "ציבור",
+      "ar": "عامّة الناس / الجمهور",
+      "source": "expanded"
+    },
+    "expanded-society-politics-003": {
+      "he": "אזרח",
+      "ar": "مواطن",
+      "source": "expanded"
+    },
+    "expanded-society-politics-004": {
+      "he": "תושב",
+      "ar": "ساكن",
+      "source": "expanded"
+    },
+    "expanded-society-politics-005": {
+      "he": "קהילה",
+      "ar": "جماعة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-006": {
+      "he": "משפחה",
+      "ar": "عائلة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-007": {
+      "he": "דור",
+      "ar": "جيل",
+      "source": "expanded"
+    },
+    "expanded-society-politics-008": {
+      "he": "מיעוט",
+      "ar": "أقلّية",
+      "source": "expanded"
+    },
+    "expanded-society-politics-009": {
+      "he": "רוב",
+      "ar": "أغلبية",
+      "source": "expanded"
+    },
+    "expanded-society-politics-010": {
+      "he": "שוויון",
+      "ar": "مساواة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-011": {
+      "he": "אפליה",
+      "ar": "تمييز",
+      "source": "expanded"
+    },
+    "expanded-society-politics-012": {
+      "he": "גזענות",
+      "ar": "عنصرية",
+      "source": "expanded"
+    },
+    "expanded-society-politics-013": {
+      "he": "סובלנות",
+      "ar": "تسامح",
+      "source": "expanded"
+    },
+    "expanded-society-politics-014": {
+      "he": "דעה קדומה",
+      "ar": "فكرة مسبقة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-015": {
+      "he": "זהות",
+      "ar": "هويّة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-016": {
+      "he": "מסורת",
+      "ar": "تقليد",
+      "source": "expanded"
+    },
+    "expanded-society-politics-017": {
+      "he": "מנהג",
+      "ar": "عادة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-018": {
+      "he": "ערך",
+      "ar": "قيمة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-019": {
+      "he": "נורמה",
+      "ar": "معيار اجتماعي",
+      "source": "expanded"
+    },
+    "expanded-society-politics-020": {
+      "he": "הגירה",
+      "ar": "هجرة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-021": {
+      "he": "מהגר",
+      "ar": "مهاجر",
+      "source": "expanded"
+    },
+    "expanded-society-politics-022": {
+      "he": "פליט",
+      "ar": "لاجئ",
+      "source": "expanded"
+    },
+    "expanded-society-politics-023": {
+      "he": "עולה",
+      "ar": "مهاجر إلى إسرائيل (مصطلح سياقي)",
+      "source": "expanded"
+    },
+    "expanded-society-politics-024": {
+      "he": "קליטה",
+      "ar": "استيعاب",
+      "source": "expanded"
+    },
+    "expanded-society-politics-025": {
+      "he": "עוני",
+      "ar": "فقر",
+      "source": "expanded"
+    },
+    "expanded-society-politics-026": {
+      "he": "עושר",
+      "ar": "ثراء",
+      "source": "expanded"
+    },
+    "expanded-society-politics-027": {
+      "he": "פערים",
+      "ar": "فجوات",
+      "source": "expanded"
+    },
+    "expanded-society-politics-028": {
+      "he": "מעמד",
+      "ar": "مكانة / طبقة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-029": {
+      "he": "שכבה",
+      "ar": "طبقة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-030": {
+      "he": "הפגנה",
+      "ar": "مظاهرة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-031": {
+      "he": "מחאה",
+      "ar": "احتجاج",
+      "source": "expanded"
+    },
+    "expanded-society-politics-032": {
+      "he": "בחירות",
+      "ar": "انتخابات",
+      "source": "expanded"
+    },
+    "expanded-society-politics-033": {
+      "he": "הצבעה",
+      "ar": "تصويت / عملية اقتراع",
+      "source": "expanded"
+    },
+    "expanded-society-politics-034": {
+      "he": "מועמד",
+      "ar": "مرشّح",
+      "source": "expanded"
+    },
+    "expanded-society-politics-035": {
+      "he": "מפלגה",
+      "ar": "حزب",
+      "source": "expanded"
+    },
+    "expanded-society-politics-036": {
+      "he": "קואליציה",
+      "ar": "ائتلاف",
+      "source": "expanded"
+    },
+    "expanded-society-politics-037": {
+      "he": "אופוזיציה",
+      "ar": "معارضة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-038": {
+      "he": "ממשלה",
+      "ar": "حكومة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-039": {
+      "he": "שר",
+      "ar": "وزير",
+      "source": "expanded"
+    },
+    "expanded-society-politics-040": {
+      "he": "ראש ממשלה",
+      "ar": "رئيس وزراء",
+      "source": "expanded"
+    },
+    "expanded-society-politics-041": {
+      "he": "כנסת",
+      "ar": "كنيست / برلمان",
+      "source": "expanded"
+    },
+    "expanded-society-politics-042": {
+      "he": "חבר כנסת",
+      "ar": "عضو كنيست",
+      "source": "expanded"
+    },
+    "expanded-society-politics-043": {
+      "he": "דמוקרטיה",
+      "ar": "ديمقراطية",
+      "source": "expanded"
+    },
+    "expanded-society-politics-044": {
+      "he": "שלטון",
+      "ar": "حكم",
+      "source": "expanded"
+    },
+    "expanded-society-politics-045": {
+      "he": "סמכות",
+      "ar": "سلطة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-046": {
+      "he": "מדיניות",
+      "ar": "سياسة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-047": {
+      "he": "רפורמה",
+      "ar": "إصلاح",
+      "source": "expanded"
+    },
+    "expanded-society-politics-048": {
+      "he": "משבר",
+      "ar": "أزمة",
+      "source": "expanded"
+    },
+    "expanded-society-politics-049": {
+      "he": "סכסוך",
+      "ar": "نزاع",
+      "source": "expanded"
+    },
+    "expanded-society-politics-050": {
+      "he": "שלום",
+      "ar": "سلام",
+      "source": "expanded"
+    },
+    "expanded-economy-001": {
+      "he": "כלכלה",
+      "ar": "اقتصاد",
+      "source": "expanded"
+    },
+    "expanded-economy-002": {
+      "he": "שוק",
+      "ar": "سوق",
+      "source": "expanded"
+    },
+    "expanded-economy-003": {
+      "he": "מסחר",
+      "ar": "تجارة",
+      "source": "expanded"
+    },
+    "expanded-economy-004": {
+      "he": "סחורה",
+      "ar": "بضاعة",
+      "source": "expanded"
+    },
+    "expanded-economy-005": {
+      "he": "מוצר",
+      "ar": "منتج",
+      "source": "expanded"
+    },
+    "expanded-economy-006": {
+      "he": "שירות",
+      "ar": "خدمة",
+      "source": "expanded"
+    },
+    "expanded-economy-007": {
+      "he": "צרכן",
+      "ar": "مستهلك",
+      "source": "expanded"
+    },
+    "expanded-economy-008": {
+      "he": "יצרן",
+      "ar": "مُنتِج",
+      "source": "expanded"
+    },
+    "expanded-economy-009": {
+      "he": "ספק",
+      "ar": "مورّد",
+      "source": "expanded"
+    },
+    "expanded-economy-010": {
+      "he": "לקוח",
+      "ar": "زبون",
+      "source": "expanded"
+    },
+    "expanded-economy-011": {
+      "he": "עסק",
+      "ar": "عمل تجاري",
+      "source": "expanded"
+    },
+    "expanded-economy-012": {
+      "he": "חברה בע\"מ",
+      "ar": "شركة محدودة المسؤولية",
+      "source": "expanded"
+    },
+    "expanded-economy-013": {
+      "he": "מפעל",
+      "ar": "مصنع",
+      "source": "expanded"
+    },
+    "expanded-economy-014": {
+      "he": "עובד",
+      "ar": "عامل / موظف",
+      "source": "expanded"
+    },
+    "expanded-economy-015": {
+      "he": "מעסיק",
+      "ar": "صاحب عمل",
+      "source": "expanded"
+    },
+    "expanded-economy-016": {
+      "he": "משכורת",
+      "ar": "راتب",
+      "source": "expanded"
+    },
+    "expanded-economy-017": {
+      "he": "שכר",
+      "ar": "أجر",
+      "source": "expanded"
+    },
+    "expanded-economy-018": {
+      "he": "הכנסה",
+      "ar": "دخل",
+      "source": "expanded"
+    },
+    "expanded-economy-019": {
+      "he": "הוצאה",
+      "ar": "مصروف",
+      "source": "expanded"
+    },
+    "expanded-economy-020": {
+      "he": "תקציב",
+      "ar": "ميزانية",
+      "source": "expanded"
+    },
+    "expanded-economy-021": {
+      "he": "חיסכון",
+      "ar": "توفير",
+      "source": "expanded"
+    },
+    "expanded-economy-022": {
+      "he": "הלוואה",
+      "ar": "قرض",
+      "source": "expanded"
+    },
+    "expanded-economy-023": {
+      "he": "חוב",
+      "ar": "دَين",
+      "source": "expanded"
+    },
+    "expanded-economy-024": {
+      "he": "ריבית",
+      "ar": "فائدة",
+      "source": "expanded"
+    },
+    "expanded-economy-025": {
+      "he": "בנק",
+      "ar": "بنك",
+      "source": "expanded"
+    },
+    "expanded-economy-026": {
+      "he": "חשבון",
+      "ar": "حساب / فاتورة",
+      "source": "expanded"
+    },
+    "expanded-economy-027": {
+      "he": "מס",
+      "ar": "ضريبة",
+      "source": "expanded"
+    },
+    "expanded-economy-028": {
+      "he": "מחיר",
+      "ar": "سعر",
+      "source": "expanded"
+    },
+    "expanded-economy-029": {
+      "he": "יוקר המחיה",
+      "ar": "غلاء المعيشة",
+      "source": "expanded"
+    },
+    "expanded-economy-030": {
+      "he": "אינפלציה",
+      "ar": "تضخّم",
+      "source": "expanded"
+    },
+    "expanded-economy-031": {
+      "he": "מחסור",
+      "ar": "نقص",
+      "source": "expanded"
+    },
+    "expanded-economy-032": {
+      "he": "ביקוש",
+      "ar": "طلب",
+      "source": "expanded"
+    },
+    "expanded-economy-033": {
+      "he": "היצע",
+      "ar": "عرض",
+      "source": "expanded"
+    },
+    "expanded-economy-034": {
+      "he": "תחרות",
+      "ar": "منافسة",
+      "source": "expanded"
+    },
+    "expanded-economy-035": {
+      "he": "רווח",
+      "ar": "ربح",
+      "source": "expanded"
+    },
+    "expanded-economy-036": {
+      "he": "הפסד",
+      "ar": "خسارة",
+      "source": "expanded"
+    },
+    "expanded-economy-037": {
+      "he": "השקעה",
+      "ar": "استثمار",
+      "source": "expanded"
+    },
+    "expanded-economy-038": {
+      "he": "משקיע",
+      "ar": "مستثمر",
+      "source": "expanded"
+    },
+    "expanded-economy-039": {
+      "he": "מניה",
+      "ar": "سهم",
+      "source": "expanded"
+    },
+    "expanded-economy-040": {
+      "he": "יבוא",
+      "ar": "استيراد",
+      "source": "expanded"
+    },
+    "expanded-economy-041": {
+      "he": "יצוא",
+      "ar": "تصدير",
+      "source": "expanded"
+    },
+    "expanded-economy-042": {
+      "he": "צמיחה",
+      "ar": "نمو",
+      "source": "expanded"
+    },
+    "expanded-economy-043": {
+      "he": "מיתון",
+      "ar": "ركود",
+      "source": "expanded"
+    },
+    "expanded-economy-044": {
+      "he": "אבטלה",
+      "ar": "بطالة",
+      "source": "expanded"
+    },
+    "expanded-economy-045": {
+      "he": "תעסוקה",
+      "ar": "توظيف",
+      "source": "expanded"
+    },
+    "expanded-economy-046": {
+      "he": "קופה",
+      "ar": "صندوق دفع",
+      "source": "expanded"
+    },
+    "expanded-economy-047": {
+      "he": "הנחה",
+      "ar": "تخفيض",
+      "source": "expanded"
+    },
+    "expanded-economy-048": {
+      "he": "חשבונית",
+      "ar": "فاتورة",
+      "source": "expanded"
+    },
+    "expanded-economy-049": {
+      "he": "קבלה",
+      "ar": "إيصال",
+      "source": "expanded"
+    },
+    "expanded-economy-050": {
+      "he": "מימון",
+      "ar": "تمويل",
+      "source": "expanded"
+    },
+    "expanded-law-government-001": {
+      "he": "חוק",
+      "ar": "قانون",
+      "source": "expanded"
+    },
+    "expanded-law-government-002": {
+      "he": "משפט",
+      "ar": "قانون / محاكمة / حكم قضائي / جملة",
+      "source": "expanded"
+    },
+    "expanded-law-government-003": {
+      "he": "בית משפט",
+      "ar": "محكمة",
+      "source": "expanded"
+    },
+    "expanded-law-government-004": {
+      "he": "שופט",
+      "ar": "قاضٍ",
+      "source": "expanded"
+    },
+    "expanded-law-government-005": {
+      "he": "עורך דין",
+      "ar": "محامٍ",
+      "source": "expanded"
+    },
+    "expanded-law-government-006": {
+      "he": "תובע",
+      "ar": "مدّعٍ / ممثّل الادّعاء",
+      "source": "expanded"
+    },
+    "expanded-law-government-007": {
+      "he": "נאשם",
+      "ar": "متّهم",
+      "source": "expanded"
+    },
+    "expanded-law-government-008": {
+      "he": "עד",
+      "ar": "شاهد",
+      "source": "expanded"
+    },
+    "expanded-law-government-009": {
+      "he": "עדות",
+      "ar": "شهادة",
+      "source": "expanded"
+    },
+    "expanded-law-government-010": {
+      "he": "ראיה",
+      "ar": "دليل",
+      "source": "expanded"
+    },
+    "expanded-law-government-011": {
+      "he": "פשע",
+      "ar": "جريمة",
+      "source": "expanded"
+    },
+    "expanded-law-government-012": {
+      "he": "עבירה",
+      "ar": "مخالفة / جريمة",
+      "source": "expanded"
+    },
+    "expanded-law-government-013": {
+      "he": "עונש",
+      "ar": "عقوبة",
+      "source": "expanded"
+    },
+    "expanded-law-government-014": {
+      "he": "קנס",
+      "ar": "غرامة",
+      "source": "expanded"
+    },
+    "expanded-law-government-015": {
+      "he": "מאסר",
+      "ar": "حبس",
+      "source": "expanded"
+    },
+    "expanded-law-government-016": {
+      "he": "כלא",
+      "ar": "سجن",
+      "source": "expanded"
+    },
+    "expanded-law-government-017": {
+      "he": "חקירה",
+      "ar": "تحقيق",
+      "source": "expanded"
+    },
+    "expanded-law-government-018": {
+      "he": "משטרה",
+      "ar": "شرطة",
+      "source": "expanded"
+    },
+    "expanded-law-government-019": {
+      "he": "שוטר",
+      "ar": "شرطي",
+      "source": "expanded"
+    },
+    "expanded-law-government-020": {
+      "he": "זכות",
+      "ar": "حقّ",
+      "source": "expanded"
+    },
+    "expanded-law-government-021": {
+      "he": "חובה",
+      "ar": "واجب / التزام",
+      "source": "expanded"
+    },
+    "expanded-law-government-022": {
+      "he": "אחריות",
+      "ar": "مسؤولية",
+      "source": "expanded"
+    },
+    "expanded-law-government-023": {
+      "he": "חופש",
+      "ar": "حرّية / إجازة",
+      "source": "expanded"
+    },
+    "expanded-law-government-024": {
+      "he": "חופש הביטוי",
+      "ar": "حرّية التعبير",
+      "source": "expanded"
+    },
+    "expanded-law-government-025": {
+      "he": "פרטיות",
+      "ar": "خصوصية",
+      "source": "expanded"
+    },
+    "expanded-law-government-026": {
+      "he": "הסכם",
+      "ar": "اتفاقية",
+      "source": "expanded"
+    },
+    "expanded-law-government-027": {
+      "he": "חוזה",
+      "ar": "عقد",
+      "source": "expanded"
+    },
+    "expanded-law-government-028": {
+      "he": "תקנה",
+      "ar": "لائحة تنظيمية",
+      "source": "expanded"
+    },
+    "expanded-law-government-029": {
+      "he": "תקנון",
+      "ar": "نظام داخلي",
+      "source": "expanded"
+    },
+    "expanded-law-government-030": {
+      "he": "היתר",
+      "ar": "تصريح",
+      "source": "expanded"
+    },
+    "expanded-law-government-031": {
+      "he": "רישיון",
+      "ar": "رخصة",
+      "source": "expanded"
+    },
+    "expanded-law-government-032": {
+      "he": "אישור",
+      "ar": "موافقة / تصديق / شهادة",
+      "source": "expanded"
+    },
+    "expanded-law-government-033": {
+      "he": "תביעה",
+      "ar": "دعوى",
+      "source": "expanded"
+    },
+    "expanded-law-government-034": {
+      "he": "ערעור",
+      "ar": "استئناف",
+      "source": "expanded"
+    },
+    "expanded-law-government-035": {
+      "he": "פסק דין",
+      "ar": "حكم قضائي",
+      "source": "expanded"
+    },
+    "expanded-law-government-036": {
+      "he": "החלטה",
+      "ar": "قرار",
+      "source": "expanded"
+    },
+    "expanded-law-government-037": {
+      "he": "הצעת חוק",
+      "ar": "مشروع قانون",
+      "source": "expanded"
+    },
+    "expanded-law-government-038": {
+      "he": "חקיקה",
+      "ar": "تشريع",
+      "source": "expanded"
+    },
+    "expanded-law-government-039": {
+      "he": "חוקה",
+      "ar": "دستور",
+      "source": "expanded"
+    },
+    "expanded-law-government-040": {
+      "he": "רשות",
+      "ar": "سلطة / هيئة / إذن",
+      "source": "expanded"
+    },
+    "expanded-law-government-041": {
+      "he": "עירייה",
+      "ar": "بلدية",
+      "source": "expanded"
+    },
+    "expanded-law-government-042": {
+      "he": "מועצה",
+      "ar": "مجلس",
+      "source": "expanded"
+    },
+    "expanded-law-government-043": {
+      "he": "משרד",
+      "ar": "وزارة / مكتب",
+      "source": "expanded"
+    },
+    "expanded-law-government-044": {
+      "he": "פקיד",
+      "ar": "موظّف حكومي",
+      "source": "expanded"
+    },
+    "expanded-law-government-045": {
+      "he": "ביורוקרטיה",
+      "ar": "بيروقراطية",
+      "source": "expanded"
+    },
+    "expanded-law-government-046": {
+      "he": "שקיפות",
+      "ar": "شفافية",
+      "source": "expanded"
+    },
+    "expanded-law-government-047": {
+      "he": "שחיתות",
+      "ar": "فساد",
+      "source": "expanded"
+    },
+    "expanded-law-government-048": {
+      "he": "מרמה",
+      "ar": "احتيال",
+      "source": "expanded"
+    },
+    "expanded-law-government-049": {
+      "he": "גניבה",
+      "ar": "سرقة",
+      "source": "expanded"
+    },
+    "expanded-law-government-050": {
+      "he": "אלימות",
+      "ar": "عنف",
+      "source": "expanded"
+    },
+    "expanded-education-001": {
+      "he": "חינוך",
+      "ar": "تربية",
+      "source": "expanded"
+    },
+    "expanded-education-002": {
+      "he": "השכלה",
+      "ar": "تعليم / ثقافة",
+      "source": "expanded"
+    },
+    "expanded-education-003": {
+      "he": "לימודים",
+      "ar": "دراسة",
+      "source": "expanded"
+    },
+    "expanded-education-004": {
+      "he": "בית ספר",
+      "ar": "مدرسة",
+      "source": "expanded"
+    },
+    "expanded-education-005": {
+      "he": "תלמיד",
+      "ar": "تلميذ",
+      "source": "expanded"
+    },
+    "expanded-education-006": {
+      "he": "סטודנט",
+      "ar": "طالب جامعي",
+      "source": "expanded"
+    },
+    "expanded-education-007": {
+      "he": "מורה",
+      "ar": "معلّم",
+      "source": "expanded"
+    },
+    "expanded-education-008": {
+      "he": "מרצה",
+      "ar": "محاضر",
+      "source": "expanded"
+    },
+    "expanded-education-009": {
+      "he": "פרופסור",
+      "ar": "بروفيسور",
+      "source": "expanded"
+    },
+    "expanded-education-010": {
+      "he": "אוניברסיטה",
+      "ar": "جامعة",
+      "source": "expanded"
+    },
+    "expanded-education-011": {
+      "he": "מכללה",
+      "ar": "كلّية",
+      "source": "expanded"
+    },
+    "expanded-education-012": {
+      "he": "פקולטה",
+      "ar": "كلّية جامعية",
+      "source": "expanded"
+    },
+    "expanded-education-013": {
+      "he": "חוג",
+      "ar": "تخصّص / قسم جامعي / نادٍ",
+      "source": "expanded"
+    },
+    "expanded-education-014": {
+      "he": "תואר",
+      "ar": "درجة علمية / لقب",
+      "source": "expanded"
+    },
+    "expanded-education-015": {
+      "he": "תעודה",
+      "ar": "شهادة",
+      "source": "expanded"
+    },
+    "expanded-education-016": {
+      "he": "דיפלומה",
+      "ar": "دبلوم",
+      "source": "expanded"
+    },
+    "expanded-education-017": {
+      "he": "בגרות",
+      "ar": "بجروت (توجيهي)",
+      "source": "expanded"
+    },
+    "expanded-education-018": {
+      "he": "פסיכומטרי",
+      "ar": "بسيخومتري",
+      "source": "expanded"
+    },
+    "expanded-education-019": {
+      "he": "מבחן",
+      "ar": "امتحان",
+      "source": "expanded"
+    },
+    "expanded-education-020": {
+      "he": "בחינה",
+      "ar": "امتحان",
+      "source": "expanded"
+    },
+    "expanded-education-021": {
+      "he": "ציון",
+      "ar": "علامة",
+      "source": "expanded"
+    },
+    "expanded-education-022": {
+      "he": "הצלחה",
+      "ar": "نجاح",
+      "source": "expanded"
+    },
+    "expanded-education-023": {
+      "he": "כישלון",
+      "ar": "فشل",
+      "source": "expanded"
+    },
+    "expanded-education-024": {
+      "he": "שיעור",
+      "ar": "درس / حصة / نسبة",
+      "source": "expanded"
+    },
+    "expanded-education-025": {
+      "he": "הרצאה",
+      "ar": "محاضرة",
+      "source": "expanded"
+    },
+    "expanded-education-026": {
+      "he": "סמינר",
+      "ar": "ندوة",
+      "source": "expanded"
+    },
+    "expanded-education-027": {
+      "he": "עבודה",
+      "ar": "عمل / وظيفة / بحث",
+      "source": "expanded"
+    },
+    "expanded-education-028": {
+      "he": "מטלה",
+      "ar": "مهمّة",
+      "source": "expanded"
+    },
+    "expanded-education-029": {
+      "he": "שיעורי בית",
+      "ar": "واجبات",
+      "source": "expanded"
+    },
+    "expanded-education-030": {
+      "he": "תוכנית לימודים",
+      "ar": "منهاج / خطة دراسية",
+      "source": "expanded"
+    },
+    "expanded-education-031": {
+      "he": "קורס",
+      "ar": "مساق",
+      "source": "expanded"
+    },
+    "expanded-education-032": {
+      "he": "נושא",
+      "ar": "موضوع",
+      "source": "expanded"
+    },
+    "expanded-education-033": {
+      "he": "ספר לימוד",
+      "ar": "كتاب مدرسي",
+      "source": "expanded"
+    },
+    "expanded-education-034": {
+      "he": "מחברת",
+      "ar": "دفتر",
+      "source": "expanded"
+    },
+    "expanded-education-035": {
+      "he": "לוח",
+      "ar": "سبّورة / لوحة / جدول",
+      "source": "expanded"
+    },
+    "expanded-education-036": {
+      "he": "ספרייה",
+      "ar": "مكتبة",
+      "source": "expanded"
+    },
+    "expanded-education-037": {
+      "he": "מלגה",
+      "ar": "منحة",
+      "source": "expanded"
+    },
+    "expanded-education-038": {
+      "he": "שכר לימוד",
+      "ar": "قسط دراسي",
+      "source": "expanded"
+    },
+    "expanded-education-039": {
+      "he": "קבלה ללימודים",
+      "ar": "قبول للدراسة",
+      "source": "expanded"
+    },
+    "expanded-education-040": {
+      "he": "הרשמה",
+      "ar": "تسجيل",
+      "source": "expanded"
+    },
+    "expanded-education-041": {
+      "he": "נוכחות",
+      "ar": "حضور",
+      "source": "expanded"
+    },
+    "expanded-education-042": {
+      "he": "היעדרות",
+      "ar": "غياب",
+      "source": "expanded"
+    },
+    "expanded-education-043": {
+      "he": "משמעת",
+      "ar": "انضباط",
+      "source": "expanded"
+    },
+    "expanded-education-044": {
+      "he": "הישג",
+      "ar": "إنجاز / تحصيل",
+      "source": "expanded"
+    },
+    "expanded-education-045": {
+      "he": "מצוינות",
+      "ar": "تميّز",
+      "source": "expanded"
+    },
+    "expanded-education-046": {
+      "he": "ידע",
+      "ar": "معرفة",
+      "source": "expanded"
+    },
+    "expanded-education-047": {
+      "he": "מיומנות",
+      "ar": "مهارة",
+      "source": "expanded"
+    },
+    "expanded-education-048": {
+      "he": "כישרון",
+      "ar": "موهبة",
+      "source": "expanded"
+    },
+    "expanded-education-049": {
+      "he": "יכולת",
+      "ar": "قدرة",
+      "source": "expanded"
+    },
+    "expanded-education-050": {
+      "he": "הבנת הנקרא",
+      "ar": "فهم المقروء",
+      "source": "expanded"
+    },
+    "expanded-science-research-001": {
+      "he": "מדע",
+      "ar": "علم",
+      "source": "expanded"
+    },
+    "expanded-science-research-002": {
+      "he": "מדען",
+      "ar": "عالِم",
+      "source": "expanded"
+    },
+    "expanded-science-research-003": {
+      "he": "מחקר",
+      "ar": "بحث",
+      "source": "expanded"
+    },
+    "expanded-science-research-004": {
+      "he": "חוקר",
+      "ar": "باحث",
+      "source": "expanded"
+    },
+    "expanded-science-research-005": {
+      "he": "ניסוי",
+      "ar": "تجربة",
+      "source": "expanded"
+    },
+    "expanded-science-research-006": {
+      "he": "מעבדה",
+      "ar": "مختبر",
+      "source": "expanded"
+    },
+    "expanded-science-research-007": {
+      "he": "תצפית",
+      "ar": "ملاحظة / رصد",
+      "source": "expanded"
+    },
+    "expanded-science-research-008": {
+      "he": "השערה",
+      "ar": "فرضية",
+      "source": "expanded"
+    },
+    "expanded-science-research-009": {
+      "he": "תיאוריה",
+      "ar": "نظرية",
+      "source": "expanded"
+    },
+    "expanded-science-research-010": {
+      "he": "נתונים",
+      "ar": "بيانات",
+      "source": "expanded"
+    },
+    "expanded-science-research-011": {
+      "he": "סקר",
+      "ar": "استطلاع / مسح",
+      "source": "expanded"
+    },
+    "expanded-science-research-012": {
+      "he": "מדגם",
+      "ar": "عيّنة",
+      "source": "expanded"
+    },
+    "expanded-science-research-013": {
+      "he": "אוכלוסייה",
+      "ar": "السكان / مجتمع الدراسة",
+      "source": "expanded"
+    },
+    "expanded-science-research-014": {
+      "he": "ממוצע",
+      "ar": "معدّل",
+      "source": "expanded"
+    },
+    "expanded-science-research-015": {
+      "he": "אחוז",
+      "ar": "نسبة مئوية",
+      "source": "expanded"
+    },
+    "expanded-science-research-016": {
+      "he": "סטטיסטיקה",
+      "ar": "إحصاء",
+      "source": "expanded"
+    },
+    "expanded-science-research-017": {
+      "he": "גרף",
+      "ar": "رسم بياني",
+      "source": "expanded"
+    },
+    "expanded-science-research-018": {
+      "he": "טבלה",
+      "ar": "جدول",
+      "source": "expanded"
+    },
+    "expanded-science-research-019": {
+      "he": "תרשים",
+      "ar": "مخطّط",
+      "source": "expanded"
+    },
+    "expanded-science-research-020": {
+      "he": "מדד",
+      "ar": "مؤشّر / مقياس",
+      "source": "expanded"
+    },
+    "expanded-science-research-021": {
+      "he": "מדידה",
+      "ar": "قياس",
+      "source": "expanded"
+    },
+    "expanded-science-research-022": {
+      "he": "חישוב",
+      "ar": "حساب",
+      "source": "expanded"
+    },
+    "expanded-science-research-023": {
+      "he": "משוואה",
+      "ar": "معادلة",
+      "source": "expanded"
+    },
+    "expanded-science-research-024": {
+      "he": "נוסחה",
+      "ar": "صيغة",
+      "source": "expanded"
+    },
+    "expanded-science-research-025": {
+      "he": "גילוי",
+      "ar": "اكتشاف",
+      "source": "expanded"
+    },
+    "expanded-science-research-026": {
+      "he": "המצאה",
+      "ar": "اختراع",
+      "source": "expanded"
+    },
+    "expanded-science-research-027": {
+      "he": "חידוש",
+      "ar": "ابتكار",
+      "source": "expanded"
+    },
+    "expanded-science-research-028": {
+      "he": "פריצת דרך",
+      "ar": "إنجاز كبير",
+      "source": "expanded"
+    },
+    "expanded-science-research-029": {
+      "he": "שיטה",
+      "ar": "طريقة",
+      "source": "expanded"
+    },
+    "expanded-science-research-030": {
+      "he": "אמצעי",
+      "ar": "وسيلة",
+      "source": "expanded"
+    },
+    "expanded-science-research-031": {
+      "he": "כלי",
+      "ar": "أداة",
+      "source": "expanded"
+    },
+    "expanded-science-research-032": {
+      "he": "מכשיר",
+      "ar": "جهاز",
+      "source": "expanded"
+    },
+    "expanded-science-research-033": {
+      "he": "חומר",
+      "ar": "مادّة",
+      "source": "expanded"
+    },
+    "expanded-science-research-034": {
+      "he": "יסוד",
+      "ar": "عنصر",
+      "source": "expanded"
+    },
+    "expanded-science-research-035": {
+      "he": "מולקולה",
+      "ar": "جزيء",
+      "source": "expanded"
+    },
+    "expanded-science-research-036": {
+      "he": "אטום",
+      "ar": "ذرّة",
+      "source": "expanded"
+    },
+    "expanded-science-research-037": {
+      "he": "אנרגיה",
+      "ar": "طاقة",
+      "source": "expanded"
+    },
+    "expanded-science-research-038": {
+      "he": "כוח",
+      "ar": "قوّة",
+      "source": "expanded"
+    },
+    "expanded-science-research-039": {
+      "he": "מהירות",
+      "ar": "سرعة",
+      "source": "expanded"
+    },
+    "expanded-science-research-040": {
+      "he": "משקל",
+      "ar": "وزن",
+      "source": "expanded"
+    },
+    "expanded-science-research-041": {
+      "he": "גובה",
+      "ar": "ارتفاع",
+      "source": "expanded"
+    },
+    "expanded-science-research-042": {
+      "he": "אורך",
+      "ar": "طول",
+      "source": "expanded"
+    },
+    "expanded-science-research-043": {
+      "he": "רוחב",
+      "ar": "عرض",
+      "source": "expanded"
+    },
+    "expanded-science-research-044": {
+      "he": "נפח",
+      "ar": "حجم",
+      "source": "expanded"
+    },
+    "expanded-science-research-045": {
+      "he": "טמפרטורה",
+      "ar": "درجة حرارة",
+      "source": "expanded"
+    },
+    "expanded-science-research-046": {
+      "he": "לחץ",
+      "ar": "ضغط",
+      "source": "expanded"
+    },
+    "expanded-science-research-047": {
+      "he": "גרוויטציה",
+      "ar": "جاذبية",
+      "source": "expanded"
+    },
+    "expanded-science-research-048": {
+      "he": "אור",
+      "ar": "ضوء",
+      "source": "expanded"
+    },
+    "expanded-science-research-049": {
+      "he": "קול",
+      "ar": "صوت",
+      "source": "expanded"
+    },
+    "expanded-science-research-050": {
+      "he": "חלל",
+      "ar": "فضاء",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-001": {
+      "he": "בריאות",
+      "ar": "صحّة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-002": {
+      "he": "מחלה",
+      "ar": "مرض",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-003": {
+      "he": "חולה",
+      "ar": "مريض",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-004": {
+      "he": "רופא",
+      "ar": "طبيب",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-005": {
+      "he": "אחות",
+      "ar": "ممرّضة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-006": {
+      "he": "בית חולים",
+      "ar": "مستشفى",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-007": {
+      "he": "קופת חולים",
+      "ar": "صندوق مرضى",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-008": {
+      "he": "מרפאה",
+      "ar": "عيادة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-009": {
+      "he": "תרופה",
+      "ar": "دواء",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-010": {
+      "he": "מרשם",
+      "ar": "وصفة طبية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-011": {
+      "he": "טיפול",
+      "ar": "علاج",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-012": {
+      "he": "ריפוי",
+      "ar": "علاج / شفاء",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-013": {
+      "he": "חיסון",
+      "ar": "تطعيم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-014": {
+      "he": "זיהום",
+      "ar": "عدوى / تلوّث",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-015": {
+      "he": "וירוס",
+      "ar": "فيروس",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-016": {
+      "he": "חיידק",
+      "ar": "جرثومة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-017": {
+      "he": "מגפה",
+      "ar": "وباء",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-018": {
+      "he": "תסמין",
+      "ar": "عرَض مرضي",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-019": {
+      "he": "כאב",
+      "ar": "ألم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-020": {
+      "he": "חום",
+      "ar": "حمّى / حرارة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-021": {
+      "he": "שיעול",
+      "ar": "سعال",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-022": {
+      "he": "צינון",
+      "ar": "زكام",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-023": {
+      "he": "שפעת",
+      "ar": "إنفلونزا",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-024": {
+      "he": "אלרגיה",
+      "ar": "حساسية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-025": {
+      "he": "סוכרת",
+      "ar": "سكّري",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-026": {
+      "he": "לחץ דם",
+      "ar": "ضغط الدم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-027": {
+      "he": "לב",
+      "ar": "قلب",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-028": {
+      "he": "ריאות",
+      "ar": "رئتان",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-029": {
+      "he": "כליה",
+      "ar": "كلية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-030": {
+      "he": "כבד",
+      "ar": "كبد",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-031": {
+      "he": "מוח",
+      "ar": "دماغ",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-032": {
+      "he": "עצם",
+      "ar": "عظم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-033": {
+      "he": "שריר",
+      "ar": "عضلة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-034": {
+      "he": "עור",
+      "ar": "جلد",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-035": {
+      "he": "דם",
+      "ar": "دم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-036": {
+      "he": "ניתוח",
+      "ar": "عملية جراحية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-037": {
+      "he": "בדיקה",
+      "ar": "فحص",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-038": {
+      "he": "אבחון",
+      "ar": "تشخيص",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-039": {
+      "he": "החלמה",
+      "ar": "تعافٍ",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-040": {
+      "he": "שיקום",
+      "ar": "تأهيل",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-041": {
+      "he": "תזונה",
+      "ar": "تغذية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-042": {
+      "he": "דיאטה",
+      "ar": "حمية",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-043": {
+      "he": "השמנה",
+      "ar": "سمنة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-044": {
+      "he": "כושר",
+      "ar": "لياقة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-045": {
+      "he": "ספורט",
+      "ar": "رياضة",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-046": {
+      "he": "שינה",
+      "ar": "نوم",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-047": {
+      "he": "עייפות",
+      "ar": "تعب",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-048": {
+      "he": "מתח",
+      "ar": "توتّر",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-049": {
+      "he": "עישון",
+      "ar": "تدخين",
+      "source": "expanded"
+    },
+    "expanded-health-medicine-050": {
+      "he": "התמכרות",
+      "ar": "إدمان",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-001": {
+      "he": "סביבה",
+      "ar": "بيئة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-002": {
+      "he": "טבע",
+      "ar": "طبيعة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-003": {
+      "he": "איכות הסביבה",
+      "ar": "جودة البيئة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-004": {
+      "he": "זיהום אוויר",
+      "ar": "تلوّث الهواء",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-005": {
+      "he": "מים",
+      "ar": "مياه",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-006": {
+      "he": "בצורת",
+      "ar": "جفاف",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-007": {
+      "he": "שיטפון",
+      "ar": "فيضان",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-008": {
+      "he": "רעידת אדמה",
+      "ar": "زلزال",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-009": {
+      "he": "סערה",
+      "ar": "عاصفة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-010": {
+      "he": "אקלים",
+      "ar": "مناخ",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-011": {
+      "he": "מזג אוויר",
+      "ar": "طقس",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-012": {
+      "he": "התחממות גלובלית",
+      "ar": "احتباس حراري",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-013": {
+      "he": "חממה",
+      "ar": "بيت زجاجي / دفيئة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-014": {
+      "he": "פליטה",
+      "ar": "انبعاث / إطلاق",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-015": {
+      "he": "פסולת",
+      "ar": "نفايات",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-016": {
+      "he": "אשפה",
+      "ar": "قمامة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-017": {
+      "he": "מחזור",
+      "ar": "إعادة تدوير / دورة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-018": {
+      "he": "משאב",
+      "ar": "مورد",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-019": {
+      "he": "אנרגיה מתחדשת",
+      "ar": "طاقة متجدّدة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-020": {
+      "he": "אנרגיה סולארית",
+      "ar": "طاقة شمسية",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-021": {
+      "he": "דלק",
+      "ar": "وقود",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-022": {
+      "he": "נפט",
+      "ar": "نفط",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-023": {
+      "he": "גז",
+      "ar": "غاز",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-024": {
+      "he": "פחם",
+      "ar": "فحم",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-025": {
+      "he": "חשמל",
+      "ar": "كهرباء",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-026": {
+      "he": "יער",
+      "ar": "غابة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-027": {
+      "he": "מדבר",
+      "ar": "صحراء",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-028": {
+      "he": "ים",
+      "ar": "بحر",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-029": {
+      "he": "נהר",
+      "ar": "نهر",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-030": {
+      "he": "אגם",
+      "ar": "بحيرة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-031": {
+      "he": "הר",
+      "ar": "جبل",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-032": {
+      "he": "עמק",
+      "ar": "وادٍ",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-033": {
+      "he": "חוף",
+      "ar": "شاطئ",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-034": {
+      "he": "אי",
+      "ar": "جزيرة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-035": {
+      "he": "קרקע",
+      "ar": "تربة / أرض",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-036": {
+      "he": "אדמה",
+      "ar": "أرض / تراب",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-037": {
+      "he": "חקלאות",
+      "ar": "زراعة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-038": {
+      "he": "חקלאי",
+      "ar": "مزارع",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-039": {
+      "he": "יבול",
+      "ar": "محصول",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-040": {
+      "he": "גידול",
+      "ar": "زراعة / تنمية / نمو / ورم",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-041": {
+      "he": "בעל חיים",
+      "ar": "حيوان",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-042": {
+      "he": "צמח",
+      "ar": "نبات",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-043": {
+      "he": "עץ",
+      "ar": "شجرة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-044": {
+      "he": "פרח",
+      "ar": "زهرة",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-045": {
+      "he": "מין",
+      "ar": "نوع / جنس",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-046": {
+      "he": "הכחדה",
+      "ar": "انقراض",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-047": {
+      "he": "שמורת טבע",
+      "ar": "محمية طبيعية",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-048": {
+      "he": "מגוון ביולוגי",
+      "ar": "تنوّع حيوي",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-049": {
+      "he": "שימור",
+      "ar": "حفظ / صون",
+      "source": "expanded"
+    },
+    "expanded-environment-nature-050": {
+      "he": "קיימות",
+      "ar": "استدامة",
+      "source": "expanded"
+    },
+    "expanded-technology-001": {
+      "he": "טכנולוגיה",
+      "ar": "تكنولوجيا",
+      "source": "expanded"
+    },
+    "expanded-technology-002": {
+      "he": "מחשב",
+      "ar": "حاسوب",
+      "source": "expanded"
+    },
+    "expanded-technology-003": {
+      "he": "תוכנה",
+      "ar": "برنامج",
+      "source": "expanded"
+    },
+    "expanded-technology-004": {
+      "he": "חומרה",
+      "ar": "عتاد",
+      "source": "expanded"
+    },
+    "expanded-technology-005": {
+      "he": "אפליקציה",
+      "ar": "تطبيق",
+      "source": "expanded"
+    },
+    "expanded-technology-006": {
+      "he": "אתר",
+      "ar": "موقع",
+      "source": "expanded"
+    },
+    "expanded-technology-007": {
+      "he": "אינטרנט",
+      "ar": "إنترنت",
+      "source": "expanded"
+    },
+    "expanded-technology-008": {
+      "he": "רשת",
+      "ar": "شبكة",
+      "source": "expanded"
+    },
+    "expanded-technology-009": {
+      "he": "רשת חברתית",
+      "ar": "شبكة اجتماعية",
+      "source": "expanded"
+    },
+    "expanded-technology-010": {
+      "he": "דוא\"ל",
+      "ar": "بريد إلكتروني",
+      "source": "expanded"
+    },
+    "expanded-technology-011": {
+      "he": "הודעה",
+      "ar": "رسالة / إشعار / إعلان",
+      "source": "expanded"
+    },
+    "expanded-technology-012": {
+      "he": "סיסמה",
+      "ar": "كلمة مرور",
+      "source": "expanded"
+    },
+    "expanded-technology-013": {
+      "he": "אבטחה",
+      "ar": "أمان",
+      "source": "expanded"
+    },
+    "expanded-technology-014": {
+      "he": "פרצה",
+      "ar": "ثغرة / اختراق",
+      "source": "expanded"
+    },
+    "expanded-technology-015": {
+      "he": "האקר",
+      "ar": "مخترق",
+      "source": "expanded"
+    },
+    "expanded-technology-016": {
+      "he": "וירוס מחשב",
+      "ar": "فيروس حاسوب",
+      "source": "expanded"
+    },
+    "expanded-technology-017": {
+      "he": "מידע",
+      "ar": "معلومات",
+      "source": "expanded"
+    },
+    "expanded-technology-018": {
+      "he": "מאגר",
+      "ar": "قاعدة بيانات",
+      "source": "expanded"
+    },
+    "expanded-technology-019": {
+      "he": "קובץ",
+      "ar": "ملف",
+      "source": "expanded"
+    },
+    "expanded-technology-020": {
+      "he": "תיקייה",
+      "ar": "مجلّد",
+      "source": "expanded"
+    },
+    "expanded-technology-021": {
+      "he": "מסך",
+      "ar": "شاشة",
+      "source": "expanded"
+    },
+    "expanded-technology-022": {
+      "he": "מקלדת",
+      "ar": "لوحة مفاتيح",
+      "source": "expanded"
+    },
+    "expanded-technology-023": {
+      "he": "עכבר",
+      "ar": "فأرة",
+      "source": "expanded"
+    },
+    "expanded-technology-024": {
+      "he": "מדפסת",
+      "ar": "طابعة",
+      "source": "expanded"
+    },
+    "expanded-technology-025": {
+      "he": "סמארטפון",
+      "ar": "هاتف ذكي",
+      "source": "expanded"
+    },
+    "expanded-technology-026": {
+      "he": "טלפון נייד",
+      "ar": "هاتف محمول",
+      "source": "expanded"
+    },
+    "expanded-technology-027": {
+      "he": "סוללה",
+      "ar": "بطارية",
+      "source": "expanded"
+    },
+    "expanded-technology-028": {
+      "he": "מטען",
+      "ar": "شاحن",
+      "source": "expanded"
+    },
+    "expanded-technology-029": {
+      "he": "אוזניות",
+      "ar": "سمّاعات",
+      "source": "expanded"
+    },
+    "expanded-technology-030": {
+      "he": "מצלמה",
+      "ar": "كاميرا",
+      "source": "expanded"
+    },
+    "expanded-technology-031": {
+      "he": "רובוט",
+      "ar": "روبوت",
+      "source": "expanded"
+    },
+    "expanded-technology-032": {
+      "he": "בינה מלאכותית",
+      "ar": "ذكاء اصطناعي",
+      "source": "expanded"
+    },
+    "expanded-technology-033": {
+      "he": "אלגוריתם",
+      "ar": "خوارزمية",
+      "source": "expanded"
+    },
+    "expanded-technology-034": {
+      "he": "למידת מכונה",
+      "ar": "تعلّم الآلة",
+      "source": "expanded"
+    },
+    "expanded-technology-035": {
+      "he": "אוטומציה",
+      "ar": "أتمتة",
+      "source": "expanded"
+    },
+    "expanded-technology-036": {
+      "he": "חדשנות",
+      "ar": "ابتكار",
+      "source": "expanded"
+    },
+    "expanded-technology-037": {
+      "he": "סטארט-אפ",
+      "ar": "شركة ناشئة",
+      "source": "expanded"
+    },
+    "expanded-technology-038": {
+      "he": "הייטק",
+      "ar": "هاي-تك",
+      "source": "expanded"
+    },
+    "expanded-technology-039": {
+      "he": "פיתוח",
+      "ar": "تطوير",
+      "source": "expanded"
+    },
+    "expanded-technology-040": {
+      "he": "מתכנת",
+      "ar": "مبرمج",
+      "source": "expanded"
+    },
+    "expanded-technology-041": {
+      "he": "קוד",
+      "ar": "شيفرة",
+      "source": "expanded"
+    },
+    "expanded-technology-042": {
+      "he": "תקלה",
+      "ar": "عطل",
+      "source": "expanded"
+    },
+    "expanded-technology-043": {
+      "he": "עדכון",
+      "ar": "تحديث",
+      "source": "expanded"
+    },
+    "expanded-technology-044": {
+      "he": "הורדה",
+      "ar": "تنزيل",
+      "source": "expanded"
+    },
+    "expanded-technology-045": {
+      "he": "העלאה",
+      "ar": "رفع",
+      "source": "expanded"
+    },
+    "expanded-technology-046": {
+      "he": "גיבוי",
+      "ar": "نسخ احتياطي",
+      "source": "expanded"
+    },
+    "expanded-technology-047": {
+      "he": "מחיקה",
+      "ar": "حذف",
+      "source": "expanded"
+    },
+    "expanded-technology-048": {
+      "he": "חיפוש",
+      "ar": "بحث",
+      "source": "expanded"
+    },
+    "expanded-technology-049": {
+      "he": "מנוע חיפוש",
+      "ar": "محرّك بحث",
+      "source": "expanded"
+    },
+    "expanded-technology-050": {
+      "he": "קישור",
+      "ar": "رابط",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-001": {
+      "he": "תרבות",
+      "ar": "ثقافة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-002": {
+      "he": "אמנות",
+      "ar": "فنّ",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-003": {
+      "he": "אמן",
+      "ar": "فنّان",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-004": {
+      "he": "יצירה",
+      "ar": "عمل فنّي",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-005": {
+      "he": "ציור",
+      "ar": "رسم / لوحة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-006": {
+      "he": "פסל",
+      "ar": "تمثال",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-007": {
+      "he": "מוזיאון",
+      "ar": "متحف",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-008": {
+      "he": "תערוכה",
+      "ar": "معرض",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-009": {
+      "he": "תיאטרון",
+      "ar": "مسرح",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-010": {
+      "he": "הצגה",
+      "ar": "مسرحية",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-011": {
+      "he": "שחקן",
+      "ar": "ممثّل",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-012": {
+      "he": "במאי",
+      "ar": "مخرج",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-013": {
+      "he": "סרט",
+      "ar": "فيلم",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-014": {
+      "he": "קולנוע",
+      "ar": "سينما",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-015": {
+      "he": "מוזיקה",
+      "ar": "موسيقى",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-016": {
+      "he": "שיר",
+      "ar": "أغنية / قصيدة شعرية",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-017": {
+      "he": "מוזיקאי",
+      "ar": "موسيقي",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-018": {
+      "he": "קונצרט",
+      "ar": "حفلة موسيقية",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-019": {
+      "he": "ריקוד",
+      "ar": "رقص",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-020": {
+      "he": "ספרות",
+      "ar": "أدب",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-021": {
+      "he": "סופר",
+      "ar": "كاتب / مؤلّف",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-022": {
+      "he": "משורר",
+      "ar": "شاعر",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-023": {
+      "he": "רומן",
+      "ar": "رواية",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-024": {
+      "he": "סיפור",
+      "ar": "قصّة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-025": {
+      "he": "דמות",
+      "ar": "شخصية / هيئة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-026": {
+      "he": "עלילה",
+      "ar": "حبكة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-027": {
+      "he": "מחבר",
+      "ar": "مؤلّف",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-028": {
+      "he": "מו\"ל",
+      "ar": "ناشر",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-029": {
+      "he": "עיתון",
+      "ar": "جريدة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-030": {
+      "he": "עיתונאי",
+      "ar": "صحفي",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-031": {
+      "he": "כתבה",
+      "ar": "تقرير صحفي",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-032": {
+      "he": "מאמר",
+      "ar": "مقال",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-033": {
+      "he": "כותרת",
+      "ar": "عنوان",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-034": {
+      "he": "ראיון",
+      "ar": "مقابلة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-035": {
+      "he": "תקשורת",
+      "ar": "إعلام / تواصل",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-036": {
+      "he": "טלוויזיה",
+      "ar": "تلفزيون",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-037": {
+      "he": "רדיו",
+      "ar": "راديو",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-038": {
+      "he": "פרסומת",
+      "ar": "إعلان تجاري",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-039": {
+      "he": "פרסום",
+      "ar": "نشر / إعلان / دعاية",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-040": {
+      "he": "קהל",
+      "ar": "جمهور",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-041": {
+      "he": "מסורת עממית",
+      "ar": "تراث شعبي",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-042": {
+      "he": "פולקלור",
+      "ar": "فلكلور",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-043": {
+      "he": "חג",
+      "ar": "عيد",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-044": {
+      "he": "טקס",
+      "ar": "مراسم",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-045": {
+      "he": "פסטיבל",
+      "ar": "مهرجان",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-046": {
+      "he": "שפה",
+      "ar": "لغة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-047": {
+      "he": "דיאלקט",
+      "ar": "لهجة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-048": {
+      "he": "תרגום",
+      "ar": "ترجمة",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-049": {
+      "he": "מתרגם",
+      "ar": "مترجم",
+      "source": "expanded"
+    },
+    "expanded-culture-media-art-050": {
+      "he": "מילון",
+      "ar": "قاموس",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-001": {
+      "he": "רגש",
+      "ar": "شعور",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-002": {
+      "he": "הרגשה",
+      "ar": "إحساس",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-003": {
+      "he": "שמחה",
+      "ar": "فرح",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-004": {
+      "he": "עצב",
+      "ar": "حزن",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-005": {
+      "he": "כעס",
+      "ar": "غضب",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-006": {
+      "he": "פחד",
+      "ar": "خوف",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-007": {
+      "he": "חרדה",
+      "ar": "قلق",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-008": {
+      "he": "דאגה",
+      "ar": "قلق / اهتمام",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-009": {
+      "he": "לחץ נפשי",
+      "ar": "ضغط نفسي",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-010": {
+      "he": "דיכאון",
+      "ar": "اكتئاب",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-011": {
+      "he": "אהבה",
+      "ar": "حبّ",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-012": {
+      "he": "שנאה",
+      "ar": "كراهية",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-013": {
+      "he": "קנאה",
+      "ar": "غيرة / حسد",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-014": {
+      "he": "גאווה",
+      "ar": "فخر",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-015": {
+      "he": "בושה",
+      "ar": "خجل / عار",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-016": {
+      "he": "אשמה",
+      "ar": "شعور بالذنب / مسؤولية",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-017": {
+      "he": "אכזבה",
+      "ar": "خيبة أمل",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-018": {
+      "he": "תקווה",
+      "ar": "أمل",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-019": {
+      "he": "ייאוש",
+      "ar": "يأس",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-020": {
+      "he": "הפתעה",
+      "ar": "مفاجأة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-021": {
+      "he": "סקרנות",
+      "ar": "فضول",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-022": {
+      "he": "ביטחון עצמי",
+      "ar": "ثقة بالنفس",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-023": {
+      "he": "הערכה עצמית",
+      "ar": "تقدير الذات",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-024": {
+      "he": "אופי",
+      "ar": "طبع",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-025": {
+      "he": "אישיות",
+      "ar": "شخصية",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-026": {
+      "he": "התנהגות",
+      "ar": "سلوك",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-027": {
+      "he": "הרגל",
+      "ar": "عادة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-028": {
+      "he": "מוטיבציה",
+      "ar": "دافعية",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-029": {
+      "he": "רצון",
+      "ar": "رغبة / إرادة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-030": {
+      "he": "צורך",
+      "ar": "حاجة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-031": {
+      "he": "חלום",
+      "ar": "حلم",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-032": {
+      "he": "דמיון",
+      "ar": "خيال / تشابه",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-033": {
+      "he": "זיכרון",
+      "ar": "ذاكرة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-034": {
+      "he": "שכחה",
+      "ar": "نسيان",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-035": {
+      "he": "חשיבה",
+      "ar": "تفكير",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-036": {
+      "he": "מחשבה",
+      "ar": "فكرة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-037": {
+      "he": "תודעה",
+      "ar": "وعي",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-038": {
+      "he": "מצפון",
+      "ar": "ضمير",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-039": {
+      "he": "החלטה",
+      "ar": "قرار",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-040": {
+      "he": "בחירה",
+      "ar": "اختيار",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-041": {
+      "he": "ספק",
+      "ar": "شكّ / مورّد",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-042": {
+      "he": "אמון",
+      "ar": "ثقة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-043": {
+      "he": "כבוד",
+      "ar": "احترام / كرامة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-044": {
+      "he": "הערכה",
+      "ar": "تقدير",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-045": {
+      "he": "חברות",
+      "ar": "صداقة / شركات",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-046": {
+      "he": "בדידות",
+      "ar": "وحدة",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-047": {
+      "he": "קשר זוגי",
+      "ar": "علاقة زوجية",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-048": {
+      "he": "נישואין",
+      "ar": "زواج",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-049": {
+      "he": "גירושין",
+      "ar": "طلاق",
+      "source": "expanded"
+    },
+    "expanded-psychology-emotions-050": {
+      "he": "ילדות",
+      "ar": "طفولة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-001": {
+      "he": "עבר",
+      "ar": "ماضٍ",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-002": {
+      "he": "הווה",
+      "ar": "حاضر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-003": {
+      "he": "עתיד",
+      "ar": "مستقبل",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-004": {
+      "he": "תקופה",
+      "ar": "فترة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-005": {
+      "he": "עידן",
+      "ar": "عصر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-006": {
+      "he": "מאה",
+      "ar": "قرن / مئة (عدد)",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-007": {
+      "he": "עשור",
+      "ar": "عقد",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-008": {
+      "he": "שנה",
+      "ar": "سنة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-009": {
+      "he": "חודש",
+      "ar": "شهر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-010": {
+      "he": "שבוע",
+      "ar": "أسبوع",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-011": {
+      "he": "יום",
+      "ar": "يوم",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-012": {
+      "he": "שעה",
+      "ar": "ساعة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-013": {
+      "he": "דקה",
+      "ar": "دقيقة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-014": {
+      "he": "שנייה",
+      "ar": "ثانية",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-015": {
+      "he": "לאחרונה",
+      "ar": "مؤخّرًا",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-016": {
+      "he": "בעבר",
+      "ar": "في الماضي",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-017": {
+      "he": "בקרוב",
+      "ar": "قريبًا",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-018": {
+      "he": "כיום",
+      "ar": "في الوقت الحاضر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-019": {
+      "he": "מדי פעם",
+      "ar": "من حين لآخر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-020": {
+      "he": "מדי יום",
+      "ar": "كلّ يوم",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-021": {
+      "he": "פעם",
+      "ar": "مرّة / ذات مرّة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-022": {
+      "he": "לפעמים",
+      "ar": "أحيانًا",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-023": {
+      "he": "לאורך",
+      "ar": "على امتداد",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-024": {
+      "he": "במשך",
+      "ar": "خلال",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-025": {
+      "he": "מאז",
+      "ar": "منذ",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-026": {
+      "he": "עד",
+      "ar": "حتى",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-027": {
+      "he": "לפני",
+      "ar": "قبل",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-028": {
+      "he": "אחרי",
+      "ar": "بعد",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-029": {
+      "he": "במהלך",
+      "ar": "أثناء",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-030": {
+      "he": "מספר",
+      "ar": "عدد / رقم",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-031": {
+      "he": "כמות",
+      "ar": "كمّية",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-032": {
+      "he": "רוב",
+      "ar": "معظم",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-033": {
+      "he": "מעט",
+      "ar": "قليل",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-034": {
+      "he": "הרבה",
+      "ar": "كثير",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-035": {
+      "he": "מעטים",
+      "ar": "قلّة",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-036": {
+      "he": "רבים",
+      "ar": "كثيرون / عديدون",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-037": {
+      "he": "חלק",
+      "ar": "جزء / بعض",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-038": {
+      "he": "חצי",
+      "ar": "نصف",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-039": {
+      "he": "רבע",
+      "ar": "ربع",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-040": {
+      "he": "שליש",
+      "ar": "ثلث",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-041": {
+      "he": "כפול",
+      "ar": "مضاعف",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-042": {
+      "he": "גדול יותר",
+      "ar": "أكبر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-043": {
+      "he": "קטן יותר",
+      "ar": "أصغر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-044": {
+      "he": "ירידה",
+      "ar": "انخفاض",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-045": {
+      "he": "פחות",
+      "ar": "أقلّ",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-046": {
+      "he": "יותר",
+      "ar": "أكثر",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-047": {
+      "he": "הכי",
+      "ar": "الأكثر / أكثر شيء",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-048": {
+      "he": "סך הכול",
+      "ar": "المجموع",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-049": {
+      "he": "בממוצע",
+      "ar": "في المتوسط",
+      "source": "expanded"
+    },
+    "expanded-time-quantity-comparison-050": {
+      "he": "עלייה",
+      "ar": "ارتفاع / زيادة",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-001": {
+      "he": "בסך הכול",
+      "ar": "في المجمل",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-002": {
+      "he": "על אף",
+      "ar": "على الرغم من",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-003": {
+      "he": "למען האמת",
+      "ar": "في الحقيقة",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-004": {
+      "he": "למעשה",
+      "ar": "في الواقع",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-005": {
+      "he": "בפועל",
+      "ar": "فعليًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-006": {
+      "he": "בעיקרון",
+      "ar": "من حيث المبدأ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-007": {
+      "he": "ככלל",
+      "ar": "كقاعدة عامة",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-008": {
+      "he": "באופן כללי",
+      "ar": "بشكل عام",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-009": {
+      "he": "באופן מיוחד",
+      "ar": "بشكل خاص",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-010": {
+      "he": "מבחינת",
+      "ar": "من ناحية",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-011": {
+      "he": "בנוגע ל",
+      "ar": "بخصوص",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-012": {
+      "he": "לגבי",
+      "ar": "بالنسبة لـ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-013": {
+      "he": "בהקשר ל",
+      "ar": "في سياق",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-014": {
+      "he": "בעניין",
+      "ar": "في موضوع",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-015": {
+      "he": "ביחס ל",
+      "ar": "بالنسبة لـ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-016": {
+      "he": "לעומת",
+      "ar": "مقارنةً بـ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-017": {
+      "he": "בניגוד ל",
+      "ar": "بخلاف",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-018": {
+      "he": "בדומה ל",
+      "ar": "على غرار",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-019": {
+      "he": "כמו ש",
+      "ar": "كما أنّ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-020": {
+      "he": "כפי ש",
+      "ar": "كما",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-021": {
+      "he": "ככל הנראה",
+      "ar": "على الأرجح",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-022": {
+      "he": "כנראה",
+      "ar": "على ما يبدو",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-023": {
+      "he": "אולי",
+      "ar": "ربما",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-024": {
+      "he": "בוודאי",
+      "ar": "بالتأكيد",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-025": {
+      "he": "מן הסתם",
+      "ar": "على الأرجح / من الطبيعي أن",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-026": {
+      "he": "אכן",
+      "ar": "فعلًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-027": {
+      "he": "בהחלט",
+      "ar": "بالتأكيد",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-028": {
+      "he": "ממש",
+      "ar": "فعلًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-029": {
+      "he": "לגמרי",
+      "ar": "تمامًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-030": {
+      "he": "כלל לא",
+      "ar": "إطلاقًا لا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-031": {
+      "he": "בכלל",
+      "ar": "عمومًا / أصلًا / إطلاقًا (بحسب السياق)",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-032": {
+      "he": "עדיין",
+      "ar": "ما زال",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-033": {
+      "he": "כבר",
+      "ar": "بالفعل",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-034": {
+      "he": "רק",
+      "ar": "فقط",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-035": {
+      "he": "גם",
+      "ar": "أيضًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-036": {
+      "he": "לצערי",
+      "ar": "للأسف",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-037": {
+      "he": "למרבה המזל",
+      "ar": "لحسن الحظّ",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-038": {
+      "he": "לדעתי",
+      "ar": "في رأيي",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-039": {
+      "he": "אגב",
+      "ar": "بالمناسبة",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-040": {
+      "he": "מראש",
+      "ar": "مسبقًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-041": {
+      "he": "לאחר מכן",
+      "ar": "بعد ذلك",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-042": {
+      "he": "קודם כול",
+      "ar": "أولًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-043": {
+      "he": "ראשית",
+      "ar": "أوّلًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-044": {
+      "he": "שנית",
+      "ar": "ثانيًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-045": {
+      "he": "שלישית",
+      "ar": "ثالثًا",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-046": {
+      "he": "לסיכום",
+      "ar": "في الختام",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-047": {
+      "he": "לאור",
+      "ar": "في ضوء",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-048": {
+      "he": "לנוכח",
+      "ar": "في ظلّ / أمام",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-049": {
+      "he": "הלוואי",
+      "ar": "ليت",
+      "source": "expanded"
+    },
+    "expanded-common-expressions-050": {
+      "he": "מפאת",
+      "ar": "نظرًا لـ",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-001": {
+      "he": "מה",
+      "ar": "ماذا",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-002": {
+      "he": "מי",
+      "ar": "من",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-003": {
+      "he": "איפה",
+      "ar": "أين",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-004": {
+      "he": "מתי",
+      "ar": "متى",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-005": {
+      "he": "למה",
+      "ar": "لماذا",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-006": {
+      "he": "איך",
+      "ar": "كيف",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-007": {
+      "he": "כמה",
+      "ar": "كم",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-008": {
+      "he": "איזה",
+      "ar": "أيّ",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-009": {
+      "he": "מדוע",
+      "ar": "لماذا",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-010": {
+      "he": "האם",
+      "ar": "هل",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-011": {
+      "he": "לאן",
+      "ar": "إلى أين",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-012": {
+      "he": "מאין",
+      "ar": "من أين",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-013": {
+      "he": "על מה",
+      "ar": "عن ماذا",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-014": {
+      "he": "מהי",
+      "ar": "ما هي",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-015": {
+      "he": "מהו",
+      "ar": "ما هو",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-016": {
+      "he": "מהם",
+      "ar": "ما هم",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-017": {
+      "he": "לפי הקטע",
+      "ar": "حسب النص",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-018": {
+      "he": "בקטע",
+      "ar": "في النص",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-019": {
+      "he": "בפסקה",
+      "ar": "في الفقرة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-020": {
+      "he": "בשורה",
+      "ar": "في السطر",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-021": {
+      "he": "מצא",
+      "ar": "جِد",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-022": {
+      "he": "סמן",
+      "ar": "ضع علامة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-023": {
+      "he": "בחר",
+      "ar": "اختر",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-024": {
+      "he": "השלם",
+      "ar": "أكمل",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-025": {
+      "he": "הסבר",
+      "ar": "اشرح",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-026": {
+      "he": "נמק",
+      "ar": "علّل",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-027": {
+      "he": "הוכח",
+      "ar": "أثبت",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-028": {
+      "he": "תאר",
+      "ar": "صِف",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-029": {
+      "he": "השווה",
+      "ar": "قارن",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-030": {
+      "he": "סכם",
+      "ar": "لخّص",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-031": {
+      "he": "ציין",
+      "ar": "اذكر",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-032": {
+      "he": "הצע",
+      "ar": "اقترح",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-033": {
+      "he": "הבא דוגמה",
+      "ar": "هات مثالًا",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-034": {
+      "he": "עיין",
+      "ar": "تمعّن",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-035": {
+      "he": "קרא",
+      "ar": "اقرأ",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-036": {
+      "he": "כתוב",
+      "ar": "اكتب",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-037": {
+      "he": "מחק",
+      "ar": "امسح",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-038": {
+      "he": "העתק",
+      "ar": "انسخ",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-039": {
+      "he": "מתאים",
+      "ar": "مناسب",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-040": {
+      "he": "אינו מתאים",
+      "ar": "غير مناسب",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-041": {
+      "he": "נכון / לא נכון",
+      "ar": "صح / خطأ",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-042": {
+      "he": "המשפט הבא",
+      "ar": "الجملة التالية",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-043": {
+      "he": "הקטע הבא",
+      "ar": "النص التالي",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-044": {
+      "he": "התשובה הנכונה",
+      "ar": "الإجابة الصحيحة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-045": {
+      "he": "אחת התשובות",
+      "ar": "إحدى الإجابات",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-046": {
+      "he": "כל התשובות",
+      "ar": "كل الإجابات",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-047": {
+      "he": "אף תשובה",
+      "ar": "لا إجابة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-048": {
+      "he": "הפתיח",
+      "ar": "المقدّمة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-049": {
+      "he": "הסיום",
+      "ar": "الخاتمة",
+      "source": "expanded"
+    },
+    "expanded-exam-instructions-050": {
+      "he": "הרעיון המרכזי",
+      "ar": "الفكرة الرئيسية",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-001": {
+      "he": "נוח",
+      "ar": "مريح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-002": {
+      "he": "לא נוח",
+      "ar": "غير مريح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-003": {
+      "he": "שמח",
+      "ar": "سعيد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-004": {
+      "he": "עצוב",
+      "ar": "حزين",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-005": {
+      "he": "עייף",
+      "ar": "متعب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-006": {
+      "he": "רעב",
+      "ar": "جائع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-007": {
+      "he": "צמא",
+      "ar": "عطشان",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-008": {
+      "he": "כועס",
+      "ar": "غاضب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-009": {
+      "he": "מופתע",
+      "ar": "متفاجئ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-010": {
+      "he": "מרוצה",
+      "ar": "راضٍ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-011": {
+      "he": "מאוכזב",
+      "ar": "خائب الأمل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-012": {
+      "he": "חכם",
+      "ar": "ذكي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-013": {
+      "he": "טיפש",
+      "ar": "غبي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-014": {
+      "he": "עשיר",
+      "ar": "غنيّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-015": {
+      "he": "עני",
+      "ar": "فقير",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-016": {
+      "he": "צעיר",
+      "ar": "شابّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-017": {
+      "he": "מבוגר",
+      "ar": "كبير في السنّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-018": {
+      "he": "גבוה",
+      "ar": "طويل / مرتفع",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-019": {
+      "he": "נמוך",
+      "ar": "قصير / منخفض",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-020": {
+      "he": "כבד",
+      "ar": "ثقيل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-021": {
+      "he": "קל משקל",
+      "ar": "خفيف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-022": {
+      "he": "חם",
+      "ar": "حارّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-023": {
+      "he": "קר",
+      "ar": "بارد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-024": {
+      "he": "רטוב",
+      "ar": "مبلّل",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-025": {
+      "he": "יבש",
+      "ar": "جافّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-026": {
+      "he": "נקי",
+      "ar": "نظيف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-027": {
+      "he": "מלוכלך",
+      "ar": "متّسخ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-028": {
+      "he": "קרוב",
+      "ar": "قريب",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-029": {
+      "he": "רחוק",
+      "ar": "بعيد",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-030": {
+      "he": "פתוח",
+      "ar": "مفتوح",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-031": {
+      "he": "סגור",
+      "ar": "مغلق",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-032": {
+      "he": "מוקדם",
+      "ar": "مبكّر",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-033": {
+      "he": "מאוחר",
+      "ar": "متأخّر",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-034": {
+      "he": "מלא עד אפס מקום",
+      "ar": "ممتلئ تمامًا",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-035": {
+      "he": "זול",
+      "ar": "رخيص",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-036": {
+      "he": "יקר",
+      "ar": "غالٍ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-037": {
+      "he": "חופשי",
+      "ar": "حرّ",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-038": {
+      "he": "תפוס",
+      "ar": "مشغول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-039": {
+      "he": "ריק מתוכן",
+      "ar": "خالٍ من المضمون",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-040": {
+      "he": "מפורסם",
+      "ar": "مشهور",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-041": {
+      "he": "אלמוני",
+      "ar": "مجهول",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-042": {
+      "he": "ידוע",
+      "ar": "معروف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-043": {
+      "he": "לא ידוע",
+      "ar": "غير معروف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-044": {
+      "he": "מוכר",
+      "ar": "مألوف",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-045": {
+      "he": "זר",
+      "ar": "غريب / أجنبي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-046": {
+      "he": "מקומי",
+      "ar": "محلّي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-047": {
+      "he": "עולמי",
+      "ar": "عالمي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-048": {
+      "he": "לאומי",
+      "ar": "وطني",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-049": {
+      "he": "בינלאומי",
+      "ar": "دولي",
+      "source": "expanded"
+    },
+    "expanded-adjectives-extra-050": {
+      "he": "אזורי",
+      "ar": "إقليمي",
+      "source": "expanded"
+    }
+  }
+}
