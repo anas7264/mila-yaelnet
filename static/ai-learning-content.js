@@ -218,7 +218,7 @@
     const code = error?.code || error?.message || "";
     if (code === "consent_required") return "أُلغيت الموافقة على هذا الحساب. أعد قراءتها ووافق مجددًا قبل طلب محتوى جديد.";
     if (code === "consent_storage_unavailable" || code === "consent_check_unavailable") return "تعذر التحقق من موافقة حسابك الآن. لا نرسل طلب التوليد إلى Gemini حتى ينجح التحقق.";
-    if (code === "consent_local_storage_unavailable") return "حُفظت الموافقة على الخادم، لكن تعذر حفظها محليًا. أعد المحاولة؛ وقد ألغينا موافقة الخادم تلقائيًا.";
+    if (code === "consent_local_storage_unavailable") return "تعذر حفظ الموافقة على هذا الجهاز؛ لم نفعّل المحتوى الذكي. تحقّق من إعدادات التخزين ثم أعد المحاولة." ;
     if (code === "auth_required" || code === "FunctionsHttpError") {
       return "سجّل الدخول إلى حسابك لتوليد المحتوى وحفظه في المكتبة المشتركة.";
     }
@@ -306,14 +306,15 @@
     const button = card.querySelector("[data-mila-ai-consent]");
     if (button) button.disabled = true;
     setStatus(card, "جارٍ حفظ موافقتك على مستوى الحساب…");
+    if (!saveConsent()) {
+      setStatus(card, explainError(new Error("consent_local_storage_unavailable")), "error");
+      if (button) button.disabled = false;
+      return;
+    }
     try {
       const result = await invoke(wordId, "consent");
       if (result?.status !== "consented" || result.consentVersion !== CONSENT_VERSION) {
         throw new Error("consent_storage_unavailable");
-      }
-      if (!saveConsent()) {
-        try { await invoke(wordId, "revoke-consent"); } catch {}
-        throw new Error("consent_local_storage_unavailable");
       }
       const panel = card.querySelector("[data-mila-ai-consent-panel]");
       const disable = card.querySelector("[data-mila-ai-disable]");
@@ -321,6 +322,7 @@
       if (disable) disable.hidden = false;
       await loadForWord(card, wordId);
     } catch (error) {
+      try { localStorage.removeItem(CONSENT_KEY); } catch {}
       setStatus(card, explainError(error), "error");
     } finally {
       if (button) button.disabled = false;
