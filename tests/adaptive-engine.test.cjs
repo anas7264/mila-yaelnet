@@ -606,3 +606,10 @@ test("sidebar close helper clears the backdrop on navigation, Escape, backdrop c
   assert.match(app, /addEventListener\("click", closeSidebar\)/);
   assert.match(app, /addEventListener\("resize", \(\) => \{\s*if \(window\.innerWidth > 920\) closeSidebar\(\)/);
 });
+
+
+test("stage workspace eyebrow interpolates the numeric stage and has no quoted placeholder", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /pageHead\(`STAGE WORKSPACE · \$\{stage\.number\}`/);
+  assert.doesNotMatch(app, /pageHead\("STAGE WORKSPACE · \$\{stage\.number\}"/);
+});
