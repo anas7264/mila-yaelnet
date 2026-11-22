@@ -581,7 +581,7 @@ test("adaptive analytics safely handles malformed snapshots and empty sessions",
 
 test("main session count is applied after shuffle and no-repeat-off cycles the shuffled pool", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
-  assert.doesNotMatch(app, /targets\\s*=\\s*targets\\.slice\\(/);
+  assert.doesNotMatch(app, /targets\s*=\s*targets\.slice\(/);
 
   const shortRun = require("../static/quiz-engine.js").buildSession(words, {
     count: 2, distractorPool: words, shuffle: true, noRepeat: true, random: fixedRandom
