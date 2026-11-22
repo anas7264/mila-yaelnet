@@ -194,6 +194,7 @@
           <div class="adaptive-meta"><span>${esc(q.word.category || "مفردات")}</span><span>محاولات هذه الكلمة: ${card.attempts}</span><span>أخطاء: ${card.incorrect}</span></div>
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
         </article>
+        ${window.MilaAIContent?.renderSlot?.(q.word) || ""}
         <div class="adaptive-session-stats"><span>الإجابات الصحيحة <b>${session.correct}</b></span><span>الأخطاء <b>${session.incorrect}</b></span><span>إجمالي المحاولات <b>${session.attempts}</b></span></div>
         <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا، وتدخل بيانات الوضع ضمن مزامنة Mila الحالية.</p>
       </section>`;
