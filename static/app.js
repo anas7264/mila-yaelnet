@@ -754,6 +754,12 @@
     return { accepted: true, duplicate: false, record };
   }
 
+  function pausePlatformSessionForAdaptive() {
+    if (ui.view !== "session" || !ui.session || ui.session.finished) return false;
+    if (!ui.session.paused) pauseSession();
+    return true;
+  }
+
   function returnToPlatform() {
     try {
       // The platform state has already been updated and persisted by the adaptive
@@ -770,6 +776,7 @@
   window.MilaLearningBridge = Object.freeze({
     recordAdaptiveAnswer,
     recordAdaptiveSession,
+    pausePlatformSessionForAdaptive,
     returnToPlatform
   });
 
