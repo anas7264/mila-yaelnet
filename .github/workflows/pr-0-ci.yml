@@ -6,7 +6,10 @@ on:
       - main
   push:
     branches:
-      - ci/pr-0-node20-test-baseline
+      - ci/pr-0b-minimal-permissions
+
+permissions:
+  contents: read
 
 jobs:
   test:
