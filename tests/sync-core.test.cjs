@@ -32,10 +32,13 @@ test("production sync migration enforces durable idempotency and RPC-only writes
   const path = require("node:path");
   const sql = fs.readFileSync(path.join(__dirname, "..", "supabase/migrations/20261123073929_add_learning_mutation_idempotency.sql"), "utf8");
   assert.match(sql, /private\.learning_mutations/);
-  assert.match(sql, /security definer/i);
   assert.match(sql, /set search_path = ''/i);
   assert.match(sql, /payload_hash/);
   assert.ok(sql.indexOf("if found then") < sql.indexOf("if v_row.revision <> p_expected_revision"));
-  assert.match(sql, /revoke insert, update, delete on public\.learning_state from anon, authenticated/i);
-  assert.match(sql, /grant execute on function public\.sync_learning_state[\s\S]*to authenticated/i);
+
+  const hardening = fs.readFileSync(path.join(__dirname, "..", "supabase/migrations/20261123074041_restore_invoker_sync_mutation_ledger.sql"), "utf8");
+  assert.match(hardening, /security invoker/i);
+  assert.match(hardening, /create policy "Users can read their own sync mutations"/i);
+  assert.match(hardening, /create policy "Users can insert their own sync mutations"/i);
+  assert.match(hardening, /grant select, insert, update on table public\.learning_state to authenticated/i);
 });
