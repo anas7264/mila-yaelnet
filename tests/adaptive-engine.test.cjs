@@ -239,7 +239,7 @@ test("academic words are official stage words and the main bridge records them o
 
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   assert.equal((appSource.match(/  initialize\(\);\n\}\)\(\);/) || []).length, 1);
-  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
+  appSource = appSource.replace(/  initialize\(\);\n\}\)\(\);/, "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const bridge = context.__MilaTestBridge;
   assert.ok(bridge);
@@ -754,6 +754,6 @@ test("adaptive answer bridge bounds persisted idempotency history to prevent loc
 
 test("adaptive answer UI distinguishes a missing platform bridge from a failed storage write", () => {
   const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
-  assert.match(ui, /typeof bridge\?\.recordAdaptiveAnswer\s*!==\s*"function"/);
+  assert.match(ui, /typeof bridge\.recordAdaptiveAnswer\s*!==\s*"function"/);
   assert.match(ui, /main-progress-save-failed/);
 });
