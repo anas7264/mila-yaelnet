@@ -30,3 +30,13 @@ test("account switching never uploads the previous account snapshot to the new a
   assert.ok(cloudApplyAt > switchAt);
   assert.ok(uploadAt > cloudApplyAt);
 });
+
+test("account isolation runs before the offline early return", () => {
+  const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
+  const activateAt = sync.indexOf("const activate=async s=>");
+  const isolateAt = sync.indexOf("isolateLocalAccount(s.user.id)", activateAt);
+  const offlineAt = sync.indexOf("if(navigator.onLine===false)", activateAt);
+  assert.ok(activateAt >= 0);
+  assert.ok(isolateAt > activateAt);
+  assert.ok(offlineAt > isolateAt);
+});
