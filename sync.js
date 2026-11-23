@@ -73,7 +73,10 @@ return true;
 const apply=v=>{if(!isSnapshot(v))throw Error('صيغة بيانات السحابة غير معروفة. لم تتغير بيانات الجهاز.');const b=Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).map(k=>[k,localStorage.getItem(k)]),entries=v.entries.filter(([k])=>!isInternalStorageKey(k));suppress=true;try{b.forEach(([k])=>localStorage.removeItem(k));entries.forEach(([k,x])=>localStorage.setItem(k,x))}catch(e){Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).forEach(k=>localStorage.removeItem(k));b.forEach(([k,x])=>localStorage.setItem(k,x));throw e}finally{suppress=false}};
 const isolateLocalAccount=userId=>{
 const currentMeta=meta();
-if(!isDifferentAccount(currentMeta.userId,userId))return false;
+if(!isDifferentAccount(currentMeta.userId,userId)){
+if(currentMeta.userId===userId){try{localStorage.removeItem(ACCOUNT_BACKUP_PREFIX+userId)}catch{}}
+return false;
+}
 const currentSnapshot=snap();
 const backupKey=ACCOUNT_BACKUP_PREFIX+currentMeta.userId;
 if(!localStorage.getItem(backupKey)){
@@ -88,15 +91,15 @@ if(targetBackup?.version===1&&targetBackup.userId===userId&&isSnapshot(targetBac
 apply(targetBackup.snapshot);
 revision=Number.isInteger(targetBackup.meta.revision)?targetBackup.meta.revision:0;
 baseline=isSnapshot(targetBackup.meta.baseline)?targetBackup.meta.baseline:null;
-localStorage.setItem(META,JSON.stringify({...targetBackup.meta,userId,deviceId:device,restoredAt:new Date().toISOString()}));
 if(targetBackup.pending)localStorage.setItem(PENDING,JSON.stringify(targetBackup.pending));else localStorage.removeItem(PENDING);
 pending=targetBackup.pending||null;
+localStorage.setItem(META,JSON.stringify({...targetBackup.meta,userId,deviceId:device,restoredAt:new Date().toISOString()}));
 localStorage.removeItem(targetBackupKey);
 }else{
 const empty=createSnapshot([]);
 apply(empty);
-writeMeta(0,empty,userId);
 localStorage.removeItem(PENDING);pending=null;dirty=false;
+writeMeta(0,empty,userId);
 }
 return true;
 }catch(error){
