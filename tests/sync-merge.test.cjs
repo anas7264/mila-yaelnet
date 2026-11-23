@@ -1,8 +1,12 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { createSnapshot } = require("../sync-core.mjs");
-const { mergeSnapshots } = require("../sync-merge-core.mjs");
+let createSnapshot;
+let mergeSnapshots;
+test.before(async () => {
+  ({ createSnapshot } = await import("../sync-core.mjs"));
+  ({ mergeSnapshots } = await import("../sync-merge-core.mjs"));
+});
 
 const MAIN = "mila-yaelnet-studio-v3";
 const ADAPTIVE = "mila-yaelnet-adaptive-v1";
