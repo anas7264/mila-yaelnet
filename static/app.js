@@ -1373,27 +1373,21 @@
         }
         adaptiveBackup = window.MilaAdaptiveEngine.normalizeState(parsedBackup.adaptive);
       }
+      const importPayload = hasAdaptiveBackup
+        ? JSON.stringify({ ...parsedBackup, adaptive: adaptiveBackup })
+        : text;
       openModal("تأكيد استعادة النسخة", "سيتم استبدال بيانات التعلم الحالية بالنسخة المستوردة. صدّر نسخة من بياناتك الحالية أولًا إذا أردت الاحتفاظ بها.",
         `<div class="helper-note">الكلمات الإضافية: ${valid.state.extras.length} · الجلسات: ${valid.state.sessions.length} · سجلات التقدم: ${Object.keys(valid.state.progress).length}${hasAdaptiveBackup ? " · يتضمن تقدم التدريب التكيفي" : " · نسخة قديمة بلا بيانات تكيفية"}</div>`,
         "استعادة البيانات", () => {
-          if (!STORE.importBackup(text, localStorage)) {
-            toast("تعذر استعادة النسخة الاحتياطية.", "error");
+          const imported = STORE.importBackup(importPayload, localStorage);
+          if (!imported.ok) {
+            toast(imported.error || "تعذر استعادة النسخة الاحتياطية.", "error");
             return false;
           }
-          Object.assign(state, valid.state);
-          if (hasAdaptiveBackup) {
-            const savedAdaptive = window.MilaAdaptiveEngine.normalizeState(adaptiveBackup);
-            try {
-              localStorage.setItem("mila-yaelnet-adaptive-v1", JSON.stringify(savedAdaptive));
-            } catch (error) {
-              STORE.saveState(state, localStorage);
-              toast("تعذر حفظ تقدم التدريب التكيفي. لم تكتمل الاستعادة؛ تحقق من مساحة التخزين.", "error");
-              return false;
-            }
-          }
-          applySettings();
-          render();
-          toast(hasAdaptiveBackup ? "تمت استعادة بيانات المنصة والتدريب التكيفي." : "تمت استعادة بيانات المنصة. النسخة قديمة ولم تغيّر تقدم التدريب التكيفي الحالي.");
+          toast(hasAdaptiveBackup
+            ? "تمت استعادة بيانات المنصة والتدريب التكيفي."
+            : "تمت استعادة بيانات المنصة. النسخة قديمة ولم تغيّر تقدم التدريب التكيفي الحالي.");
+          window.setTimeout(() => location.reload(), 250);
           return true;
         });
     }catch{toast("تعذرت قراءة ملف النسخة الاحتياطية.","error");}
