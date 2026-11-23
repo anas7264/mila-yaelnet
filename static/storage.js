@@ -214,7 +214,7 @@
           selectedWordId: typeof item.selectedWordId === "string" ? item.selectedWordId.slice(0, 120) : null,
           source: typeof item.source === "string" ? item.source.slice(0, 100) : "",
           at: Math.max(0, Number(item.at) || 0),
-          date: typeof item.date === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date) ? item.date : "",
+          date: typeof item.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? item.date : "",
           direction: item.direction === "he-ar" || item.direction === "ar-he" ? item.direction : null
         };
       }
