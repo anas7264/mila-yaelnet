@@ -1,4 +1,4 @@
-name: PR-0 CI Baseline
+name: Production Runtime CI (Node 26)
 
 on:
   pull_request:
@@ -6,18 +6,18 @@ on:
       - main
   push:
     branches:
-      - ci/pr-0-node20-test-baseline
+      - ci/pr-0-node26-runtime-baseline
 
 jobs:
   test:
-    name: npm test (Node 20)
+    name: npm test (Node 26)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+        uses: actions/checkout@v7
+      - name: Set up Node.js 26
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 26
       - name: Run test suite
         run: npm test

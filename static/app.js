@@ -320,7 +320,7 @@
               <button class="button button-secondary" data-action="practice-source" data-source="new">＋ كلمات لم تُدرس بعد</button>
             </div>
           </section>
-          <section class="panel-card"><div class="panel-heading"><div><h2>معلومة مهمة</h2><p>عن طريقة عمل المنصة</p></div><span class="badge badge-blue">محلي</span></div><p class="page-subtitle">تُحفظ بياناتك على هذا المتصفح. استخدم النسخ الاحتياطي في الإعدادات لنقل تقدمك إلى جهاز آخر؛ لا توجد مزامنة تلقائية بين الأجهزة في هذه النسخة.</p></section>
+          <section class="panel-card"><div class="panel-heading"><div><h2>معلومة مهمة</h2><p>عن طريقة عمل المنصة</p></div><span class="badge badge-blue">محلي أولًا</span></div><p class="page-subtitle">يُحفظ تقدمك على هذا المتصفح أولًا. عند تسجيل الدخول إلى الحساب نفسه على أجهزتك، تُزامن التغييرات تلقائيًا؛ وإذا لم تسجّل الدخول، يبقى التقدم محليًا على هذا الجهاز. يمكنك تنزيل نسخة احتياطية مستقلة من الإعدادات.</p></section>
         </div>
       </div>`;
   }
@@ -649,13 +649,13 @@
           <div class="settings-row"><div><strong>خط أكبر</strong><small>تحسين القراءة على الشاشات الصغيرة</small></div><input type="checkbox" data-setting="largeText" ${settings.largeText?"checked":""}></div>
           <div class="settings-row"><div><strong>النطق الصوتي</strong><small>استخدم صوت العبرية المتاح في جهازك</small></div><input type="checkbox" data-setting="sound" ${settings.sound?"checked":""}></div>
         </section>
-        <section class="form-card"><h3>الخصوصية والنسخ الاحتياطي</h3><p>بيانات التعلم موجودة في localStorage على المتصفح الحالي فقط.</p>
-          <div class="helper-note">لا توجد مزامنة تلقائية. احتفظ بنسخة JSON في مكان آمن وانقلها يدويًا إلى جهاز آخر.</div>
+        <section class="form-card"><h3>الخصوصية والنسخ الاحتياطي</h3><p>يُحفظ تقدمك محليًا أولًا، ثم يُزامن إلى حسابك عند تسجيل الدخول.</p>
+          <div class="helper-note">للمزامنة بين الأجهزة، سجّل الدخول إلى الحساب نفسه على كل جهاز. دون تسجيل الدخول، يبقى التقدم على هذا المتصفح فقط. عند انقطاع الإنترنت، تبقى التغييرات محليًا وتُستأنف المزامنة تلقائيًا عند عودة الاتصال.</div>
           <div class="stack" style="margin-top:14px"><button class="button button-primary" data-action="export-backup">↓ تنزيل نسخة احتياطية JSON</button><button class="button button-secondary" data-action="import-backup">↑ استعادة نسخة JSON</button><button class="button button-secondary" data-action="export-csv">تصدير الكلمات CSV</button><input type="file" id="backupFile" accept=".json,application/json" hidden></div>
         </section>
         <section class="form-card"><h3>اختصارات لوحة المفاتيح</h3><p>تنقل وأجب دون استخدام الفأرة في أثناء الاختبار.</p><div class="shortcut-list"><div class="shortcut-item"><span>اختيار الإجابة</span><kbd>1–5</kbd></div><div class="shortcut-item"><span>التالي / إظهار الإجابة</span><kbd>Enter</kbd></div><div class="shortcut-item"><span>إظهار البطاقة</span><kbd>Space</kbd></div><div class="shortcut-item"><span>إيقاف / متابعة المؤقت</span><kbd>P</kbd></div><div class="shortcut-item"><span>إغلاق النافذة</span><kbd>Esc</kbd></div><div class="shortcut-item"><span>الرئيسية</span><kbd>1</kbd></div></div></section>
         <section class="form-card"><h3>حالة المنصة</h3><p>معلومات تشغيلية عن النسخة الحالية.</p>
-          <div class="history-list"><div class="history-row"><strong>إصدار البيانات</strong><span>v3</span></div><div class="history-row"><strong>مفردات رسمية</strong><span>${OFFICIAL.length}</span></div><div class="history-row"><strong>كلمات إضافية</strong><span>${state.extras.length}</span></div><div class="history-row"><strong>حفظ محلي</strong><span class="badge badge-green">نشط</span></div><div class="history-row"><strong>طريقة حفظ البيانات</strong><span class="badge badge-neutral">محلي على هذا الجهاز</span></div></div>
+          <div class="history-list"><div class="history-row"><strong>إصدار البيانات</strong><span>v3</span></div><div class="history-row"><strong>مفردات رسمية</strong><span>${OFFICIAL.length}</span></div><div class="history-row"><strong>كلمات إضافية</strong><span>${state.extras.length}</span></div><div class="history-row"><strong>حفظ محلي</strong><span class="badge badge-green">نشط</span></div><div class="history-row"><strong>المزامنة بين الأجهزة</strong><span class="badge badge-neutral">عند تسجيل الدخول</span></div></div>
         </section>
       </div>`;
   }
