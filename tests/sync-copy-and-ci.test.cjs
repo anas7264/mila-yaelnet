@@ -41,3 +41,17 @@ test("verification workflow runs on main branch pushes", () => {
   const branches = push[1].split(",").map((branchName) => branchName.trim());
   assert.ok(branches.includes("main"), "main must trigger verification");
 });
+
+test("CI uses maintained Node LTS versions and current action runtimes", () => {
+  const runtimeWorkflow = read(".github/workflows/pr-0-ci.yml");
+  const verifyWorkflow = read(".github/workflows/verify.yml");
+
+  assert.match(runtimeWorkflow, /actions\/checkout@v7/);
+  assert.match(runtimeWorkflow, /actions\/setup-node@v7/);
+  assert.match(runtimeWorkflow, /node-version:\s*26\b/);
+  assert.doesNotMatch(runtimeWorkflow, /node-version:\s*20\b/);
+
+  assert.match(verifyWorkflow, /actions\/checkout@v7/);
+  assert.match(verifyWorkflow, /actions\/setup-node@v7/);
+  assert.match(verifyWorkflow, /node-version:\s*22\b/);
+});
