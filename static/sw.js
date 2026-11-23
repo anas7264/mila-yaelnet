@@ -1,4 +1,4 @@
-const CACHE_NAME = "mila-yaelnet-v29";
+const CACHE_NAME = "mila-yaelnet-v30";
 const CORE_ASSETS = [
   "/",
   "/health",
