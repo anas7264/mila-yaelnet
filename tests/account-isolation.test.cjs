@@ -61,3 +61,24 @@ test("sync RPC write boundary independently rejects account mismatch", () => {
   assert.ok(saveAt >= 0);
   assert.ok(guardAt > saveAt && guardAt < rpcAt);
 });
+
+test("unbound legacy snapshots with learning data require explicit account choice", async () => {
+  const { createSnapshot, hasMeaningfulLearningData } = await import("../sync-core.mjs");
+  const empty = createSnapshot([
+    ["mila-yaelnet-studio-v3", JSON.stringify({ progress: {}, extras: [], mistakes: [], sessions: [], learningEvents: {}, settings: { theme: "light", dailyGoal: 10, defaultCount: 10, defaultMode: "he-ar", timerSeconds: 0, feedbackTiming: "instant", focusMode: false, sound: false, largeText: false }, daily: { lastDate: "", streak: 0, completed: 0 } })],
+    ["mila-yaelnet-adaptive-v1", JSON.stringify({ progress: {}, session: null })]
+  ]);
+  const withProgress = createSnapshot([
+    ["mila-yaelnet-studio-v3", JSON.stringify({ progress: { "word-1": { attempts: 2 } }, extras: [], mistakes: [], sessions: [], learningEvents: {} })]
+  ]);
+  assert.equal(hasMeaningfulLearningData(empty), false);
+  assert.equal(hasMeaningfulLearningData(withProgress), true);
+});
+
+test("legacy unbound local data is blocked before automatic merge or upload", () => {
+  const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
+  const guardAt = sync.indexOf("if(!m.userId&&localMeaningful&&!isSameSnapshot(l,cloudSnapshot))");
+  const autoMergeAt = sync.indexOf("await autoMerge(l,data.state,data.revision)");
+  assert.ok(guardAt >= 0 && autoMergeAt > guardAt);
+  assert.match(sync, /هذه بيانات محلية قديمة لا تحمل هوية الحساب/);
+});
