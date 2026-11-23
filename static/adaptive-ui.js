@@ -208,7 +208,7 @@
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
         </article>
         <div class="adaptive-session-stats"><span>الإجابات الصحيحة <b>${session.correct}</b></span><span>الأخطاء <b>${session.incorrect}</b></span><span>إجمالي المحاولات <b>${session.attempts}</b></span></div>
-        <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا، وتدخل بيانات الوضع ضمن مزامنة Mila الحالية.</p>
+        <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا على هذا الجهاز.</p>
       </section>`;
     if (!session.answered && !session.paused) $("adaptiveAnswer")?.focus({ preventScroll: true });
   }
@@ -245,7 +245,7 @@
     }
     const bridge = window.MilaLearningBridge;
     if (!bridge || typeof bridge.recordAdaptiveAnswer !== "function") {
-      toast("تعذر تحميل وحدة تسجيل إجابات المنصة. لم تُسجّل الإجابة بعد؛ حدّث الصفحة ثم أعد المحاولة قبل الانتقال للسؤال التالي.", true);
+      toast("تعذر تحميل وحدة تسجيل الإجابات. لم تُسجّل الإجابة؛ حدّث الصفحة ثم أعد المحاولة قبل الانتقال للسؤال التالي.", true);
       return;
     }
     let integrated;
