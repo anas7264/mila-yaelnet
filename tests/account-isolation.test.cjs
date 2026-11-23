@@ -24,7 +24,7 @@ test("sync stores account-scoped local recovery before changing accounts", () =>
 test("account switching never uploads the previous account snapshot to the new account", () => {
   const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
   const switchAt = sync.indexOf("if(isDifferentAccount(m.userId,userId)){");
-  const uploadAt = sync.indexOf("const initial=normalizePendingMutation", switchAt);
+  const uploadAt = sync.indexOf("let initial=normalizePendingMutation", switchAt);
   const cloudApplyAt = sync.indexOf("apply(remoteSnapshot)", switchAt);
   assert.ok(switchAt >= 0);
   assert.ok(cloudApplyAt > switchAt);
