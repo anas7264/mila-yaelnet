@@ -1,4 +1,4 @@
-const CACHE_NAME = "mila-yaelnet-v23";
+const CACHE_NAME = "mila-yaelnet-v24";
 const CORE_ASSETS = [
   "/",
   "/health",
@@ -15,8 +15,17 @@ const CORE_ASSETS = [
   "/static/adaptive-ui.js",
   "/manifest",
   "/static/icon.svg",
+  "/sync-config.js",
+  "/sync.js",
+  "/sync-core.mjs",
+  "/sync-settings-core.mjs",
+  "/static/vendor/supabase.umd.js",
   "/static/adaptive-engine.js?v=2",
-  "/static/adaptive-ui.js?v=2"
+  "/static/adaptive-ui.js?v=2",
+  "/sync-config.js?v=3",
+  "/sync.js?v=6",
+  "/sync-core.mjs?v=5",
+  "/sync-settings-core.mjs?v=3"
 ];
 
 self.addEventListener("install", (event) => {
