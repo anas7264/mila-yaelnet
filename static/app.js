@@ -120,6 +120,33 @@
     return ok;
   }
 
+  function captureLearningCheckpoint(wordIds = []) {
+    return {
+      progress: wordIds.map(id => [id, state.progress[id] ? { ...state.progress[id] } : null]),
+      daily: { ...state.daily },
+      mistakes: state.mistakes.slice(),
+      adaptiveEventIds: { ...(state.adaptiveEventIds || {}) },
+      learningEvents: { ...(state.learningEvents || {}) },
+      sessions: state.sessions.slice(),
+      lastSessionSummary: state.lastSessionSummary,
+      session: ui.session ? JSON.parse(JSON.stringify(ui.session)) : null
+    };
+  }
+
+  function restoreLearningCheckpoint(checkpoint) {
+    for (const [id, value] of checkpoint.progress) {
+      if (value) state.progress[id] = value;
+      else delete state.progress[id];
+    }
+    state.daily = checkpoint.daily;
+    state.mistakes = checkpoint.mistakes;
+    state.adaptiveEventIds = checkpoint.adaptiveEventIds;
+    state.learningEvents = checkpoint.learningEvents;
+    state.sessions = checkpoint.sessions;
+    state.lastSessionSummary = checkpoint.lastSessionSummary;
+    ui.session = checkpoint.session;
+  }
+
   function toast(message, kind = "success") {
     const node = $("toast");
     if (!node) return;
@@ -1059,6 +1086,7 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const word = wordMap().get(q.targetWordId);
     const answer = ENGINE.gradeAnswer(q, selectedWordId);
     const isCorrect = Boolean(correct && answer.correct);
@@ -1067,8 +1095,12 @@
     session.feedbackVisible = true;
     session.results[session.current] = { ...answer, correct: isCorrect, timedOut, targetWordId: q.targetWordId };
     recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     stopTimer();
-    persist();
     if (session.config.feedback === "end") session.feedbackVisible = false;
     renderSession();
   }
@@ -1084,6 +1116,7 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const word = wordMap().get(q.targetWordId);
     const checked = ENGINE.checkTypedAnswer(word, value, session.mode === "typed-ar-he" ? "ar-he" : "he-ar");
     session.answered = true;
@@ -1091,8 +1124,12 @@
     session.feedbackVisible = true;
     session.results[session.current] = { correct: checked.correct, targetWordId: q.targetWordId, selectedWordId: null, correctWordId: q.targetWordId };
     recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     stopTimer();
-    persist();
     renderSession();
   }
 
@@ -1132,6 +1169,7 @@
     }
     if (!match.selectedLeft) { toast("اختر الكلمة العبرية أولًا.", "error"); return; }
     const leftId = match.selectedLeft;
+    const checkpoint = captureLearningCheckpoint([leftId]);
     if (leftId === id) {
       match.matched.push(id);
       match.selectedLeft = null;
@@ -1147,7 +1185,7 @@
         session.current = nextIndex;
         session.answered = false;
         session.matchState = null;
-        if (nextIndex >= session.questions.length) finishSession();
+        if (nextIndex >= session.questions.length) finishSession(false);
       }
     } else {
       match.mistakes += 1;
@@ -1163,7 +1201,12 @@
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
       match.selectedLeft = null;
     }
-    persist();
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      if (ui.session?.timerSeconds && !ui.session?.answered) startTimer();
+      return;
+    }
     renderSession();
   }
 
@@ -1171,6 +1214,7 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const good = rating !== "again";
     session.answered = true;
     session.feedbackVisible = true;
@@ -1178,13 +1222,18 @@
     recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
     const p = progressOf(q.targetWordId);
     state.progress[q.targetWordId] = { ...p, ...ENGINE.scheduleReview(p, rating, Date.now()) };
-    persist();
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     renderSession();
   }
 
   function nextQuestion() {
     const session = ui.session;
     if (!session || !session.answered) return;
+    const checkpoint = captureLearningCheckpoint([]);
     const previousResult = session.results[session.current];
     const nextIndex = session.current + 1;
     if (session.difficulty === "adaptive" && nextIndex < session.questions.length) {
@@ -1204,16 +1253,23 @@
     session.feedbackVisible = false;
     session.flashRevealed = false;
     session.remainingSeconds = session.timerSeconds;
-    if (session.current >= session.questions.length) finishSession();
-    else {
+    if (session.current >= session.questions.length) {
+      finishSession(false);
+      if (!persist()) {
+        restoreLearningCheckpoint(checkpoint);
+        renderSession();
+        return;
+      }
+    } else {
       renderSession();
       if (session.timerSeconds) startTimer();
     }
   }
 
-  function finishSession() {
+  function finishSession(persistState = true) {
     const session = ui.session;
-    if (!session) return;
+    if (!session) return false;
+    const checkpoint = persistState ? captureLearningCheckpoint([]) : null;
     stopTimer();
     const results = session.results.filter(Boolean);
     const summary = ENGINE.summarizeSession(results);
@@ -1233,9 +1289,14 @@
     if (state.sessions.length > 500) state.sessions.splice(0, state.sessions.length-500);
     const wrong = summary.wrongWordIds;
     state.lastSessionSummary = sessionRecord;
-    persist();
     ui.session = { ...session, summary: sessionRecord, finished: true };
+    if (persistState && !persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return false;
+    }
     renderSessionSummary(sessionRecord);
+    return true;
   }
 
   function renderSessionSummary(record) {
