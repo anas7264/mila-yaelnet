@@ -715,6 +715,7 @@
         selectedWordId: selectedWordId ? String(selectedWordId).slice(0, 120) : null,
         source: String(source || ui.session?.title || "جلسة تدريب").slice(0, 100),
         at: eventAt,
+        date: localDate(new Date(eventAt)),
         direction: metadata?.direction === "he-ar" || metadata?.direction === "ar-he" ? metadata.direction : null
       };
       const eventIds = Object.keys(state.adaptiveEventIds);
