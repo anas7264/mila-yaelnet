@@ -39,7 +39,7 @@ test("beginSession defines a JSON-safe config before storing it", () => {
 
 test("service-worker cache version invalidates the previous cache and excludes cloud sync", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v23"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v24"'));
   assert.doesNotMatch(sw, /sync-config|sync\.js|supabase/i);
 });
 
