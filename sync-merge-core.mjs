@@ -105,8 +105,14 @@ function mergeEventMaps(baseEvents, localEvents, remoteEvents, conflicts) {
   const out = {};
   const ids = new Set([...Object.keys(b), ...Object.keys(l), ...Object.keys(r)]);
   for (const id of ids) {
-    const value = mergeValue(valueAt(b, id), valueAt(l, id), valueAt(r, id), "learningEvents." + id, conflicts);
-    if (value !== MISSING) out[id] = value;
+    const candidates = [valueAt(b, id), valueAt(l, id), valueAt(r, id)].filter(value => value !== MISSING);
+    if (!candidates.length) continue;
+    const first = candidates[0];
+    if (candidates.some(value => !equal(first, value))) {
+      addConflict(conflicts, "learningEvents." + id);
+      continue;
+    }
+    out[id] = clone(first);
   }
   return Object.fromEntries(Object.entries(out)
     .sort((a, b) => safeNumber(a[1]?.at) - safeNumber(b[1]?.at) || a[0].localeCompare(b[0]))
@@ -219,11 +225,22 @@ function mergeProgress(baseProgress, localProgress, remoteProgress, baseEvents, 
     const added = [...allAdded.values()].filter(event => event.wordId === wordId &&
       (mode === "main" || event.direction === mode));
     if (!added.length) {
-      if (!equal(localRecord, valueAt(b, wordId)) &&
-          !equal(remoteRecord, valueAt(b, wordId)) &&
-          !equal(localRecord, remoteRecord)) {
-        addConflict(conflicts, "progress." + wordId + ".legacy-concurrent-change");
-        continue;
+      if (mode === "main") {
+        if (!equal(localRecord, valueAt(b, wordId)) &&
+            !equal(remoteRecord, valueAt(b, wordId)) &&
+            !equal(localRecord, remoteRecord)) {
+          addConflict(conflicts, "progress." + wordId + ".legacy-concurrent-change");
+          continue;
+        }
+      } else {
+        const cardKey = mode === "he-ar" ? "heToAr" : "arToHe";
+        const baseCard = isObject(baseRecord[cardKey]) ? baseRecord[cardKey] : {};
+        const localCard = localRecord === MISSING ? {} : (localRecord?.[cardKey] || {});
+        const remoteCard = remoteRecord === MISSING ? {} : (remoteRecord?.[cardKey] || {});
+        if (!equal(localCard, baseCard) && !equal(remoteCard, baseCard) && !equal(localCard, remoteCard)) {
+          addConflict(conflicts, "adaptive.progress." + wordId + "." + cardKey + ".legacy-concurrent-change");
+          continue;
+        }
       }
       const merged = mergeValue(valueAt(b, wordId), localRecord, remoteRecord, "progress." + wordId, conflicts);
       if (merged !== MISSING) result[wordId] = merged;
@@ -288,10 +305,14 @@ function mergeProgress(baseProgress, localProgress, remoteProgress, baseEvents, 
         addConflict(conflicts, "adaptive.progress." + wordId + "." + mode + ".replay");
         continue;
       }
+      const baseOther = valueAt(baseRecord, otherCardKey);
+      const localOther = valueAt(localRecord === MISSING ? {} : localRecord, otherCardKey);
+      const remoteOther = valueAt(remoteRecord === MISSING ? {} : remoteRecord, otherCardKey);
+      if (!equal(localOther, baseOther) && !equal(remoteOther, baseOther) && !equal(localOther, remoteOther)) {
+        addConflict(conflicts, "adaptive.progress." + wordId + "." + otherCardKey + ".legacy-concurrent-change");
+      }
       const other = mergeValue(
-        valueAt(baseRecord, otherCardKey),
-        valueAt(localRecord === MISSING ? {} : localRecord, otherCardKey),
-        valueAt(remoteRecord === MISSING ? {} : remoteRecord, otherCardKey),
+        baseOther, localOther, remoteOther,
         "adaptive.progress." + wordId + "." + otherCardKey,
         conflicts
       );
@@ -376,7 +397,8 @@ function mergeMainState(base, local, remote, scheduleReview, conflicts) {
   out.extras = (out.extras || []).slice(0, 5000);
   out.completedStageIds = (out.completedStageIds || []).slice(0, 100);
   const sessions = out.sessions;
-  out.lastSessionSummary = sessions.reduce((winner, item) =>
+  const summaries = [b.lastSessionSummary, l.lastSessionSummary, r.lastSessionSummary, ...sessions].filter(isObject);
+  out.lastSessionSummary = summaries.reduce((winner, item) =>
     !winner || safeNumber(item.finishedAt) > safeNumber(winner.finishedAt) ? item : winner, null);
   return out;
 }
