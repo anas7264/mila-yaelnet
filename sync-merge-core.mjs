@@ -263,9 +263,11 @@ function mergeProgress(baseProgress, localProgress, remoteProgress, baseEvents, 
       }
       result[wordId] = { ...replayed, ...extras };
     } else {
-      const baseCard = baseRecord[mode] || {};
-      const localCard = localRecord === MISSING ? {} : (localRecord?.[mode] || {});
-      const remoteCard = remoteRecord === MISSING ? {} : (remoteRecord?.[mode] || {});
+      const cardKey = mode === "he-ar" ? "heToAr" : "arToHe";
+      const otherCardKey = mode === "he-ar" ? "arToHe" : "heToAr";
+      const baseCard = baseRecord[cardKey] || {};
+      const localCard = localRecord === MISSING ? {} : (localRecord?.[cardKey] || {});
+      const remoteCard = remoteRecord === MISSING ? {} : (remoteRecord?.[cardKey] || {});
       const localCount = localAdded.filter(event => event.wordId === wordId && event.direction === mode).length;
       const remoteCount = remoteAdded.filter(event => event.wordId === wordId && event.direction === mode).length;
       if (safeNumber(localCard.attempts) !== safeNumber(baseCard.attempts) + localCount ||
@@ -280,16 +282,15 @@ function mergeProgress(baseProgress, localProgress, remoteProgress, baseEvents, 
         addConflict(conflicts, "adaptive.progress." + wordId + "." + mode + ".replay");
         continue;
       }
-      const otherDirection = mode === "he-ar" ? "ar-he" : "he-ar";
       const other = mergeValue(
-        valueAt(baseRecord, otherDirection),
-        valueAt(localRecord === MISSING ? {} : localRecord, otherDirection),
-        valueAt(remoteRecord === MISSING ? {} : remoteRecord, otherDirection),
-        "adaptive.progress." + wordId + "." + otherDirection,
+        valueAt(baseRecord, otherCardKey),
+        valueAt(localRecord === MISSING ? {} : localRecord, otherCardKey),
+        valueAt(remoteRecord === MISSING ? {} : remoteRecord, otherCardKey),
+        "adaptive.progress." + wordId + "." + otherCardKey,
         conflicts
       );
-      result[wordId] = { [mode]: replayed };
-      if (other !== MISSING) result[wordId][otherDirection] = other;
+      result[wordId] = { [cardKey]: replayed };
+      if (other !== MISSING) result[wordId][otherCardKey] = other;
     }
   }
   return result;
@@ -389,8 +390,9 @@ function mergeAdaptiveState(base, local, remote, baseEvents, localEvents, remote
     const progress = mergeProgress(b.progress, l.progress, r.progress, baseEvents, localEvents, remoteEvents, conflicts, scheduleReview, direction);
     for (const [wordId, cardPair] of Object.entries(progress)) {
       if (!out.progress[wordId]) out.progress[wordId] = {};
-      if (cardPair[direction]) out.progress[wordId][direction] = cardPair[direction];
-      const other = direction === "he-ar" ? "ar-he" : "he-ar";
+      const cardKey = direction === "he-ar" ? "heToAr" : "arToHe";
+      const other = direction === "he-ar" ? "arToHe" : "heToAr";
+      if (cardPair[cardKey]) out.progress[wordId][cardKey] = cardPair[cardKey];
       if (cardPair[other] && !out.progress[wordId][other]) out.progress[wordId][other] = cardPair[other];
     }
   }
