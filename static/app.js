@@ -1340,26 +1340,62 @@
   }
 
   function exportBackup() {
-    try{
-      exportText("mila-yaelnet-backup-"+localDate()+".json",STORE.exportBackup(state),"application/json;charset=utf-8");
-      toast("تم تنزيل النسخة الاحتياطية. احتفظ بها خارج المتصفح.");
-    }catch(error){toast(error.message||"تعذر إنشاء النسخة.","error");}
+    try {
+      const adaptiveRaw = JSON.parse(localStorage.getItem("mila-yaelnet-adaptive-v1") || "null");
+      const adaptive = window.MilaAdaptiveEngine?.normalizeState
+        ? window.MilaAdaptiveEngine.normalizeState(adaptiveRaw)
+        : null;
+      const backup = STORE.exportBackup(state, adaptive);
+      exportText("mila-yaelnet-backup-" + localDate() + ".json", backup, "application/json;charset=utf-8");
+      toast("تم تنزيل النسخة الاحتياطية، وتشمل تقدم التدريب التكيفي. احتفظ بها خارج المتصفح.");
+    } catch (error) {
+      toast(error.message || "تعذر إنشاء النسخة.", "error");
+    }
   }
 
   function importBackup() { $("backupFile")?.click(); }
 
   async function readBackupFile(file) {
     if(!file)return;
-    if(file.size>2_000_000){toast("حجم الملف أكبر من 2 ميغابايت.","error");return;}
+    if(file.size>4_000_000){toast("حجم الملف أكبر من 4 ميغابايت.","error");return;}
     try{
-      const text=await file.text();
-      const valid=STORE.validateBackup(text);
-      if(!valid.ok){toast(valid.error,"error");return;}
-      openModal("تأكيد استعادة النسخة","سيتم استبدال بيانات التعلم الحالية بالنسخة المستوردة. صدّر نسخة من بياناتك الحالية أولًا إذا أردت الاحتفاظ بها.",`<div class="helper-note">الكلمات الإضافية: ${valid.state.extras.length} · الجلسات: ${valid.state.sessions.length} · سجلات التقدم: ${Object.keys(valid.state.progress).length}</div>`,"استعادة البيانات",()=>{
-        if(!STORE.importBackup(text,localStorage)){toast("تعذر استعادة البيانات.","error");return false;}
-        Object.assign(state,valid.state);
-        applySettings();render();toast("تمت استعادة النسخة الاحتياطية.");return true;
-      });
+      const text = await file.text();
+      const valid = STORE.validateBackup(text);
+      if (!valid.ok) { toast(valid.error, "error"); return; }
+      const parsedBackup = JSON.parse(text);
+      const hasAdaptiveBackup = Object.prototype.hasOwnProperty.call(parsedBackup, "adaptive");
+      let adaptiveBackup = null;
+      if (hasAdaptiveBackup) {
+        if (!parsedBackup.adaptive || parsedBackup.adaptive.version !== 1 ||
+            !window.MilaAdaptiveEngine?.normalizeState) {
+          toast("بيانات التدريب التكيفي في النسخة غير صالحة أو غير متوافقة.", "error");
+          return;
+        }
+        adaptiveBackup = window.MilaAdaptiveEngine.normalizeState(parsedBackup.adaptive);
+      }
+      openModal("تأكيد استعادة النسخة", "سيتم استبدال بيانات التعلم الحالية بالنسخة المستوردة. صدّر نسخة من بياناتك الحالية أولًا إذا أردت الاحتفاظ بها.",
+        `<div class="helper-note">الكلمات الإضافية: ${valid.state.extras.length} · الجلسات: ${valid.state.sessions.length} · سجلات التقدم: ${Object.keys(valid.state.progress).length}${hasAdaptiveBackup ? " · يتضمن تقدم التدريب التكيفي" : " · نسخة قديمة بلا بيانات تكيفية"}</div>`,
+        "استعادة البيانات", () => {
+          if (!STORE.importBackup(text, localStorage)) {
+            toast("تعذر استعادة النسخة الاحتياطية.", "error");
+            return false;
+          }
+          Object.assign(state, valid.state);
+          if (hasAdaptiveBackup) {
+            const savedAdaptive = window.MilaAdaptiveEngine.normalizeState(adaptiveBackup);
+            try {
+              localStorage.setItem("mila-yaelnet-adaptive-v1", JSON.stringify(savedAdaptive));
+            } catch (error) {
+              STORE.saveState(state, localStorage);
+              toast("تعذر حفظ تقدم التدريب التكيفي. لم تكتمل الاستعادة؛ تحقق من مساحة التخزين.", "error");
+              return false;
+            }
+          }
+          applySettings();
+          render();
+          toast(hasAdaptiveBackup ? "تمت استعادة بيانات المنصة والتدريب التكيفي." : "تمت استعادة بيانات المنصة. النسخة قديمة ولم تغيّر تقدم التدريب التكيفي الحالي.");
+          return true;
+        });
     }catch{toast("تعذرت قراءة ملف النسخة الاحتياطية.","error");}
   }
 
