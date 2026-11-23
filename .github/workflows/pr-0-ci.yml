@@ -6,7 +6,7 @@ on:
       - main
   push:
     branches:
-      - ci/pr-0-node20-test-baseline
+      - ci/pr-0-node26-runtime-baseline
 
 jobs:
   test:
