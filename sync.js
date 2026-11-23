@@ -71,6 +71,42 @@ return true;
 }
 };
 const apply=v=>{if(!isSnapshot(v))throw Error('صيغة بيانات السحابة غير معروفة. لم تتغير بيانات الجهاز.');const b=Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).map(k=>[k,localStorage.getItem(k)]),entries=v.entries.filter(([k])=>!isInternalStorageKey(k));suppress=true;try{b.forEach(([k])=>localStorage.removeItem(k));entries.forEach(([k,x])=>localStorage.setItem(k,x))}catch(e){Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).forEach(k=>localStorage.removeItem(k));b.forEach(([k,x])=>localStorage.setItem(k,x));throw e}finally{suppress=false}};
+const isolateLocalAccount=userId=>{
+const currentMeta=meta();
+if(!isDifferentAccount(currentMeta.userId,userId))return false;
+const currentSnapshot=snap();
+const backupKey=ACCOUNT_BACKUP_PREFIX+currentMeta.userId;
+if(!localStorage.getItem(backupKey)){
+const backup={version:1,userId:currentMeta.userId,snapshot:currentSnapshot,meta:currentMeta,pending:parse(localStorage.getItem(PENDING)),savedAt:Date.now()};
+localStorage.setItem(backupKey,JSON.stringify(backup));
+}
+const targetBackupKey=ACCOUNT_BACKUP_PREFIX+userId;
+const targetBackup=parse(localStorage.getItem(targetBackupKey));
+const oldMetaRaw=localStorage.getItem(META),oldPendingRaw=localStorage.getItem(PENDING),oldRevision=revision,oldBaseline=baseline,oldPendingValue=pending;
+try{
+if(targetBackup?.version===1&&targetBackup.userId===userId&&isSnapshot(targetBackup.snapshot)&&targetBackup.meta?.userId===userId){
+apply(targetBackup.snapshot);
+revision=Number.isInteger(targetBackup.meta.revision)?targetBackup.meta.revision:0;
+baseline=isSnapshot(targetBackup.meta.baseline)?targetBackup.meta.baseline:null;
+localStorage.setItem(META,JSON.stringify({...targetBackup.meta,userId,deviceId:device,restoredAt:new Date().toISOString()}));
+if(targetBackup.pending)localStorage.setItem(PENDING,JSON.stringify(targetBackup.pending));else localStorage.removeItem(PENDING);
+pending=targetBackup.pending||null;
+localStorage.removeItem(targetBackupKey);
+}else{
+const empty=createSnapshot([]);
+apply(empty);
+writeMeta(0,empty,userId);
+localStorage.removeItem(PENDING);pending=null;dirty=false;
+}
+return true;
+}catch(error){
+try{apply(currentSnapshot)}catch{}
+try{if(oldMetaRaw!==null)localStorage.setItem(META,oldMetaRaw);else localStorage.removeItem(META)}catch{}
+try{if(oldPendingRaw!==null)localStorage.setItem(PENDING,oldPendingRaw);else localStorage.removeItem(PENDING)}catch{}
+revision=oldRevision;baseline=oldBaseline;pending=oldPendingValue;
+throw error;
+}
+};
 const save=async(v,expected,mutationId)=>{const{data,error}=await sb.rpc('sync_learning_state',{p_state:v,p_expected_revision:expected,p_mutation_id:mutationId,p_device_id:device,p_schema_version:1});if(error)throw error;if(data?.status==='conflict')return{conflict:true,data};if(!['saved','duplicate'].includes(data?.status))throw Error('استجابة غير متوقعة من خدمة المزامنة');if(data.status==='duplicate'&&data.state&&!isSameSnapshot(data.state,v))return{conflict:true,data,duplicate:true};writeMeta(data.revision,data.state||v);localStorage.removeItem(PENDING);pending=null;dirty=false;return{conflict:false,data}};
 const loginSync=async()=>{
 status('جارٍ مقارنة بيانات هذا الجهاز بالسحابة…');
@@ -197,6 +233,8 @@ session=s;setAuth(s?.user||null);
 await pauseRealtime();
 if(activation!==activationVersion)return;
 if(!s){syncReady=false;clearConflict();status('لم تسجّل الدخول حاليًا — تقدمك محفوظ على هذا الجهاز، ولن تتم مزامنته حتى تسجّل الدخول.','info');return}
+try{if(isolateLocalAccount(s.user.id)){location.reload();return}}
+catch(error){status('تعذر عزل بيانات الحساب السابق بأمان. لم نرسلها إلى الحساب الحالي. '+(error?.message||''),'error');return}
 if(navigator.onLine===false){status('أنت مسجّل الدخول، لكن لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة عند عودة الاتصال.','info');return}
 await recoverOnline();
 };
