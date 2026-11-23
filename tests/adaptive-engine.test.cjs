@@ -166,6 +166,12 @@ test("short-term retries are bounded and defer when there is not enough spacing 
 });
 
 
+test("matching wrong-then-correct answers use distinct idempotency events", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /recordAnswer\(id, true, id, null, createAnswerEventId\(session\.id, idx, id \+ ":matching-correct"\)\)/);
+  assert.match(app, /recordAnswer\(leftId, false, id, null, createAnswerEventId\(session\.id, idx, leftId \+ ":matching-wrong"\)\)/);
+});
+
 test("adaptive session persists start time and a deduplicatable answer history", () => {
   let state = Engine.startSession(Engine.createState(), [words[0]], "he-ar", fixedRandom);
   const startedAt = state.session.startedAt;
