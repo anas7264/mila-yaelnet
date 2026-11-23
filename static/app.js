@@ -719,7 +719,7 @@
     return next;
   }
 
-  const ADAPTIVE_EVENT_LIMIT = 10000;
+  const ADAPTIVE_EVENT_LIMIT = 2048;
   if (!state.adaptiveEventIds || typeof state.adaptiveEventIds !== "object" || Array.isArray(state.adaptiveEventIds)) state.adaptiveEventIds = {};
 
   function rememberAdaptiveEvent(eventId) {
