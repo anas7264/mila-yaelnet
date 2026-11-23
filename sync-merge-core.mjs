@@ -374,7 +374,7 @@ function mergeMainState(base, local, remote, scheduleReview, conflicts) {
   return out;
 }
 
-function mergeAdaptiveState(base, local, remote, mergedEvents, scheduleReview, conflicts) {
+function mergeAdaptiveState(base, local, remote, baseEvents, localEvents, remoteEvents, scheduleReview, conflicts) {
   const b = isObject(base) ? base : defaultAdaptiveState();
   const l = isObject(local) ? local : defaultAdaptiveState();
   const r = isObject(remote) ? remote : defaultAdaptiveState();
@@ -386,7 +386,7 @@ function mergeAdaptiveState(base, local, remote, mergedEvents, scheduleReview, c
   }
   out.progress = {};
   for (const direction of ["he-ar", "ar-he"]) {
-    const progress = mergeProgress(b.progress, l.progress, r.progress, {}, mergedEvents, mergedEvents, conflicts, scheduleReview, direction);
+    const progress = mergeProgress(b.progress, l.progress, r.progress, baseEvents, localEvents, remoteEvents, conflicts, scheduleReview, direction);
     for (const [wordId, cardPair] of Object.entries(progress)) {
       if (!out.progress[wordId]) out.progress[wordId] = {};
       if (cardPair[direction]) out.progress[wordId][direction] = cardPair[direction];
@@ -408,6 +408,11 @@ export function mergeSnapshots(baseSnapshot, localSnapshot, remoteSnapshot, opti
   const keys = new Set([...baseEntries.keys(), ...localEntries.keys(), ...remoteEntries.keys()]);
   const conflicts = [];
   const mergedEntries = [];
+  const readMain = entries => {
+    if (!entries.has(MAIN_KEY)) return defaultMainState();
+    try { return JSON.parse(entries.get(MAIN_KEY)); } catch { return defaultMainState(); }
+  };
+  const baseMain = readMain(baseEntries), localMain = readMain(localEntries), remoteMain = readMain(remoteEntries);
   for (const key of keys) {
     const b = baseEntries.has(key) ? baseEntries.get(key) : MISSING;
     const l = localEntries.has(key) ? localEntries.get(key) : MISSING;
@@ -428,12 +433,13 @@ export function mergeSnapshots(baseSnapshot, localSnapshot, remoteSnapshot, opti
         continue;
       }
       const scheduleReview = options.scheduleReview;
-      const mergedEvents = key === MAIN_KEY
-        ? mergeEventMaps(mergedBase.learningEvents, mergedLocal.learningEvents, mergedRemote.learningEvents, conflicts)
-        : null;
       const value = key === MAIN_KEY
         ? mergeMainState(mergedBase, mergedLocal, mergedRemote, scheduleReview, conflicts)
-        : mergeAdaptiveState(mergedBase, mergedLocal, mergedRemote, options.mergedEvents || {}, scheduleReview, conflicts);
+        : mergeAdaptiveState(
+            mergedBase, mergedLocal, mergedRemote,
+            baseMain.learningEvents || {}, localMain.learningEvents || {}, remoteMain.learningEvents || {},
+            options.scheduleReview, conflicts
+          );
       mergedEntries.push([key, JSON.stringify(value)]);
     } else {
       const parsed = value => {
