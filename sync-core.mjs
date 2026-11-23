@@ -322,3 +322,10 @@ export function normalizePendingMutation(value, fallbackRevision, createId = () 
     return null;
   }
 }
+
+
+export function isDifferentAccount(storedUserId, currentUserId) {
+  return typeof storedUserId === "string" && storedUserId.length > 0 &&
+    typeof currentUserId === "string" && currentUserId.length > 0 &&
+    storedUserId !== currentUserId;
+}
