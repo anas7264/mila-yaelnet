@@ -46,3 +46,9 @@ test("account isolation runs before the offline early return", () => {
   assert.ok(isolateAt > activateAt);
   assert.ok(offlineAt > isolateAt);
 });
+
+test("sync flush refuses to send queued mutations for a different account", () => {
+  const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
+  assert.match(sync, /if\(isDifferentAccount\(meta\(\)\.userId,session\.user\.id\)\)/);
+  assert.match(sync, /أوقفنا كل عمليات المزامنة/);
+});
