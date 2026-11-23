@@ -1,4 +1,4 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount}from'./sync-core.mjs?v=5';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=5';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
 import{mergeSnapshots}from'./sync-merge-core.mjs?v=1';
@@ -119,6 +119,17 @@ if(isDifferentAccount(meta().userId,userId))throw Error('يجب عزل بيان�
 const{data,error}=await sb.from('learning_state').select('state,revision,updated_at,schema_version').maybeSingle();
 if(error)throw error;let l=snap();
 let m=meta();
+const cloudSnapshot=data?.state&&isSnapshot(data.state)?data.state:createSnapshot([]);
+const localMeaningful=hasMeaningfulLearningData(l);
+const cloudMeaningful=hasMeaningfulLearningData(cloudSnapshot);
+if(!m.userId&&localMeaningful&&!isSameSnapshot(l,cloudSnapshot)){
+showConflict(l,cloudSnapshot,data?.revision??0);
+status('هذه بيانات محلية قديمة لا تحمل هوية الحساب. لمنع خلط بيانات حسابين، أوقفنا الدمج والرفع التلقائي. اختر صراحةً نسخة الجهاز أو نسخة السحابة.','conflict');
+return;
+}
+if(!localMeaningful&&cloudMeaningful&&data){
+apply(cloudSnapshot);writeMeta(data.revision,cloudSnapshot,userId);location.reload();return;
+}
 if(!data||(data.revision===0&&!hasSnapshotEntries(data.state))){
 let initial=normalizePendingMutation(pending,data?.revision??0,uuid);
 if(initial?.userId&&initial.userId!==userId){
