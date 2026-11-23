@@ -26,7 +26,7 @@ function createStorage({ failAdaptiveWrite = false } = {}) {
 const adaptiveState = {
   version: 1,
   progress: {
-    word-1: {
+    "word-1": {
       heToAr: { attempts: 4, correct: 3, incorrect: 1 },
       arToHe: { attempts: 2, correct: 1, incorrect: 1 }
     }
