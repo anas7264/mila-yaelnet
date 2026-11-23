@@ -33,11 +33,11 @@ test("sync retries persist a stable mutation id and original snapshot", () => {
   assert.match(sync, /await autoMerge\(snap\(\),r\.data\.state,r\.data\.revision\)/);
   assert.match(sync, /normalizePendingMutation/);
   assert.match(sync, /p_mutation_id:mutationId/);
-  assert.match(sync, /makeMutation=\(v,r,id=uuid\(\),at=Date\.now\(\)\)=>createPendingMutation\(v,r,id,at,session\?\.user\?\.id\|\|null\)/);
+  assert.match(sync, /makeMutation\(c\.local,c\.revision,uuid\(\)\)/);
   assert.match(sync, /normalized\.userId!==session\.user\.id/);
   assert.doesNotMatch(sync, /p_mutation_id:uuid\(\)/);
   assert.match(sync, /data\.status==='duplicate'&&data\.state&&!isSameSnapshot/);
-  assert.match(sync, /makeMutation\\(c\\.local,c\\.revision,uuid\\(\\)\\)/);
+  assert.match(sync, /makeMutation\(c\.local,c\.revision,uuid\(\)\)/);
 });
 
 test("adaptive answers still flow through the local platform bridge", () => {
