@@ -6,9 +6,9 @@ const STORE = require("../static/storage.js");
 
 const ADAPTIVE_KEY = "mila-yaelnet-adaptive-v1";
 
-function createStorage({ failAdaptiveWrite = false } = {}) {
+function createStorage() {
   const values = new Map();
-  let shouldFailAdaptive = failAdaptiveWrite;
+  let shouldFailAdaptive = false;
   return {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
     setItem(key, value) {
@@ -19,7 +19,8 @@ function createStorage({ failAdaptiveWrite = false } = {}) {
       values.set(key, String(value));
     },
     removeItem(key) { values.delete(key); },
-    dump(key) { return values.get(key) ?? null; }
+    dump(key) { return values.get(key) ?? null; },
+    failNextAdaptiveWrite() { shouldFailAdaptive = true; }
   };
 }
 
@@ -63,11 +64,12 @@ test("legacy backup without adaptive data preserves current adaptive progress", 
 });
 
 test("adaptive write failure rolls back the main learning state", () => {
-  const storage = createStorage({ failAdaptiveWrite: true });
+  const storage = createStorage();
   const previousMain = JSON.stringify(STORE.createDefaultState());
   const previousAdaptive = JSON.stringify(adaptiveState);
   storage.setItem("mila-yaelnet-studio-v3", previousMain);
   storage.setItem(ADAPTIVE_KEY, previousAdaptive);
+  storage.failNextAdaptiveWrite();
 
   const nextState = STORE.createDefaultState();
   nextState.settings.theme = "dark";
