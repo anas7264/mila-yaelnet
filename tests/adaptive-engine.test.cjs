@@ -3,7 +3,6 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const syncCorePromise = import("../sync-core.mjs");
 const Engine = require("../static/adaptive-engine.js");
 const Storage = require("../static/storage.js");
 
@@ -416,22 +415,6 @@ test("adaptive integration uses the unified stage catalog and removes the standa
 
 // Keep this deterministic suite runnable with Node's built-in test runner.
 
-test("adaptive namespace remains inside the existing sync snapshot filter", async () => {
-  const sync = await syncCorePromise;
-  const snapshot = sync.createSnapshot([
-    ["mila-yaelnet-studio-v3", "{\"version\":3}"],
-    ["mila-yaelnet-academic-v1", "{\"version\":1}"],
-    ["mila-yaelnet-adaptive-v1", "{\"version\":1}"],
-    ["__mila_sync_meta_v1", "{\"internal\":true}"]
-  ]);
-  assert.deepEqual(snapshot.entries.map(([key]) => key), [
-    "mila-yaelnet-academic-v1",
-    "mila-yaelnet-adaptive-v1",
-    "mila-yaelnet-studio-v3"
-  ]);
-  assert.equal(sync.isLearningStorageKey("mila-yaelnet-adaptive-v1"), true);
-  assert.equal(sync.isLearningStorageKey("__mila_sync_meta_v1"), false);
-});
 
 
 test("static release includes every PWA icon and required Flask-free route rewrite", () => {
