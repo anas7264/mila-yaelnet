@@ -7,7 +7,7 @@ const MISSING = Symbol("missing");
 const DERIVED_PROGRESS_FIELDS = new Set([
   "attempts", "correct", "incorrect", "mistakes", "consecutiveCorrect",
   "dueAt", "intervalDays", "repetitions", "ease", "lapses",
-  "lastReviewedAt", "lastAnswerAt", "mastered"
+  "lastReviewedAt", "lastAnswerAt", "mastered", "rating"
 ]);
 
 const isObject = value => Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -219,6 +219,12 @@ function mergeProgress(baseProgress, localProgress, remoteProgress, baseEvents, 
     const added = [...allAdded.values()].filter(event => event.wordId === wordId &&
       (mode === "main" || event.direction === mode));
     if (!added.length) {
+      if (!equal(localRecord, valueAt(b, wordId)) &&
+          !equal(remoteRecord, valueAt(b, wordId)) &&
+          !equal(localRecord, remoteRecord)) {
+        addConflict(conflicts, "progress." + wordId + ".legacy-concurrent-change");
+        continue;
+      }
       const merged = mergeValue(valueAt(b, wordId), localRecord, remoteRecord, "progress." + wordId, conflicts);
       if (merged !== MISSING) result[wordId] = merged;
       continue;
