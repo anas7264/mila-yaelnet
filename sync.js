@@ -1,6 +1,7 @@
 import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation}from'./sync-core.mjs?v=5';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
+import{mergeSnapshots}from'./sync-merge-core.mjs?v=1';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
 const card$=id=>card.querySelector('#'+id);
 const statusController=createStatusController(()=>card$('mila-sync-status'));
@@ -32,12 +33,49 @@ const writeMeta=(r,v)=>{revision=r;baseline=v;localStorage.setItem(META,JSON.str
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
 const clearConflict=()=>{conflict=null;card$('mila-sync-conflict').classList.remove('show')};
 const showConflict=(l,c,r)=>{conflict={local:l,cloud:c,revision:r};card$('mila-sync-conflict').classList.add('show');status('اكتشفنا تعارضًا بين نسختين. اختر النسخة المعتمدة للمتابعة.','conflict')};
+const autoMerge=async(local,cloud,cloudRevision,baseOverride=null,attempt=0)=>{
+const storedBase=meta().baseline;
+const base=isSnapshot(baseOverride)?baseOverride:(isSnapshot(storedBase)?storedBase:createSnapshot([]));
+const merged=mergeSnapshots(base,local,cloud,{scheduleReview:window.VocabularyQuizEngine?.scheduleReview});
+if(!merged.ok){showConflict(local,cloud,cloudRevision);status('تعذر الدمج التلقائي الآمن لبعض الحقول القديمة أو المتعارضة. لم نستبدل أي بيانات؛ اختر النسخة المعتمدة أو أعد المحاولة بعد مراجعة التعارض.','conflict');return false}
+const mutation=createPendingMutation(merged.snapshot,cloudRevision,uuid());
+const previousPending=pending;
+try{
+pending=mutation;
+localStorage.setItem(PENDING,JSON.stringify(mutation));
+apply(merged.snapshot);
+}catch(error){
+pending=previousPending;
+try{localStorage.removeItem(PENDING)}catch{}
+showConflict(local,cloud,cloudRevision);
+status('تعذر تطبيق الدمج محليًا؛ احتفظنا بالنسخة السابقة. '+(error?.message||''),'error');
+return false;
+}
+try{
+const result=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);
+if(result.conflict){
+try{localStorage.removeItem(PENDING)}catch{}
+pending=null;
+if(attempt<2)return autoMerge(merged.snapshot,result.data.state,result.data.revision,cloud,attempt+1);
+showConflict(snap(),result.data.state,result.data.revision);
+return false;
+}
+clearConflict();
+status('دُمجت التغييرات المستقلة بين الأجهزة تلقائيًا.','ok');
+location.reload();
+return true;
+}catch(error){
+status('دُمجت التغييرات محليًا، لكن تعذر رفعها الآن. ستُستأنف المزامنة تلقائيًا عند عودة الاتصال. '+(error?.message||''),'info');
+location.reload();
+return true;
+}
+};
 const apply=v=>{if(!isSnapshot(v))throw Error('صيغة بيانات السحابة غير معروفة. لم تتغير بيانات الجهاز.');const b=Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).map(k=>[k,localStorage.getItem(k)]),entries=v.entries.filter(([k])=>!isInternalStorageKey(k));suppress=true;try{b.forEach(([k])=>localStorage.removeItem(k));entries.forEach(([k,x])=>localStorage.setItem(k,x))}catch(e){Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).forEach(k=>localStorage.removeItem(k));b.forEach(([k,x])=>localStorage.setItem(k,x));throw e}finally{suppress=false}};
 const save=async(v,expected,mutationId)=>{const{data,error}=await sb.rpc('sync_learning_state',{p_state:v,p_expected_revision:expected,p_mutation_id:mutationId,p_device_id:device,p_schema_version:1});if(error)throw error;if(data?.status==='conflict')return{conflict:true,data};if(!['saved','duplicate'].includes(data?.status))throw Error('استجابة غير متوقعة من خدمة المزامنة');if(data.status==='duplicate'&&data.state&&!isSameSnapshot(data.state,v))return{conflict:true,data,duplicate:true};writeMeta(data.revision,data.state||v);localStorage.removeItem(PENDING);pending=null;dirty=false;return{conflict:false,data}};
-const loginSync=async()=>{status('جارٍ مقارنة بيانات هذا الجهاز بالسحابة…');const{data,error}=await sb.from('learning_state').select('state,revision,updated_at,schema_version').maybeSingle();if(error)throw error;const l=snap();if(!data||(data.revision===0&&!hasSnapshotEntries(data.state))){const initial=normalizePendingMutation(pending,data?.revision??0,uuid)||createPendingMutation(l,data?.revision??0,uuid());pending=initial;localStorage.setItem(PENDING,JSON.stringify(initial));const r=await save(initial.snapshot,initial.expectedRevision,initial.mutationId);if(r.conflict)showConflict(l,r.data.state,r.data.revision);else status('حُفظت بيانات هذا الجهاز في حسابك.','ok');return}const queued=normalizePendingMutation(pending,revision,uuid);if(queued){pending=queued;localStorage.setItem(PENDING,JSON.stringify(queued));if(isSameSnapshot(data.state,queued.snapshot)){writeMeta(data.revision,data.state);localStorage.removeItem(PENDING);pending=null}else if(queued.expectedRevision===data.revision){revision=data.revision;baseline=data.state;return}else{showConflict(l,data.state,data.revision);return}}if(!hasSnapshotEntries(l)){apply(data.state);writeMeta(data.revision,data.state);location.reload();return}const m=meta();if(m.revision===data.revision&&isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state);status('هذا الجهاز متزامن مع أحدث نسخة سحابية.','ok');return}if(m.revision===data.revision&&m.baseline&&isSameSnapshot(l,m.baseline)){apply(data.state);writeMeta(data.revision,data.state);location.reload();return}if(isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state);status('بيانات الجهاز والسحابة متطابقة.','ok');return}showConflict(l,data.state,data.revision)};
-const flush=async()=>{if(!session||!navigator.onLine||conflict)return;const current=snap();if(baseline&&isSameSnapshot(current,baseline)&&!pending)return;status('جارٍ حفظ التعديلات في السحابة…');try{const mutation=normalizePendingMutation(pending,revision,uuid)||createPendingMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict){showConflict(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error')}};
+const loginSync=async()=>{status('جارٍ مقارنة بيانات هذا الجهاز بالسحابة…');const{data,error}=await sb.from('learning_state').select('state,revision,updated_at,schema_version').maybeSingle();if(error)throw error;const l=snap();if(!data||(data.revision===0&&!hasSnapshotEntries(data.state))){const initial=normalizePendingMutation(pending,data?.revision??0,uuid)||createPendingMutation(l,data?.revision??0,uuid());pending=initial;localStorage.setItem(PENDING,JSON.stringify(initial));const r=await save(initial.snapshot,initial.expectedRevision,initial.mutationId);if(r.conflict)await autoMerge(l,r.data.state,r.data.revision);else status('حُفظت بيانات هذا الجهاز في حسابك.','ok');return}const queued=normalizePendingMutation(pending,revision,uuid);if(queued){pending=queued;localStorage.setItem(PENDING,JSON.stringify(queued));if(isSameSnapshot(data.state,queued.snapshot)){writeMeta(data.revision,data.state);localStorage.removeItem(PENDING);pending=null}else if(queued.expectedRevision===data.revision){revision=data.revision;baseline=data.state;return}else{await autoMerge(l,data.state,data.revision);return}}if(!hasSnapshotEntries(l)){apply(data.state);writeMeta(data.revision,data.state);location.reload();return}const m=meta();if(m.revision===data.revision&&isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state);status('هذا الجهاز متزامن مع أحدث نسخة سحابية.','ok');return}if(m.revision===data.revision&&m.baseline&&isSameSnapshot(l,m.baseline)){apply(data.state);writeMeta(data.revision,data.state);location.reload();return}if(isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state);status('بيانات الجهاز والسحابة متطابقة.','ok');return}await autoMerge(l,data.state,data.revision)};
+const flush=async()=>{if(!session||!navigator.onLine||conflict)return;const current=snap();if(baseline&&isSameSnapshot(current,baseline)&&!pending)return;status('جارٍ حفظ التعديلات في السحابة…');try{const mutation=normalizePendingMutation(pending,revision,uuid)||createPendingMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error')}};
 const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;clearTimeout(timer);timer=setTimeout(flush,900)};
-const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(dirty||(baseline&&!isSameSnapshot(l,baseline))){showConflict(l,r.state,r.revision);return}try{apply(r.state);writeMeta(r.revision,r.state);location.reload()}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
+const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(dirty||(baseline&&!isSameSnapshot(l,baseline))){void autoMerge(l,r.state,r.revision);return}try{apply(r.state);writeMeta(r.revision,r.state);location.reload()}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
 const pauseRealtime=()=>{
 const active=channel;channel=null;
 if(!active)return realtimeCleanup;
