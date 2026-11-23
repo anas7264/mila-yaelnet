@@ -244,15 +244,31 @@
       return;
     }
     const bridge = window.MilaLearningBridge;
-    const integrated = bridge?.recordAdaptiveAnswer({
-      eventId: q.questionId,
-      wordId: q.wordId,
-      correct: result.correct,
-      direction: q.direction,
-      at: result.state.session?.lastResult?.at
-    });
+    if (!bridge || typeof bridge.recordAdaptiveAnswer !== "function") {
+      toast("تعذر تحميل وحدة تسجيل إجابات المنصة. لم تُسجّل الإجابة بعد؛ حدّث الصفحة ثم أعد المحاولة قبل الانتقال للسؤال التالي.", true);
+      return;
+    }
+    let integrated;
+    try {
+      integrated = bridge.recordAdaptiveAnswer({
+        eventId: q.questionId,
+        wordId: q.wordId,
+        correct: result.correct,
+        direction: q.direction,
+        at: result.state.session?.lastResult?.at
+      });
+    } catch (error) {
+      console.error("Adaptive answer bridge failed:", error);
+      toast("حدث خطأ أثناء تسجيل الإجابة في سجل المنصة. بقي السؤال دون اعتماد؛ أعد المحاولة.", true);
+      return;
+    }
     if (!integrated?.accepted) {
-      toast("لم تُحفظ هذه الإجابة في سجل المنصة الرئيسي؛ أعد المحاولة دون الانتقال للسؤال التالي.", true);
+      const message = integrated?.reason === "main-progress-save-failed"
+        ? "تعذر حفظ الإجابة في التخزين المحلي للمنصة. أُبقي السؤال كما هو؛ حرّر مساحة تخزين ثم أعد المحاولة."
+        : integrated?.reason === "invalid-answer"
+          ? "لم تُقبل الإجابة بسبب عدم تطابق الكلمة أو معرّف السؤال. أعد تحميل التدريب لاستعادة الحالة."
+          : "لم يتم اعتماد الإجابة في سجل المنصة (" + String(integrated?.reason || "سبب غير محدد") + "). أعد المحاولة قبل الانتقال.";
+      toast(message, true);
       return;
     }
     state = result.state;
