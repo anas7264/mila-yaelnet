@@ -1,4 +1,4 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation}from'./sync-core.mjs?v=5';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount}from'./sync-core.mjs?v=5';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
 import{mergeSnapshots}from'./sync-merge-core.mjs?v=1';
@@ -80,7 +80,7 @@ const userId=session?.user?.id;
 if(!userId)throw Error('لا يمكن بدء المزامنة دون حساب مصادق.');
 let l=snap();
 let m=meta();
-if(m.userId&&m.userId!==userId){
+if(isDifferentAccount(m.userId,userId)){
 const oldUserId=m.userId;
 const backupKey=ACCOUNT_BACKUP_PREFIX+oldUserId;
 const accountBackup={version:1,userId:oldUserId,snapshot:l,meta:m,pending:parse(localStorage.getItem(PENDING)),savedAt:Date.now()};
