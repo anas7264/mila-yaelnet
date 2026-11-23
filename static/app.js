@@ -120,6 +120,33 @@
     return ok;
   }
 
+  function captureLearningCheckpoint(wordIds = []) {
+    return {
+      progress: wordIds.map(id => [id, state.progress[id] ? { ...state.progress[id] } : null]),
+      daily: { ...state.daily },
+      mistakes: state.mistakes.slice(),
+      adaptiveEventIds: { ...(state.adaptiveEventIds || {}) },
+      learningEvents: { ...(state.learningEvents || {}) },
+      sessions: state.sessions.slice(),
+      lastSessionSummary: state.lastSessionSummary,
+      session: ui.session ? JSON.parse(JSON.stringify(ui.session)) : null
+    };
+  }
+
+  function restoreLearningCheckpoint(checkpoint) {
+    for (const [id, value] of checkpoint.progress) {
+      if (value) state.progress[id] = value;
+      else delete state.progress[id];
+    }
+    state.daily = checkpoint.daily;
+    state.mistakes = checkpoint.mistakes;
+    state.adaptiveEventIds = checkpoint.adaptiveEventIds;
+    state.learningEvents = checkpoint.learningEvents;
+    state.sessions = checkpoint.sessions;
+    state.lastSessionSummary = checkpoint.lastSessionSummary;
+    ui.session = checkpoint.session;
+  }
+
   function toast(message, kind = "success") {
     const node = $("toast");
     if (!node) return;
@@ -628,7 +655,7 @@
         </section>
         <section class="form-card"><h3>اختصارات لوحة المفاتيح</h3><p>تنقل وأجب دون استخدام الفأرة في أثناء الاختبار.</p><div class="shortcut-list"><div class="shortcut-item"><span>اختيار الإجابة</span><kbd>1–5</kbd></div><div class="shortcut-item"><span>التالي / إظهار الإجابة</span><kbd>Enter</kbd></div><div class="shortcut-item"><span>إظهار البطاقة</span><kbd>Space</kbd></div><div class="shortcut-item"><span>إيقاف / متابعة المؤقت</span><kbd>P</kbd></div><div class="shortcut-item"><span>إغلاق النافذة</span><kbd>Esc</kbd></div><div class="shortcut-item"><span>الرئيسية</span><kbd>1</kbd></div></div></section>
         <section class="form-card"><h3>حالة المنصة</h3><p>معلومات تشغيلية عن النسخة الحالية.</p>
-          <div class="history-list"><div class="history-row"><strong>إصدار البيانات</strong><span>v3</span></div><div class="history-row"><strong>مفردات رسمية</strong><span>${OFFICIAL.length}</span></div><div class="history-row"><strong>كلمات إضافية</strong><span>${state.extras.length}</span></div><div class="history-row"><strong>حفظ محلي</strong><span class="badge badge-green">نشط</span></div><div class="history-row"><strong>المزامنة السحابية</strong><span class="badge badge-neutral">غير مفعلة</span></div></div>
+          <div class="history-list"><div class="history-row"><strong>إصدار البيانات</strong><span>v3</span></div><div class="history-row"><strong>مفردات رسمية</strong><span>${OFFICIAL.length}</span></div><div class="history-row"><strong>كلمات إضافية</strong><span>${state.extras.length}</span></div><div class="history-row"><strong>حفظ محلي</strong><span class="badge badge-green">نشط</span></div><div class="history-row"><strong>طريقة حفظ البيانات</strong><span class="badge badge-neutral">محلي على هذا الجهاز</span></div></div>
         </section>
       </div>`;
   }
@@ -679,7 +706,15 @@
     state.daily.completed = (Number(state.daily.completed) || 0) + 1;
   }
 
-  function recordAnswer(wordId, correct, selectedWordId = null, source = null) {
+  function createAnswerEventId(sessionId, questionId, wordId) {
+    const parts = [sessionId, questionId, wordId].map(value => String(value ?? "").trim());
+    if (parts.some(value => !value)) return "";
+    return "mila-answer-v1:" + parts.map(encodeURIComponent).join(":");
+  }
+
+  function recordAnswer(wordId, correct, selectedWordId = null, source = null, eventId = null, metadata = null) {
+    const ledgerKey = eventId ? "answer:" + String(eventId).slice(0, 180) : "";
+    if (ledgerKey && state.adaptiveEventIds?.[ledgerKey]) return progressOf(wordId);
     const previous = progressOf(wordId);
     const now = Date.now();
     const next = {
@@ -695,6 +730,30 @@
     Object.assign(next, schedule);
     if (correct && next.repetitions >= 3 && next.intervalDays >= 6) next.mastered = true;
     state.progress[wordId] = next;
+    if (ledgerKey) {
+      if (!state.adaptiveEventIds || typeof state.adaptiveEventIds !== "object") state.adaptiveEventIds = {};
+      if (!state.learningEvents || typeof state.learningEvents !== "object") state.learningEvents = {};
+      const eventAt = Number(metadata?.at) > 0 ? Number(metadata.at) : now;
+      state.adaptiveEventIds[ledgerKey] = eventAt;
+      state.learningEvents[ledgerKey] = {
+        eventId: String(eventId).slice(0, 180),
+        wordId: String(wordId).slice(0, 120),
+        correct: Boolean(correct),
+        selectedWordId: selectedWordId ? String(selectedWordId).slice(0, 120) : null,
+        source: String(source || ui.session?.title || "جلسة تدريب").slice(0, 100),
+        at: eventAt,
+        date: localDate(new Date(eventAt)),
+        direction: metadata?.direction === "he-ar" || metadata?.direction === "ar-he" ? metadata.direction : null
+      };
+      const eventIds = Object.keys(state.adaptiveEventIds);
+      if (eventIds.length > ADAPTIVE_EVENT_LIMIT) {
+        eventIds.sort((a, b) => Number(state.adaptiveEventIds[a]) - Number(state.adaptiveEventIds[b]));
+        for (const id of eventIds.slice(0, eventIds.length - ADAPTIVE_EVENT_LIMIT)) {
+          delete state.adaptiveEventIds[id];
+          delete state.learningEvents[id];
+        }
+      }
+    }
     if (!correct) {
       state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: source || ui.session?.title || "جلسة تدريب" });
       if (state.mistakes.length > 500) state.mistakes.splice(0, state.mistakes.length - 500);
@@ -703,7 +762,7 @@
     return next;
   }
 
-  const ADAPTIVE_EVENT_LIMIT = 10000;
+  const ADAPTIVE_EVENT_LIMIT = 2048;
   if (!state.adaptiveEventIds || typeof state.adaptiveEventIds !== "object" || Array.isArray(state.adaptiveEventIds)) state.adaptiveEventIds = {};
 
   function rememberAdaptiveEvent(eventId) {
@@ -711,7 +770,10 @@
     const ids = Object.keys(state.adaptiveEventIds);
     if (ids.length > ADAPTIVE_EVENT_LIMIT) {
       ids.sort((left, right) => Number(state.adaptiveEventIds[left]) - Number(state.adaptiveEventIds[right]));
-      for (const id of ids.slice(0, ids.length - ADAPTIVE_EVENT_LIMIT)) delete state.adaptiveEventIds[id];
+      for (const id of ids.slice(0, ids.length - ADAPTIVE_EVENT_LIMIT)) {
+        delete state.adaptiveEventIds[id];
+        if (state.learningEvents) delete state.learningEvents[id];
+      }
     }
   }
 
@@ -728,13 +790,15 @@
     const previousDaily = { ...state.daily };
     const previousMistakes = state.mistakes.slice();
     const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
-    recordAnswer(wordId, event.correct, null, "التدريب التكيفي");
+    const previousLearningEvents = { ...(state.learningEvents || {}) };
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, { direction: event.direction, at: event.at });
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
       state.daily = previousDaily;
       state.mistakes = previousMistakes;
       state.adaptiveEventIds = previousAdaptiveEventIds;
+      state.learningEvents = previousLearningEvents;
       return { accepted: false, reason: "main-progress-save-failed" };
     }
     return { accepted: true, duplicate: false };
@@ -1022,6 +1086,7 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const word = wordMap().get(q.targetWordId);
     const answer = ENGINE.gradeAnswer(q, selectedWordId);
     const isCorrect = Boolean(correct && answer.correct);
@@ -1029,9 +1094,13 @@
     session.selectedWordId = selectedWordId;
     session.feedbackVisible = true;
     session.results[session.current] = { ...answer, correct: isCorrect, timedOut, targetWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, isCorrect, selectedWordId);
+    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     stopTimer();
-    persist();
     if (session.config.feedback === "end") session.feedbackVisible = false;
     renderSession();
   }
@@ -1047,15 +1116,20 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const word = wordMap().get(q.targetWordId);
     const checked = ENGINE.checkTypedAnswer(word, value, session.mode === "typed-ar-he" ? "ar-he" : "he-ar");
     session.answered = true;
     session.selectedWordId = null;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: checked.correct, targetWordId: q.targetWordId, selectedWordId: null, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, checked.correct, null);
+    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     stopTimer();
-    persist();
     renderSession();
   }
 
@@ -1095,6 +1169,7 @@
     }
     if (!match.selectedLeft) { toast("اختر الكلمة العبرية أولًا.", "error"); return; }
     const leftId = match.selectedLeft;
+    const checkpoint = captureLearningCheckpoint([leftId]);
     if (leftId === id) {
       match.matched.push(id);
       match.selectedLeft = null;
@@ -1103,14 +1178,14 @@
       if (q) {
         const idx = session.questions.indexOf(q);
         session.results[idx] = { correct: true, targetWordId: id };
-        recordAnswer(id, true, id);
+        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"));
       }
       if (match.matched.length === match.words.length) {
         const nextIndex = session.current + match.words.length;
         session.current = nextIndex;
         session.answered = false;
         session.matchState = null;
-        if (nextIndex >= session.questions.length) finishSession();
+        if (nextIndex >= session.questions.length) finishSession(false);
       }
     } else {
       match.mistakes += 1;
@@ -1120,13 +1195,18 @@
         const idx = session.questions.indexOf(q);
         if (!session.results[idx]) {
           session.results[idx] = { correct: false, targetWordId: leftId };
-          recordAnswer(leftId, false, id);
+          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong"));
         }
       }
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
       match.selectedLeft = null;
     }
-    persist();
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      if (ui.session?.timerSeconds && !ui.session?.answered) startTimer();
+      return;
+    }
     renderSession();
   }
 
@@ -1134,20 +1214,26 @@
     const session = ui.session;
     if (!session || session.answered) return;
     const q = session.questions[session.current];
+    const checkpoint = captureLearningCheckpoint([q.targetWordId]);
     const good = rating !== "again";
     session.answered = true;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: good, targetWordId: q.targetWordId, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, good, null);
+    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
     const p = progressOf(q.targetWordId);
     state.progress[q.targetWordId] = { ...p, ...ENGINE.scheduleReview(p, rating, Date.now()) };
-    persist();
+    if (!persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return;
+    }
     renderSession();
   }
 
   function nextQuestion() {
     const session = ui.session;
     if (!session || !session.answered) return;
+    const checkpoint = captureLearningCheckpoint([]);
     const previousResult = session.results[session.current];
     const nextIndex = session.current + 1;
     if (session.difficulty === "adaptive" && nextIndex < session.questions.length) {
@@ -1167,16 +1253,23 @@
     session.feedbackVisible = false;
     session.flashRevealed = false;
     session.remainingSeconds = session.timerSeconds;
-    if (session.current >= session.questions.length) finishSession();
-    else {
+    if (session.current >= session.questions.length) {
+      finishSession(false);
+      if (!persist()) {
+        restoreLearningCheckpoint(checkpoint);
+        renderSession();
+        return;
+      }
+    } else {
       renderSession();
       if (session.timerSeconds) startTimer();
     }
   }
 
-  function finishSession() {
+  function finishSession(persistState = true) {
     const session = ui.session;
-    if (!session) return;
+    if (!session) return false;
+    const checkpoint = persistState ? captureLearningCheckpoint([]) : null;
     stopTimer();
     const results = session.results.filter(Boolean);
     const summary = ENGINE.summarizeSession(results);
@@ -1196,9 +1289,14 @@
     if (state.sessions.length > 500) state.sessions.splice(0, state.sessions.length-500);
     const wrong = summary.wrongWordIds;
     state.lastSessionSummary = sessionRecord;
-    persist();
     ui.session = { ...session, summary: sessionRecord, finished: true };
+    if (persistState && !persist()) {
+      restoreLearningCheckpoint(checkpoint);
+      renderSession();
+      return false;
+    }
     renderSessionSummary(sessionRecord);
+    return true;
   }
 
   function renderSessionSummary(record) {
@@ -1324,26 +1422,56 @@
   }
 
   function exportBackup() {
-    try{
-      exportText("mila-yaelnet-backup-"+localDate()+".json",STORE.exportBackup(state),"application/json;charset=utf-8");
-      toast("تم تنزيل النسخة الاحتياطية. احتفظ بها خارج المتصفح.");
-    }catch(error){toast(error.message||"تعذر إنشاء النسخة.","error");}
+    try {
+      const adaptiveRaw = JSON.parse(localStorage.getItem("mila-yaelnet-adaptive-v1") || "null");
+      const adaptive = window.MilaAdaptiveEngine?.normalizeState
+        ? window.MilaAdaptiveEngine.normalizeState(adaptiveRaw)
+        : null;
+      const backup = STORE.exportBackup(state, adaptive);
+      exportText("mila-yaelnet-backup-" + localDate() + ".json", backup, "application/json;charset=utf-8");
+      toast("تم تنزيل النسخة الاحتياطية، وتشمل تقدم التدريب التكيفي. احتفظ بها خارج المتصفح.");
+    } catch (error) {
+      toast(error.message || "تعذر إنشاء النسخة.", "error");
+    }
   }
 
   function importBackup() { $("backupFile")?.click(); }
 
   async function readBackupFile(file) {
     if(!file)return;
-    if(file.size>2_000_000){toast("حجم الملف أكبر من 2 ميغابايت.","error");return;}
+    if(file.size>4_000_000){toast("حجم الملف أكبر من 4 ميغابايت.","error");return;}
     try{
-      const text=await file.text();
-      const valid=STORE.validateBackup(text);
-      if(!valid.ok){toast(valid.error,"error");return;}
-      openModal("تأكيد استعادة النسخة","سيتم استبدال بيانات التعلم الحالية بالنسخة المستوردة. صدّر نسخة من بياناتك الحالية أولًا إذا أردت الاحتفاظ بها.",`<div class="helper-note">الكلمات الإضافية: ${valid.state.extras.length} · الجلسات: ${valid.state.sessions.length} · سجلات التقدم: ${Object.keys(valid.state.progress).length}</div>`,"استعادة البيانات",()=>{
-        if(!STORE.importBackup(text,localStorage)){toast("تعذر استعادة البيانات.","error");return false;}
-        Object.assign(state,valid.state);
-        applySettings();render();toast("تمت استعادة النسخة الاحتياطية.");return true;
-      });
+      const text = await file.text();
+      const valid = STORE.validateBackup(text);
+      if (!valid.ok) { toast(valid.error, "error"); return; }
+      const parsedBackup = JSON.parse(text);
+      const hasAdaptiveBackup = Object.prototype.hasOwnProperty.call(parsedBackup, "adaptive");
+      let adaptiveBackup = null;
+      if (hasAdaptiveBackup) {
+        if (!parsedBackup.adaptive || parsedBackup.adaptive.version !== 1 ||
+            !window.MilaAdaptiveEngine?.normalizeState) {
+          toast("بيانات التدريب التكيفي في النسخة غير صالحة أو غير متوافقة.", "error");
+          return;
+        }
+        adaptiveBackup = window.MilaAdaptiveEngine.normalizeState(parsedBackup.adaptive);
+      }
+      const importPayload = hasAdaptiveBackup
+        ? JSON.stringify({ ...parsedBackup, adaptive: adaptiveBackup })
+        : text;
+      openModal("تأكيد استعادة النسخة", "سيتم استبدال بيانات التعلم الحالية بالنسخة المستوردة. صدّر نسخة من بياناتك الحالية أولًا إذا أردت الاحتفاظ بها.",
+        `<div class="helper-note">الكلمات الإضافية: ${valid.state.extras.length} · الجلسات: ${valid.state.sessions.length} · سجلات التقدم: ${Object.keys(valid.state.progress).length}${hasAdaptiveBackup ? " · يتضمن تقدم التدريب التكيفي" : " · نسخة قديمة بلا بيانات تكيفية"}</div>`,
+        "استعادة البيانات", () => {
+          const imported = STORE.importBackup(importPayload, localStorage);
+          if (!imported.ok) {
+            toast(imported.error || "تعذر استعادة النسخة الاحتياطية.", "error");
+            return false;
+          }
+          toast(hasAdaptiveBackup
+            ? "تمت استعادة بيانات المنصة والتدريب التكيفي."
+            : "تمت استعادة بيانات المنصة. النسخة قديمة ولم تغيّر تقدم التدريب التكيفي الحالي.");
+          window.setTimeout(() => location.reload(), 250);
+          return true;
+        });
     }catch{toast("تعذرت قراءة ملف النسخة الاحتياطية.","error");}
   }
 

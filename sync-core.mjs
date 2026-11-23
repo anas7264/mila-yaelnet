@@ -284,3 +284,90 @@ export function createNetworkLifecycle({
     },
   });
 }
+
+
+export function createPendingMutation(snapshot, expectedRevision, mutationId, createdAt = Date.now(), userId = null) {
+  if (!isSnapshot(snapshot)) throw new TypeError('A valid learning snapshot is required');
+  if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
+    throw new RangeError('expectedRevision must be a non-negative integer');
+  }
+  if (typeof mutationId !== 'string' || !mutationId.trim() || mutationId.length > 200) {
+    throw new TypeError('mutationId must be a non-empty string of at most 200 characters');
+  }
+  if (!Number.isFinite(createdAt) || createdAt < 0) {
+    throw new RangeError('createdAt must be a non-negative timestamp');
+  }
+  if (userId !== null && (typeof userId !== 'string' || !userId.trim() || userId.length > 128)) {
+    throw new TypeError('userId must be null or a non-empty string of at most 128 characters');
+  }
+  return Object.freeze({
+    version: 1,
+    snapshot: createSnapshot(snapshot.entries),
+    expectedRevision,
+    mutationId,
+    createdAt,
+    userId
+  });
+}
+
+export function normalizePendingMutation(value, fallbackRevision, createId = () => '') {
+  if (isSnapshot(value)) {
+    return createPendingMutation(value, fallbackRevision, createId(), Date.now(), null);
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value.version !== 1) return null;
+  try {
+    return createPendingMutation(
+      value.snapshot,
+      value.expectedRevision,
+      value.mutationId,
+      value.createdAt,
+      typeof value.userId === 'string' ? value.userId : null
+    );
+  } catch {
+    return null;
+  }
+}
+
+
+export function isDifferentAccount(storedUserId, currentUserId) {
+  return typeof storedUserId === "string" && storedUserId.length > 0 &&
+    typeof currentUserId === "string" && currentUserId.length > 0 &&
+    storedUserId !== currentUserId;
+}
+
+export function hasMeaningfulLearningData(snapshot) {
+  if (!isSnapshot(snapshot)) return false;
+  const mainKey = 'mila-yaelnet-studio-v3';
+  const adaptiveKey = 'mila-yaelnet-adaptive-v1';
+  for (const [key, raw] of snapshot.entries) {
+    if (key === mainKey) {
+      let state;
+      try { state = JSON.parse(raw); } catch { return true; }
+      if (!state || typeof state !== 'object') return true;
+      if (Object.keys(state.progress || {}).length ||
+          (state.extras || []).length ||
+          (state.mistakes || []).length ||
+          (state.sessions || []).length ||
+          Object.keys(state.learningEvents || {}).length ||
+          (state.completedStageIds || []).length ||
+          state.lastSessionSummary ||
+          Number(state.daily?.completed) > 0 ||
+          Number(state.daily?.streak) > 0 ||
+          Number(state.legacyTotals?.attempted) > 0) return true;
+      const defaults = { theme: 'light', dailyGoal: 10, defaultCount: 10, defaultMode: 'he-ar',
+        timerSeconds: 0, feedbackTiming: 'instant', focusMode: false, sound: false, largeText: false };
+      const settings = state.settings || {};
+      if (Object.keys(defaults).some(name => settings[name] !== undefined && settings[name] !== defaults[name])) return true;
+      continue;
+    }
+    if (key === adaptiveKey) {
+      let state;
+      try { state = JSON.parse(raw); } catch { return true; }
+      if (!state || typeof state !== 'object') return true;
+      if (Object.keys(state.progress || {}).length || state.session) return true;
+      continue;
+    }
+    if (raw && raw !== '{}' && raw !== '[]' && raw !== 'null') return true;
+  }
+  return false;
+}

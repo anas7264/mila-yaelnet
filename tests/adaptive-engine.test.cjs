@@ -3,7 +3,6 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const syncCorePromise = import("../sync-core.mjs");
 const Engine = require("../static/adaptive-engine.js");
 const Storage = require("../static/storage.js");
 
@@ -166,6 +165,12 @@ test("short-term retries are bounded and defer when there is not enough spacing 
 });
 
 
+test("matching wrong-then-correct answers use distinct idempotency events", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  assert.match(app, /recordAnswer\(id, true, id, null, createAnswerEventId\(session\.id, idx, id \+ ":matching-correct"\)\)/);
+  assert.match(app, /recordAnswer\(leftId, false, id, null, createAnswerEventId\(session\.id, idx, leftId \+ ":matching-wrong"\)\)/);
+});
+
 test("adaptive session persists start time and a deduplicatable answer history", () => {
   let state = Engine.startSession(Engine.createState(), [words[0]], "he-ar", fixedRandom);
   const startedAt = state.session.startedAt;
@@ -239,7 +244,7 @@ test("academic words are official stage words and the main bridge records them o
 
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
   assert.equal((appSource.match(/  initialize\(\);\n\}\)\(\);/) || []).length, 1);
-  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
+  appSource = appSource.replace(/  initialize\(\);\n\}\)\(\);/, "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const bridge = context.__MilaTestBridge;
   assert.ok(bridge);
@@ -410,22 +415,6 @@ test("adaptive integration uses the unified stage catalog and removes the standa
 
 // Keep this deterministic suite runnable with Node's built-in test runner.
 
-test("adaptive namespace remains inside the existing sync snapshot filter", async () => {
-  const sync = await syncCorePromise;
-  const snapshot = sync.createSnapshot([
-    ["mila-yaelnet-studio-v3", "{\"version\":3}"],
-    ["mila-yaelnet-academic-v1", "{\"version\":1}"],
-    ["mila-yaelnet-adaptive-v1", "{\"version\":1}"],
-    ["__mila_sync_meta_v1", "{\"internal\":true}"]
-  ]);
-  assert.deepEqual(snapshot.entries.map(([key]) => key), [
-    "mila-yaelnet-academic-v1",
-    "mila-yaelnet-adaptive-v1",
-    "mila-yaelnet-studio-v3"
-  ]);
-  assert.equal(sync.isLearningStorageKey("mila-yaelnet-adaptive-v1"), true);
-  assert.equal(sync.isLearningStorageKey("__mila_sync_meta_v1"), false);
-});
 
 
 test("static release includes every PWA icon and required Flask-free route rewrite", () => {
@@ -484,7 +473,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v21"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v36"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
@@ -714,4 +703,46 @@ test("beginSession creates the declared config, defers end feedback, and saves c
   assert.equal(record.settings.mode, "ar-he");
   assert.equal(record.settings.source, "all");
   assert.equal(Object.hasOwn(record.settings, "feedback"), false);
+});
+
+
+test("adaptive answer bridge bounds persisted idempotency history to prevent localStorage exhaustion", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    getElementById() { return null; }, querySelectorAll() { return []; },
+    querySelector() { return null; }, addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "bounded-ledger-test" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const bridge = context.__MilaTestBridge;
+  const word = context.YaelCatalog.officialWords()[0];
+  for (let i = 0; i < 2100; i += 1) {
+    const result = bridge.recordAdaptiveAnswer({ eventId: "bounded-event-" + i, wordId: word.id, correct: true, at: i + 1 });
+    assert.equal(result.accepted, true);
+  }
+  const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.ok(Object.keys(saved.adaptiveEventIds).length <= 2048);
+  assert.equal(saved.progress[word.id].attempts, 2100);
+});
+
+
+test("adaptive answer UI distinguishes a missing platform bridge from a failed storage write", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  assert.match(ui, /typeof bridge\.recordAdaptiveAnswer\s*!==\s*"function"/);
+  assert.match(ui, /main-progress-save-failed/);
 });

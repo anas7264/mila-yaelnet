@@ -208,7 +208,7 @@
           ${session.paused ? '<div class="adaptive-paused" role="status">الجلسة متوقفة. تقدمك محفوظ ويمكنك المتابعة في أي وقت.</div>' : feedback}
         </article>
         <div class="adaptive-session-stats"><span>الإجابات الصحيحة <b>${session.correct}</b></span><span>الأخطاء <b>${session.incorrect}</b></span><span>إجمالي المحاولات <b>${session.attempts}</b></span></div>
-        <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا، وتدخل بيانات الوضع ضمن مزامنة Mila الحالية.</p>
+        <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا على هذا الجهاز.</p>
       </section>`;
     if (!session.answered && !session.paused) $("adaptiveAnswer")?.focus({ preventScroll: true });
   }
@@ -244,15 +244,31 @@
       return;
     }
     const bridge = window.MilaLearningBridge;
-    const integrated = bridge?.recordAdaptiveAnswer({
-      eventId: q.questionId,
-      wordId: q.wordId,
-      correct: result.correct,
-      direction: q.direction,
-      at: result.state.session?.lastResult?.at
-    });
+    if (!bridge || typeof bridge.recordAdaptiveAnswer !== "function") {
+      toast("تعذر تحميل وحدة تسجيل الإجابات. لم تُسجّل الإجابة؛ حدّث الصفحة ثم أعد المحاولة قبل الانتقال للسؤال التالي.", true);
+      return;
+    }
+    let integrated;
+    try {
+      integrated = bridge.recordAdaptiveAnswer({
+        eventId: q.questionId,
+        wordId: q.wordId,
+        correct: result.correct,
+        direction: q.direction,
+        at: result.state.session?.lastResult?.at
+      });
+    } catch (error) {
+      console.error("Adaptive answer bridge failed:", error);
+      toast("حدث خطأ أثناء تسجيل الإجابة في سجل المنصة. بقي السؤال دون اعتماد؛ أعد المحاولة.", true);
+      return;
+    }
     if (!integrated?.accepted) {
-      toast("لم تُحفظ هذه الإجابة في سجل المنصة الرئيسي؛ أعد المحاولة دون الانتقال للسؤال التالي.", true);
+      const message = integrated?.reason === "main-progress-save-failed"
+        ? "تعذر حفظ الإجابة في التخزين المحلي للمنصة. أُبقي السؤال كما هو؛ حرّر مساحة تخزين ثم أعد المحاولة."
+        : integrated?.reason === "invalid-answer"
+          ? "لم تُقبل الإجابة بسبب عدم تطابق الكلمة أو معرّف السؤال. أعد تحميل التدريب لاستعادة الحالة."
+          : "لم يتم اعتماد الإجابة في سجل المنصة (" + String(integrated?.reason || "سبب غير محدد") + "). أعد المحاولة قبل الانتقال.";
+      toast(message, true);
       return;
     }
     state = result.state;
