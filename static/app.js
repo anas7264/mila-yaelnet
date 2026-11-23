@@ -679,7 +679,15 @@
     state.daily.completed = (Number(state.daily.completed) || 0) + 1;
   }
 
-  function recordAnswer(wordId, correct, selectedWordId = null, source = null) {
+  function createAnswerEventId(sessionId, questionId, wordId) {
+    const parts = [sessionId, questionId, wordId].map(value => String(value ?? "").trim());
+    if (parts.some(value => !value)) return "";
+    return "mila-answer-v1:" + parts.map(encodeURIComponent).join(":");
+  }
+
+  function recordAnswer(wordId, correct, selectedWordId = null, source = null, eventId = null) {
+    const ledgerKey = eventId ? "answer:" + String(eventId).slice(0, 180) : "";
+    if (ledgerKey && state.adaptiveEventIds?.[ledgerKey]) return progressOf(wordId);
     const previous = progressOf(wordId);
     const now = Date.now();
     const next = {
@@ -695,6 +703,14 @@
     Object.assign(next, schedule);
     if (correct && next.repetitions >= 3 && next.intervalDays >= 6) next.mastered = true;
     state.progress[wordId] = next;
+    if (ledgerKey) {
+      state.adaptiveEventIds[ledgerKey] = now;
+      const eventIds = Object.keys(state.adaptiveEventIds);
+      if (eventIds.length > ADAPTIVE_EVENT_LIMIT) {
+        eventIds.sort((a, b) => Number(state.adaptiveEventIds[a]) - Number(state.adaptiveEventIds[b]));
+        for (const id of eventIds.slice(0, eventIds.length - ADAPTIVE_EVENT_LIMIT)) delete state.adaptiveEventIds[id];
+      }
+    }
     if (!correct) {
       state.mistakes.push({ id: uid(), wordId, selectedWordId, createdAt: now, source: source || ui.session?.title || "جلسة تدريب" });
       if (state.mistakes.length > 500) state.mistakes.splice(0, state.mistakes.length - 500);
@@ -728,7 +744,7 @@
     const previousDaily = { ...state.daily };
     const previousMistakes = state.mistakes.slice();
     const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
-    recordAnswer(wordId, event.correct, null, "التدريب التكيفي");
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId);
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
@@ -1029,7 +1045,7 @@
     session.selectedWordId = selectedWordId;
     session.feedbackVisible = true;
     session.results[session.current] = { ...answer, correct: isCorrect, timedOut, targetWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, isCorrect, selectedWordId);
+    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId));
     stopTimer();
     persist();
     if (session.config.feedback === "end") session.feedbackVisible = false;
@@ -1053,7 +1069,7 @@
     session.selectedWordId = null;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: checked.correct, targetWordId: q.targetWordId, selectedWordId: null, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, checked.correct, null);
+    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
     stopTimer();
     persist();
     renderSession();
@@ -1103,7 +1119,7 @@
       if (q) {
         const idx = session.questions.indexOf(q);
         session.results[idx] = { correct: true, targetWordId: id };
-        recordAnswer(id, true, id);
+        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id));
       }
       if (match.matched.length === match.words.length) {
         const nextIndex = session.current + match.words.length;
@@ -1120,7 +1136,7 @@
         const idx = session.questions.indexOf(q);
         if (!session.results[idx]) {
           session.results[idx] = { correct: false, targetWordId: leftId };
-          recordAnswer(leftId, false, id);
+          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId));
         }
       }
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
@@ -1138,7 +1154,7 @@
     session.answered = true;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: good, targetWordId: q.targetWordId, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, good, null);
+    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
     const p = progressOf(q.targetWordId);
     state.progress[q.targetWordId] = { ...p, ...ENGINE.scheduleReview(p, rating, Date.now()) };
     persist();
