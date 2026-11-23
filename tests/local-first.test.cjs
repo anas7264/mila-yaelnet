@@ -37,7 +37,7 @@ test("sync retries persist a stable mutation id and original snapshot", () => {
   assert.match(sync, /normalized\.userId!==session\.user\.id/);
   assert.doesNotMatch(sync, /p_mutation_id:uuid\(\)/);
   assert.match(sync, /data\.status==='duplicate'&&data\.state&&!isSameSnapshot/);
-  assert.match(sync, /createPendingMutation\(c\.local,c\.revision,uuid\(\)\)/);
+  assert.match(sync, /makeMutation\\(c\\.local,c\\.revision,uuid\\(\\)\\)/);
 });
 
 test("adaptive answers still flow through the local platform bridge", () => {
