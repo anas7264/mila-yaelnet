@@ -16,7 +16,7 @@ test("sync stores account-scoped local recovery before changing accounts", () =>
   const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
   assert.match(sync, /ACCOUNT_BACKUP_PREFIX=P\+'account_backup_v1_'/);
   assert.match(sync, /snapshot:currentSnapshot,meta:currentMeta,pending:parse\(localStorage\.getItem\(PENDING\)\)/);
-  assert.match(sync, /writeMeta\(0,empty,userId\)/);
+  assert.match(sync, /writeMeta\(0,empty,userId,true\)/);
   assert.match(sync, /if\(isDifferentAccount\(meta\(\)\.userId,userId\)\)throw Error/);
   assert.match(sync, /userId,deviceId:device/);
 });
