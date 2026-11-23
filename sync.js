@@ -237,7 +237,7 @@ await pauseRealtime();
 if(activation!==activationVersion)return;
 if(!s){syncReady=false;clearConflict();status('لم تسجّل الدخول حاليًا — تقدمك محفوظ على هذا الجهاز، ولن تتم مزامنته حتى تسجّل الدخول.','info');return}
 try{if(isolateLocalAccount(s.user.id)){location.reload();return}}
-catch(error){status('تعذر عزل بيانات الحساب السابق بأمان. لم نرسلها إلى الحساب الحالي. '+(error?.message||''),'error');return}
+catch(error){session=null;syncReady=false;setAuth(null);status('تعذر عزل بيانات الحساب السابق بأمان. أوقفنا المزامنة ولم نرسل بياناته إلى الحساب الحالي. صدّر نسخة JSON أو حرّر مساحة ثم أعد المحاولة. '+(error?.message||''),'error');return}
 if(navigator.onLine===false){status('أنت مسجّل الدخول، لكن لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة عند عودة الاتصال.','info');return}
 await recoverOnline();
 };
