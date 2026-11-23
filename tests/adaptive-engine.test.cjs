@@ -715,3 +715,45 @@ test("beginSession creates the declared config, defers end feedback, and saves c
   assert.equal(record.settings.source, "all");
   assert.equal(Object.hasOwn(record.settings, "feedback"), false);
 });
+
+
+test("adaptive answer bridge bounds persisted idempotency history to prevent localStorage exhaustion", () => {
+  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, value); },
+    removeItem(key) { values.delete(key); }
+  };
+  const document = {
+    getElementById() { return null; }, querySelectorAll() { return []; },
+    querySelector() { return null; }, addEventListener() {}
+  };
+  const context = {
+    document, localStorage: storage, console, navigator: {},
+    crypto: { randomUUID: () => "bounded-ledger-test" },
+    addEventListener() {}, scrollTo() {}, setTimeout, clearTimeout
+  };
+  context.window = context;
+  vm.createContext(context);
+  for (const file of files) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
+  let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
+  appSource = appSource.replace("  initialize();\\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\\n})();");
+  vm.runInContext(appSource, context, { filename: "static/app.js" });
+  const bridge = context.__MilaTestBridge;
+  const word = context.YaelCatalog.officialWords()[0];
+  for (let i = 0; i < 2100; i += 1) {
+    const result = bridge.recordAdaptiveAnswer({ eventId: "bounded-event-" + i, wordId: word.id, correct: true, at: i + 1 });
+    assert.equal(result.accepted, true);
+  }
+  const saved = JSON.parse(values.get("mila-yaelnet-studio-v3"));
+  assert.ok(Object.keys(saved.adaptiveEventIds).length <= 2048);
+  assert.equal(saved.progress[word.id].attempts, 2100);
+});
+
+
+test("adaptive answer UI distinguishes a missing platform bridge from a failed storage write", () => {
+  const ui = fs.readFileSync(path.join(__dirname, "../static/adaptive-ui.js"), "utf8");
+  assert.match(ui, /typeof bridge\?\.recordAdaptiveAnswer\s*!==\s*"function"/);
+  assert.match(ui, /main-progress-save-failed/);
+});
