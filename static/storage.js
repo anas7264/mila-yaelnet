@@ -8,7 +8,10 @@
   const LEGACY_PROGRESS_KEY = "mila-yaelnet-progress-v2";
   const LEGACY_EXTRAS_KEY = "mila-yaelnet-extra-words-v1";
   const LEGACY_ENVELOPE_KEY = "mila-yaelnet-v1";
-  const MAX_BACKUP_CHARS = 2_000_000;
+  const MAX_BACKUP_CHARS = 4_000_000;
+  const MAX_STATE_CHARS = 2_000_000;
+  const MAX_ADAPTIVE_BACKUP_CHARS = 1_800_000;
+  const ADAPTIVE_STATE_KEY = "mila-yaelnet-adaptive-v1";
   const MAX_WORDS = 5000;
   const MAX_SESSIONS = 500;
 
@@ -378,7 +381,7 @@
       const clean = sanitizeState({ ...state, version: 3 });
       if (!clean) return false;
       const serialized = JSON.stringify(clean);
-      if (serialized.length > MAX_BACKUP_CHARS) return false;
+      if (serialized.length > MAX_STATE_CHARS) return false;
       target.setItem(STATE_KEY, serialized);
       return true;
     } catch {
@@ -406,20 +409,63 @@
     }
     const state = sanitizeState(raw);
     if (!state) return { ok: false, error: "نسخة غير متوافقة أو بياناتها غير مكتملة." };
-    return { ok: true, state };
+    const hasAdaptive = Object.prototype.hasOwnProperty.call(raw, "adaptive");
+    let adaptiveState;
+    if (hasAdaptive) {
+      const adaptive = raw.adaptive;
+      if (!adaptive || typeof adaptive !== "object" || Array.isArray(adaptive) || adaptive.version !== 1) {
+        return { ok: false, error: "بيانات التدريب التكيفي في النسخة غير صالحة أو غير متوافقة." };
+      }
+      try {
+        adaptiveState = JSON.parse(JSON.stringify(adaptive));
+        if (JSON.stringify(adaptiveState).length > MAX_ADAPTIVE_BACKUP_CHARS) {
+          return { ok: false, error: "حجم بيانات التدريب التكيفي في النسخة يتجاوز الحد المسموح." };
+        }
+      } catch {
+        return { ok: false, error: "تعذرت قراءة بيانات التدريب التكيفي في النسخة." };
+      }
+    }
+    return { ok: true, state, ...(hasAdaptive ? { adaptiveState } : {}) };
   }
 
-  function exportBackup(state) {
+  function exportBackup(state, adaptiveState) {
     const clean = sanitizeState({ ...state, version: 3 });
     if (!clean) throw new Error("لا يمكن تصدير حالة غير صالحة.");
-    return JSON.stringify({ ...clean, exportedAt: new Date().toISOString(), app: "mila-yaelnet-studio" }, null, 2);
+    const backup = { ...clean, exportedAt: new Date().toISOString(), app: "mila-yaelnet-studio" };
+    if (adaptiveState !== undefined && adaptiveState !== null) {
+      const adaptive = adaptiveState && typeof adaptiveState === "object" && !Array.isArray(adaptiveState) && adaptiveState.version === 1
+        ? JSON.parse(JSON.stringify(adaptiveState))
+        : null;
+      if (!adaptive || JSON.stringify(adaptive).length > MAX_ADAPTIVE_BACKUP_CHARS) {
+        throw new Error("بيانات التدريب التكيفي غير صالحة أو تتجاوز حد النسخة الاحتياطية.");
+      }
+      backup.adaptive = adaptive;
+    }
+    const serialized = JSON.stringify(backup, null, 2);
+    if (serialized.length > MAX_BACKUP_CHARS) throw new Error("حجم النسخة الاحتياطية أكبر من الحد المسموح.");
+    return serialized;
   }
 
   function importBackup(input, storage) {
     const result = validateBackup(input);
     if (!result.ok) return result;
-    if (!saveState(result.state, storage)) return { ok: false, error: "تعذر حفظ النسخة؛ قد تكون مساحة التخزين ممتلئة." };
-    return { ok: true, state: result.state };
+    const target = storage || (typeof localStorage !== "undefined" ? localStorage : null);
+    if (!target) return { ok: false, error: "التخزين المحلي غير متاح." };
+    const previousMain = safeGet(target, STATE_KEY);
+    const previousAdaptive = safeGet(target, ADAPTIVE_STATE_KEY);
+    if (!saveState(result.state, target)) return { ok: false, error: "تعذر حفظ النسخة؛ قد تكون مساحة التخزين ممتلئة." };
+    try {
+      if (result.adaptiveState) target.setItem(ADAPTIVE_STATE_KEY, JSON.stringify(result.adaptiveState));
+    } catch {
+      try {
+        if (previousMain === null) target.removeItem(STATE_KEY);
+        else target.setItem(STATE_KEY, previousMain);
+        if (previousAdaptive === null) target.removeItem(ADAPTIVE_STATE_KEY);
+        else target.setItem(ADAPTIVE_STATE_KEY, previousAdaptive);
+      } catch {}
+      return { ok: false, error: "تعذر حفظ بيانات التدريب التكيفي؛ أُعيدت بيانات المنصة السابقة قدر الإمكان." };
+    }
+    return { ok: true, state: result.state, adaptiveState: result.adaptiveState || null };
   }
 
   return {
