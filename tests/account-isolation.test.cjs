@@ -52,3 +52,12 @@ test("sync flush refuses to send queued mutations for a different account", () =
   assert.match(sync, /if\(isDifferentAccount\(meta\(\)\.userId,session\.user\.id\)\)/);
   assert.match(sync, /أوقفنا كل عمليات المزامنة/);
 });
+
+test("sync RPC write boundary independently rejects account mismatch", () => {
+  const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
+  const saveAt = sync.indexOf("const save=async");
+  const rpcAt = sync.indexOf("sb.rpc('sync_learning_state'", saveAt);
+  const guardAt = sync.indexOf("Account identity check failed", saveAt);
+  assert.ok(saveAt >= 0);
+  assert.ok(guardAt > saveAt && guardAt < rpcAt);
+});
