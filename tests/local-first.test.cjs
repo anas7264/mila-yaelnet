@@ -7,23 +7,35 @@ const path = require("node:path");
 
 const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 
-test("app entrypoint does not load cloud sync or Supabase", () => {
+test("app entrypoint loads the automatic sync runtime", () => {
   const html = read("index.html");
-  assert.doesNotMatch(html, /sync-config|\/sync\.js|supabase|mila-sync/i);
+  assert.match(html, /sync-config\.js/);
+  assert.match(html, /import\(['"]\/sync\.js\?v=7['"]\)/);
   assert.match(html, /static\/storage\.js/);
   assert.match(html, /static\/adaptive-ui\.js/);
 });
 
-test("service worker no longer precaches cloud sync assets", () => {
+test("service worker precaches sync runtime and local Supabase SDK", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /mila-yaelnet-v23/);
-  assert.doesNotMatch(sw, /sync-config|sync\.js|sync-core|supabase/i);
+  assert.match(sw, /mila-yaelnet-v24/);
+  assert.match(sw, /sync-config\.js/);
+  assert.match(sw, /sync\.js/);
+  assert.match(sw, /sync-core\.mjs/);
+  assert.match(sw, /static\/vendor\/supabase\.umd\.js/);
+});
+
+test("sync retries persist a stable mutation id and original snapshot", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /createPendingMutation/);
+  assert.match(sync, /normalizePendingMutation/);
+  assert.match(sync, /p_mutation_id:mutationId/);
+  assert.doesNotMatch(sync, /p_mutation_id:uuid\(\)/);
 });
 
 test("adaptive answers still flow through the local platform bridge", () => {
   const ui = read("static/adaptive-ui.js");
   const app = read("static/app.js");
-  assert.match(ui, /bridge\.recordAdaptiveAnswer/);
+  assert.match(ui, /bridge\?\.recordAdaptiveAnswer|bridge\.recordAdaptiveAnswer/);
   assert.match(app, /function recordAdaptiveAnswer\(event\)/);
   assert.match(app, /STORE\.saveState\(state, localStorage\)/);
 });
