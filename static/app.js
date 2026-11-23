@@ -1119,7 +1119,7 @@
       if (q) {
         const idx = session.questions.indexOf(q);
         session.results[idx] = { correct: true, targetWordId: id };
-        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id));
+        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"));
       }
       if (match.matched.length === match.words.length) {
         const nextIndex = session.current + match.words.length;
@@ -1136,7 +1136,7 @@
         const idx = session.questions.indexOf(q);
         if (!session.results[idx]) {
           session.results[idx] = { correct: false, targetWordId: leftId };
-          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId));
+          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong"));
         }
       }
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
