@@ -15,6 +15,7 @@ test("learning answer events survive state sanitization with bounded validated p
       selectedWordId: "word-2",
       source: "التدريب التكيفي",
       at: 1730000000000,
+      date: "2026-11-23",
       direction: "ar-he"
     },
     "answer:bad": { wordId: {}, correct: "yes" },
@@ -28,7 +29,7 @@ test("learning answer events survive state sanitization with bounded validated p
     selectedWordId: "word-2",
     source: "التدريب التكيفي",
     at: 1730000000000,
-    date: "",
+    date: "2026-11-23",
     direction: "ar-he"
   });
   assert.equal(clean.learningEvents["answer:bad"], undefined);
