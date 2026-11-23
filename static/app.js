@@ -685,7 +685,7 @@
     return "mila-answer-v1:" + parts.map(encodeURIComponent).join(":");
   }
 
-  function recordAnswer(wordId, correct, selectedWordId = null, source = null, eventId = null) {
+  function recordAnswer(wordId, correct, selectedWordId = null, source = null, eventId = null, metadata = null) {
     const ledgerKey = eventId ? "answer:" + String(eventId).slice(0, 180) : "";
     if (ledgerKey && state.adaptiveEventIds?.[ledgerKey]) return progressOf(wordId);
     const previous = progressOf(wordId);
@@ -704,11 +704,26 @@
     if (correct && next.repetitions >= 3 && next.intervalDays >= 6) next.mastered = true;
     state.progress[wordId] = next;
     if (ledgerKey) {
-      state.adaptiveEventIds[ledgerKey] = now;
+      if (!state.adaptiveEventIds || typeof state.adaptiveEventIds !== "object") state.adaptiveEventIds = {};
+      if (!state.learningEvents || typeof state.learningEvents !== "object") state.learningEvents = {};
+      const eventAt = Number(metadata?.at) > 0 ? Number(metadata.at) : now;
+      state.adaptiveEventIds[ledgerKey] = eventAt;
+      state.learningEvents[ledgerKey] = {
+        eventId: String(eventId).slice(0, 180),
+        wordId: String(wordId).slice(0, 120),
+        correct: Boolean(correct),
+        selectedWordId: selectedWordId ? String(selectedWordId).slice(0, 120) : null,
+        source: String(source || ui.session?.title || "جلسة تدريب").slice(0, 100),
+        at: eventAt,
+        direction: metadata?.direction === "he-ar" || metadata?.direction === "ar-he" ? metadata.direction : null
+      };
       const eventIds = Object.keys(state.adaptiveEventIds);
       if (eventIds.length > ADAPTIVE_EVENT_LIMIT) {
         eventIds.sort((a, b) => Number(state.adaptiveEventIds[a]) - Number(state.adaptiveEventIds[b]));
-        for (const id of eventIds.slice(0, eventIds.length - ADAPTIVE_EVENT_LIMIT)) delete state.adaptiveEventIds[id];
+        for (const id of eventIds.slice(0, eventIds.length - ADAPTIVE_EVENT_LIMIT)) {
+          delete state.adaptiveEventIds[id];
+          delete state.learningEvents[id];
+        }
       }
     }
     if (!correct) {
@@ -727,7 +742,10 @@
     const ids = Object.keys(state.adaptiveEventIds);
     if (ids.length > ADAPTIVE_EVENT_LIMIT) {
       ids.sort((left, right) => Number(state.adaptiveEventIds[left]) - Number(state.adaptiveEventIds[right]));
-      for (const id of ids.slice(0, ids.length - ADAPTIVE_EVENT_LIMIT)) delete state.adaptiveEventIds[id];
+      for (const id of ids.slice(0, ids.length - ADAPTIVE_EVENT_LIMIT)) {
+        delete state.adaptiveEventIds[id];
+        if (state.learningEvents) delete state.learningEvents[id];
+      }
     }
   }
 
@@ -744,13 +762,15 @@
     const previousDaily = { ...state.daily };
     const previousMistakes = state.mistakes.slice();
     const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
-    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId);
+    const previousLearningEvents = { ...(state.learningEvents || {}) };
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, { direction: event.direction, at: event.at });
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
       state.daily = previousDaily;
       state.mistakes = previousMistakes;
       state.adaptiveEventIds = previousAdaptiveEventIds;
+      state.learningEvents = previousLearningEvents;
       return { accepted: false, reason: "main-progress-save-failed" };
     }
     return { accepted: true, duplicate: false };
