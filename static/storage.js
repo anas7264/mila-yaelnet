@@ -14,6 +14,7 @@
   const ADAPTIVE_STATE_KEY = "mila-yaelnet-adaptive-v1";
   const MAX_WORDS = 5000;
   const MAX_SESSIONS = 500;
+  const MAX_LEARNING_EVENTS = 2048;
 
   const parse = (raw, fallback) => {
     try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
@@ -45,7 +46,8 @@
       },
       daily: { lastDate: "", streak: 0, completed: 0 },
       legacyTotals: null,
-      adaptiveEventIds: {}
+      adaptiveEventIds: {},
+      learningEvents: {}
     };
   }
 
@@ -197,6 +199,25 @@
         if (id && id.length <= 200 && !["__proto__", "constructor", "prototype"].includes(id)) adaptiveEventIds[id] = Math.max(0, Number(at) || 0);
       }
     }
+    const learningEvents = Object.create(null);
+    if (raw.learningEvents && typeof raw.learningEvents === "object" && !Array.isArray(raw.learningEvents)) {
+      for (const [id, item] of Object.entries(raw.learningEvents).slice(-MAX_LEARNING_EVENTS)) {
+        if (!id || !id.startsWith("answer:") || id.length > 200 ||
+            ["__proto__", "constructor", "prototype"].includes(id) ||
+            !item || typeof item !== "object" || Array.isArray(item) ||
+            typeof item.wordId !== "string" || !item.wordId || item.wordId.length > 120 ||
+            typeof item.correct !== "boolean") continue;
+        learningEvents[id] = {
+          eventId: String(item.eventId || id.slice(7)).slice(0, 180),
+          wordId: item.wordId,
+          correct: item.correct,
+          selectedWordId: typeof item.selectedWordId === "string" ? item.selectedWordId.slice(0, 120) : null,
+          source: typeof item.source === "string" ? item.source.slice(0, 100) : "",
+          at: Math.max(0, Number(item.at) || 0),
+          direction: item.direction === "he-ar" || item.direction === "ar-he" ? item.direction : null
+        };
+      }
+    }
     const legacyTotals = raw.legacyTotals && typeof raw.legacyTotals === "object" ? {
       correct: Math.max(0, Number(raw.legacyTotals.correct) || 0),
       attempted: Math.max(0, Number(raw.legacyTotals.attempted) || 0)
@@ -244,6 +265,7 @@
       },
       legacyTotals,
       adaptiveEventIds,
+      learningEvents,
       lastSessionSummary: raw.lastSessionSummary && typeof raw.lastSessionSummary === "object" && !Array.isArray(raw.lastSessionSummary)
         ? sessions.find((item) => item.id === raw.lastSessionSummary.id) || null : null,
       completedStageIds: Array.isArray(raw.completedStageIds) ? raw.completedStageIds.filter((id) => typeof id === "string").slice(0, 100) : []
