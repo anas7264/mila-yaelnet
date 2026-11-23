@@ -1,0 +1,1 @@
+window.__MILA_SYNC_CONFIG__ = {"url": "https://pvgkxjemsvcnzatyvywi.supabase.co", "publishableKey": "sb_publishable_4ZMUwg9rOoN65-2f5h5zXw_alRpPtXI"};
