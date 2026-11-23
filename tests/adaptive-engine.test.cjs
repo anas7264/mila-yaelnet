@@ -738,7 +738,7 @@ test("adaptive answer bridge bounds persisted idempotency history to prevent loc
   vm.createContext(context);
   for (const file of files) vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
-  appSource = appSource.replace("  initialize();\\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\\n})();");
+  appSource = appSource.replace("  initialize();\n})();", "  window.__MilaTestBridge = window.MilaLearningBridge;\n})();");
   vm.runInContext(appSource, context, { filename: "static/app.js" });
   const bridge = context.__MilaTestBridge;
   const word = context.YaelCatalog.officialWords()[0];
