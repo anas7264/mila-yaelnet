@@ -2,7 +2,7 @@ name: Verify adaptive engine
 
 on:
   push:
-    branches: [feat/adaptive-vocabulary-p0, feat/adaptive-static-preview, feat/adaptive-data-integration, feat/automatic-three-way-sync-merge-2026-11-22]
+    branches: [main, feat/adaptive-vocabulary-p0, feat/adaptive-static-preview, feat/adaptive-data-integration, feat/automatic-three-way-sync-merge-2026-11-22]
   pull_request:
     branches: [main, feat/adaptive-static-preview]
 
