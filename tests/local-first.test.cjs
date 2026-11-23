@@ -27,6 +27,9 @@ test("service worker precaches sync runtime and local Supabase SDK", () => {
 test("sync retries persist a stable mutation id and original snapshot", () => {
   const sync = read("sync.js");
   assert.match(sync, /createPendingMutation/);
+  assert.match(sync, /mergeSnapshots/);
+  assert.match(sync, /const autoMerge=async/);
+  assert.match(sync, /await autoMerge\(snap\(\),r\.data\.state,r\.data\.revision\)/);
   assert.match(sync, /normalizePendingMutation/);
   assert.match(sync, /p_mutation_id:mutationId/);
   assert.doesNotMatch(sync, /p_mutation_id:uuid\(\)/);
