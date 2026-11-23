@@ -53,6 +53,7 @@ return false;
 }
 try{
 const result=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);
+if(result.stale)return false;
 if(result.conflict){
 try{localStorage.removeItem(PENDING)}catch{}
 pending=null;
