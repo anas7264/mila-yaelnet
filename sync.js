@@ -28,7 +28,7 @@ const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000})
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0;
-const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin);
+const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null)=>{revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}))};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
 const clearConflict=()=>{conflict=null;card$('mila-sync-conflict').classList.remove('show')};
@@ -38,7 +38,7 @@ const storedBase=meta().baseline;
 const base=isSnapshot(baseOverride)?baseOverride:(isSnapshot(storedBase)?storedBase:createSnapshot([]));
 const merged=mergeSnapshots(base,local,cloud,{scheduleReview:window.VocabularyQuizEngine?.scheduleReview});
 if(!merged.ok){showConflict(local,cloud,cloudRevision);status('تعذر الدمج التلقائي الآمن لبعض الحقول القديمة أو المتعارضة. لم نستبدل أي بيانات؛ اختر النسخة المعتمدة أو أعد المحاولة بعد مراجعة التعارض.','conflict');return false}
-const mutation=createPendingMutation(merged.snapshot,cloudRevision,uuid());
+const mutation=makeMutation(merged.snapshot,cloudRevision,uuid());
 const previousPending=pending;
 try{
 pending=mutation;
@@ -128,13 +128,26 @@ throw error;
 }
 }
 if(!data||(data.revision===0&&!hasSnapshotEntries(data.state))){
-const initial=normalizePendingMutation(pending,data?.revision??0,uuid)||createPendingMutation(l,data?.revision??0,uuid());
+let initial=normalizePendingMutation(pending,data?.revision??0,uuid);
+if(initial?.userId&&initial.userId!==userId){
+const key=ACCOUNT_BACKUP_PREFIX+initial.userId;
+if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({version:1,userId:initial.userId,snapshot:initial.snapshot,meta:{userId:initial.userId,revision:initial.expectedRevision,baseline:null},pending:initial,savedAt:Date.now()}));
+localStorage.removeItem(PENDING);pending=null;initial=null;
+}
+if(initial&&!initial.userId)initial=makeMutation(initial.snapshot,initial.expectedRevision,initial.mutationId,initial.createdAt);
+if(!initial)initial=makeMutation(l,data?.revision??0,uuid());
 pending=initial;localStorage.setItem(PENDING,JSON.stringify(initial));
 const r=await save(initial.snapshot,initial.expectedRevision,initial.mutationId);
 if(r.conflict)await autoMerge(l,r.data.state,r.data.revision);else status('حُفظت بيانات هذا الجهاز في حسابك.','ok');
 return;
 }
-const queued=normalizePendingMutation(pending,revision,uuid);
+let queued=normalizePendingMutation(pending,revision,uuid);
+if(queued?.userId&&queued.userId!==userId){
+const key=ACCOUNT_BACKUP_PREFIX+queued.userId;
+if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({version:1,userId:queued.userId,snapshot:queued.snapshot,meta:{userId:queued.userId,revision:queued.expectedRevision,baseline:null},pending:queued,savedAt:Date.now()}));
+localStorage.removeItem(PENDING);pending=null;queued=null;
+}
+if(queued&&!queued.userId)queued=makeMutation(queued.snapshot,queued.expectedRevision,queued.mutationId,queued.createdAt);
 if(queued){
 pending=queued;localStorage.setItem(PENDING,JSON.stringify(queued));
 if(isSameSnapshot(data.state,queued.snapshot)){writeMeta(data.revision,data.state,userId);localStorage.removeItem(PENDING);pending=null}
@@ -148,7 +161,7 @@ if(m.revision===data.revision&&m.baseline&&isSameSnapshot(l,m.baseline)){apply(d
 if(isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state,userId);status('بيانات الجهاز والسحابة متطابقة.','ok');return}
 await autoMerge(l,data.state,data.revision);
 };
-const flush=async()=>{if(!session||!navigator.onLine||conflict)return;const current=snap();if(baseline&&isSameSnapshot(current,baseline)&&!pending)return;status('جارٍ حفظ التعديلات في السحابة…');try{const mutation=normalizePendingMutation(pending,revision,uuid)||createPendingMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error')}};
+const flush=async()=>{if(!session||!navigator.onLine||conflict)return;const current=snap();if(baseline&&isSameSnapshot(current,baseline)&&!pending)return;status('جارٍ حفظ التعديلات في السحابة…');try{const normalized=normalizePendingMutation(pending,revision,uuid);if(normalized?.userId&&normalized.userId!==session.user.id){status('توقفت المزامنة لحماية بيانات حساب آخر. أعد تسجيل الدخول إلى الحساب الصحيح.','error');return}const mutation=normalized?(normalized.userId?normalized:makeMutation(normalized.snapshot,normalized.expectedRevision,normalized.mutationId,normalized.createdAt)):makeMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error')}};
 const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;clearTimeout(timer);timer=setTimeout(flush,900)};
 const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(dirty||(baseline&&!isSameSnapshot(l,baseline))){void autoMerge(l,r.state,r.revision);return}try{apply(r.state);writeMeta(r.revision,r.state);location.reload()}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
 const pauseRealtime=()=>{
@@ -193,7 +206,7 @@ card$('mila-sync-signup').onclick=async()=>{const{email,password}=creds();if(!em
 card$('mila-sync-resend').onclick=async()=>{const{email}=creds();if(!email)return status('أدخل البريد الإلكتروني أولًا.','error');status('جارٍ إرسال رسالة تأكيد جديدة…');const{error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:emailRedirect()}});if(error)return status(error.message,'error');status('أُرسلت رسالة جديدة. استخدم أحدث رسالة فقط.','ok')};
 card$('mila-sync-logout').onclick=async()=>{const{error}=await sb.auth.signOut();if(error)status(error.message,'error');else await activate(null)};card$('mila-sync-now').onclick=flush;
 card$('mila-sync-use-cloud').onclick=()=>{if(!conflict)return;try{apply(conflict.cloud);writeMeta(conflict.revision,conflict.cloud);clearConflict();dirty=false;pending=null;localStorage.removeItem(PENDING);location.reload()}catch(e){status(e.message,'error')}};
-card$('mila-sync-use-device').onclick=async()=>{if(!conflict)return;const c=conflict;clearConflict();try{const mutation=createPendingMutation(c.local,c.revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict)showConflict(c.local,r.data.state,r.data.revision);else status('اعتمدت بيانات هذا الجهاز وحُفظت في السحابة.','ok')}catch(e){showConflict(c.local,c.cloud,c.revision);status('تعذرت الكتابة: '+e.message,'error')}};
+card$('mila-sync-use-device').onclick=async()=>{if(!conflict)return;const c=conflict;clearConflict();try{const mutation=makeMutation(c.local,c.revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.conflict)showConflict(c.local,r.data.state,r.data.revision);else status('اعتمدت بيانات هذا الجهاز وحُفظت في السحابة.','ok')}catch(e){showConflict(c.local,c.cloud,c.revision);status('تعذرت الكتابة: '+e.message,'error')}};
 const set=Storage.prototype.setItem,remove=Storage.prototype.removeItem,clear=Storage.prototype.clear;
 Storage.prototype.setItem=function(k,v){set.call(this,k,v);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
 Storage.prototype.removeItem=function(k){remove.call(this,k);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
