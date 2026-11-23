@@ -113,59 +113,12 @@ throw error;
 const save=async(v,expected,mutationId)=>{const{data,error}=await sb.rpc('sync_learning_state',{p_state:v,p_expected_revision:expected,p_mutation_id:mutationId,p_device_id:device,p_schema_version:1});if(error)throw error;if(data?.status==='conflict')return{conflict:true,data};if(!['saved','duplicate'].includes(data?.status))throw Error('استجابة غير متوقعة من خدمة المزامنة');if(data.status==='duplicate'&&data.state&&!isSameSnapshot(data.state,v))return{conflict:true,data,duplicate:true};writeMeta(data.revision,data.state||v);localStorage.removeItem(PENDING);pending=null;dirty=false;return{conflict:false,data}};
 const loginSync=async()=>{
 status('جارٍ مقارنة بيانات هذا الجهاز بالسحابة…');
-const{data,error}=await sb.from('learning_state').select('state,revision,updated_at,schema_version').maybeSingle();
-if(error)throw error;
 const userId=session?.user?.id;
 if(!userId)throw Error('لا يمكن بدء المزامنة دون حساب مصادق.');
-let l=snap();
+if(isDifferentAccount(meta().userId,userId))throw Error('يجب عزل بيانات الحساب السابق قبل بدء المزامنة.');
+const{data,error}=await sb.from('learning_state').select('state,revision,updated_at,schema_version').maybeSingle();
+if(error)throw error;let l=snap();
 let m=meta();
-if(isDifferentAccount(m.userId,userId)){
-const oldUserId=m.userId;
-const backupKey=ACCOUNT_BACKUP_PREFIX+oldUserId;
-const accountBackup={version:1,userId:oldUserId,snapshot:l,meta:m,pending:parse(localStorage.getItem(PENDING)),savedAt:Date.now()};
-try{localStorage.setItem(backupKey,JSON.stringify(accountBackup))}
-catch(error){status('تعذر حفظ نسخة محلية آمنة للحساب السابق بسبب مساحة التخزين. لم نبدّل الحساب ولم نخلط البيانات؛ صدّر نسخة JSON ثم أعد المحاولة.','error');throw error}
-const targetBackupKey=ACCOUNT_BACKUP_PREFIX+userId;
-const targetBackup=parse(localStorage.getItem(targetBackupKey));
-if(targetBackup?.version===1&&targetBackup.userId===userId&&isSnapshot(targetBackup.snapshot)&&targetBackup.meta?.userId===userId){
-const oldMetaRaw=localStorage.getItem(META),oldPendingRaw=localStorage.getItem(PENDING),oldRevision=revision,oldBaseline=baseline,oldPendingValue=pending;
-try{
-apply(targetBackup.snapshot);
-revision=Number.isInteger(targetBackup.meta.revision)?targetBackup.meta.revision:0;
-baseline=isSnapshot(targetBackup.meta.baseline)?targetBackup.meta.baseline:null;
-localStorage.setItem(META,JSON.stringify({...targetBackup.meta,userId,deviceId:device,restoredAt:new Date().toISOString()}));
-if(targetBackup.pending)localStorage.setItem(PENDING,JSON.stringify(targetBackup.pending));else localStorage.removeItem(PENDING);
-pending=targetBackup.pending||null;
-localStorage.removeItem(targetBackupKey);
-l=snap();
-m=meta();
-}catch(error){
-try{apply(l)}catch{}
-try{if(oldMetaRaw!==null)localStorage.setItem(META,oldMetaRaw);else localStorage.removeItem(META)}catch{}
-try{if(oldPendingRaw!==null)localStorage.setItem(PENDING,oldPendingRaw);else localStorage.removeItem(PENDING)}catch{}
-revision=oldRevision;baseline=oldBaseline;pending=oldPendingValue;
-status('تعذر استعادة بيانات هذا الحساب من النسخة المحلية. بقيت النسخة المحفوظة ولم نخلط الحسابات. '+(error?.message||''),'error');
-throw error;
-}
-}else{
-const remoteSnapshot=data?.state&&isSnapshot(data.state)?data.state:createSnapshot([]);
-const oldSnapshot=l,oldMetaRaw=localStorage.getItem(META),oldPendingRaw=localStorage.getItem(PENDING),oldRevision=revision,oldBaseline=baseline,oldPendingValue=pending;
-try{
-apply(remoteSnapshot);
-writeMeta(Number.isInteger(data?.revision)?data.revision:0,remoteSnapshot,userId);
-localStorage.removeItem(PENDING);pending=null;dirty=false;
-location.reload();
-return;
-}catch(error){
-try{apply(oldSnapshot)}catch{}
-try{if(oldMetaRaw!==null)localStorage.setItem(META,oldMetaRaw);else localStorage.removeItem(META)}catch{}
-try{if(oldPendingRaw!==null)localStorage.setItem(PENDING,oldPendingRaw);else localStorage.removeItem(PENDING)}catch{}
-revision=oldRevision;baseline=oldBaseline;pending=oldPendingValue;
-status('تعذر تبديل بيانات الحساب بأمان. لم ندمج بيانات حسابين. '+(error?.message||''),'error');
-throw error;
-}
-}
-}
 if(!data||(data.revision===0&&!hasSnapshotEntries(data.state))){
 let initial=normalizePendingMutation(pending,data?.revision??0,uuid);
 if(initial?.userId&&initial.userId!==userId){
