@@ -286,7 +286,7 @@ export function createNetworkLifecycle({
 }
 
 
-export function createPendingMutation(snapshot, expectedRevision, mutationId, createdAt = Date.now()) {
+export function createPendingMutation(snapshot, expectedRevision, mutationId, createdAt = Date.now(), userId = null) {
   if (!isSnapshot(snapshot)) throw new TypeError('A valid learning snapshot is required');
   if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
     throw new RangeError('expectedRevision must be a non-negative integer');
@@ -297,18 +297,22 @@ export function createPendingMutation(snapshot, expectedRevision, mutationId, cr
   if (!Number.isFinite(createdAt) || createdAt < 0) {
     throw new RangeError('createdAt must be a non-negative timestamp');
   }
+  if (userId !== null && (typeof userId !== 'string' || !userId.trim() || userId.length > 128)) {
+    throw new TypeError('userId must be null or a non-empty string of at most 128 characters');
+  }
   return Object.freeze({
     version: 1,
     snapshot: createSnapshot(snapshot.entries),
     expectedRevision,
     mutationId,
-    createdAt
+    createdAt,
+    userId
   });
 }
 
 export function normalizePendingMutation(value, fallbackRevision, createId = () => '') {
   if (isSnapshot(value)) {
-    return createPendingMutation(value, fallbackRevision, createId());
+    return createPendingMutation(value, fallbackRevision, createId(), Date.now(), null);
   }
   if (!value || typeof value !== 'object' || Array.isArray(value) || value.version !== 1) return null;
   try {
@@ -316,7 +320,8 @@ export function normalizePendingMutation(value, fallbackRevision, createId = () 
       value.snapshot,
       value.expectedRevision,
       value.mutationId,
-      value.createdAt
+      value.createdAt,
+      typeof value.userId === 'string' ? value.userId : null
     );
   } catch {
     return null;
