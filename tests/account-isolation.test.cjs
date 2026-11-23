@@ -15,20 +15,26 @@ test("account identity guard only treats known, different user IDs as a switch",
 test("sync stores account-scoped local recovery before changing accounts", () => {
   const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
   assert.match(sync, /ACCOUNT_BACKUP_PREFIX=P\+'account_backup_v1_'/);
-  assert.match(sync, /if\(isDifferentAccount\(m\.userId,userId\)\)/);
-  assert.match(sync, /snapshot:l,meta:m,pending:parse\(localStorage\.getItem\(PENDING\)\)/);
-  assert.match(sync, /writeMeta\(Number\.isInteger\(data\?\.revision\)\?data\.revision:0,remoteSnapshot,userId\)/);
+  assert.match(sync, /snapshot:currentSnapshot,meta:currentMeta,pending:parse\(localStorage\.getItem\(PENDING\)\)/);
+  assert.match(sync, /writeMeta\(0,empty,userId\)/);
+  assert.match(sync, /if\(isDifferentAccount\(meta\(\)\.userId,userId\)\)throw Error/);
   assert.match(sync, /userId,deviceId:device/);
 });
 
 test("account switching never uploads the previous account snapshot to the new account", () => {
   const sync = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
-  const switchAt = sync.indexOf("if(isDifferentAccount(m.userId,userId)){");
-  const uploadAt = sync.indexOf("let initial=normalizePendingMutation", switchAt);
-  const cloudApplyAt = sync.indexOf("apply(remoteSnapshot)", switchAt);
-  assert.ok(switchAt >= 0);
-  assert.ok(cloudApplyAt > switchAt);
-  assert.ok(uploadAt > cloudApplyAt);
+  const isolateAt = sync.indexOf("const isolateLocalAccount=userId=>");
+  const backupAt = sync.indexOf("localStorage.setItem(backupKey,JSON.stringify(backup))", isolateAt);
+  const emptyApplyAt = sync.indexOf("apply(empty)", isolateAt);
+  const activateAt = sync.indexOf("const activate=async s=>");
+  const isolateCallAt = sync.indexOf("isolateLocalAccount(s.user.id)", activateAt);
+  const offlineAt = sync.indexOf("if(navigator.onLine===false)", activateAt);
+  const loginAt = sync.indexOf("const loginSync=async()=>");
+  const guardAt = sync.indexOf("isDifferentAccount(meta().userId,userId)", loginAt);
+  const cloudReadAt = sync.indexOf("sb.from('learning_state')", loginAt);
+  assert.ok(isolateAt >= 0 && backupAt > isolateAt && emptyApplyAt > backupAt);
+  assert.ok(isolateCallAt > activateAt && offlineAt > isolateCallAt);
+  assert.ok(guardAt > loginAt && cloudReadAt > guardAt);
 });
 
 test("account isolation runs before the offline early return", () => {
