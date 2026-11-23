@@ -110,7 +110,7 @@ revision=oldRevision;baseline=oldBaseline;pending=oldPendingValue;
 throw error;
 }
 };
-const save=async(v,expected,mutationId)=>{const{data,error}=await sb.rpc('sync_learning_state',{p_state:v,p_expected_revision:expected,p_mutation_id:mutationId,p_device_id:device,p_schema_version:1});if(error)throw error;if(data?.status==='conflict')return{conflict:true,data};if(!['saved','duplicate'].includes(data?.status))throw Error('استجابة غير متوقعة من خدمة المزامنة');if(data.status==='duplicate'&&data.state&&!isSameSnapshot(data.state,v))return{conflict:true,data,duplicate:true};writeMeta(data.revision,data.state||v);localStorage.removeItem(PENDING);pending=null;dirty=false;return{conflict:false,data}};
+const save=async(v,expected,mutationId)=>{if(!session?.user?.id||isDifferentAccount(meta().userId,session.user.id))throw Error('Account identity check failed; refusing cross-account sync.');const{data,error}=await sb.rpc('sync_learning_state',{p_state:v,p_expected_revision:expected,p_mutation_id:mutationId,p_device_id:device,p_schema_version:1});if(error)throw error;if(data?.status==='conflict')return{conflict:true,data};if(!['saved','duplicate'].includes(data?.status))throw Error('استجابة غير متوقعة من خدمة المزامنة');if(data.status==='duplicate'&&data.state&&!isSameSnapshot(data.state,v))return{conflict:true,data,duplicate:true};writeMeta(data.revision,data.state||v);localStorage.removeItem(PENDING);pending=null;dirty=false;return{conflict:false,data}};
 const loginSync=async()=>{
 status('جارٍ مقارنة بيانات هذا الجهاز بالسحابة…');
 const userId=session?.user?.id;
