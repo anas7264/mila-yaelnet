@@ -50,6 +50,8 @@ test("CI uses maintained Node LTS versions and current action runtimes", () => {
   assert.match(runtimeWorkflow, /actions\/setup-node@v7/);
   assert.match(runtimeWorkflow, /node-version:\s*26\b/);
   assert.doesNotMatch(runtimeWorkflow, /node-version:\s*20\b/);
+  assert.match(runtimeWorkflow, /ci\/pr-0-node26-runtime-baseline/);
+  assert.doesNotMatch(runtimeWorkflow, /node20-test-baseline/);
 
   assert.match(verifyWorkflow, /actions\/checkout@v7/);
   assert.match(verifyWorkflow, /actions\/setup-node@v7/);
