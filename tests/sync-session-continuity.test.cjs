@@ -16,15 +16,18 @@ test("automatic cloud synchronization never forces a page reload", () => {
   assert.equal(sync.includes("hasActiveLearningSession"), true);
   assert.equal(sync.includes("mila:learning-session-change"), true);
   assert.equal(sync.includes("applyCloudUpdate"), true);
+  assert.equal(sync.includes("deferredCloudUpdate||deferredAccountSession"), true, "uploads wait until deferred remote state is reconciled");
 });
 
 test("both learning modes expose idle-only cloud refresh hooks", () => {
   const app = read("static/app.js");
   const adaptive = read("static/adaptive-ui.js");
   assert.equal(app.includes("isSessionActive"), true);
+  assert.equal(app.includes("!ui.session.paused"), true);
   assert.equal(app.includes("refreshFromStorage"), true);
   assert.equal(adaptive.includes("MilaAdaptiveBridge"), true);
   assert.equal(adaptive.includes("isSessionActive"), true);
+  assert.equal(adaptive.includes("!state.session.paused"), true);
   assert.equal(adaptive.includes("refreshFromStorage"), true);
   assert.equal(app.includes("mila:learning-session-change"), true);
   assert.equal(adaptive.includes("mila:learning-session-change"), true);
