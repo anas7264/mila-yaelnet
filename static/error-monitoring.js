@@ -19,16 +19,15 @@
   }
 
   function safeError(value) {
-    if (value instanceof Error) {
-      const error = new Error(redact(value.message || value.name || "Browser error"));
-      error.name = redact(value.name || "Error").slice(0, 80);
-      if (value.stack) error.stack = redact(value.stack);
-      return error;
+    const sourceName = value instanceof Error && typeof value.name === "string" ? value.name : "Error";
+    const name = /^[A-Za-z][A-Za-z0-9]{0,40}$/.test(sourceName) ? sourceName : "Error";
+    const error = new Error("[message redacted]");
+    error.name = name;
+    if (value instanceof Error && typeof value.stack === "string") {
+      const frames = value.stack.split("\n").slice(1).join("\n");
+      if (frames) error.stack = name + ": [message redacted]\n" + redact(frames);
     }
-    if (value && typeof value === "object" && typeof value.message === "string") {
-      return new Error(redact(value.message));
-    }
-    return new Error("Unhandled promise rejection (non-Error value)");
+    return error;
   }
 
   function safeTags(input) {
@@ -49,13 +48,13 @@
     delete event.request;
     delete event.breadcrumbs;
     delete event.extra;
-    if (typeof event.message === "string") event.message = redact(event.message);
+    if (typeof event.message === "string") event.message = "JavaScript exception message redacted";
     if (typeof event.transaction === "string") event.transaction = redact(event.transaction).split("?")[0].split("#")[0];
 
     const values = event.exception?.values;
     if (Array.isArray(values)) {
       for (const item of values) {
-        if (typeof item.value === "string") item.value = redact(item.value);
+        item.value = (typeof item.type === "string" ? redact(item.type) : "Error") + ": [message redacted]";
         const frames = item.stacktrace?.frames;
         if (Array.isArray(frames)) {
           for (const frame of frames) {
