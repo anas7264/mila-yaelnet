@@ -178,7 +178,7 @@ const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;if(hasActi
 const uploadAnswerEvents=async sessionId=>{
 if(!session?.user?.id||!navigator.onLine||!window.MilaAnswerJournal?.pending)return;
 const owner=session.user.id;
-const events=window.MilaAnswerJournal.pending().filter(item=>item.sessionId===sessionId&&item.ownerId===owner);
+const events=window.MilaAnswerJournal.pending().filter(item=>item.ownerId===owner&&item.completedAt&&(!sessionId||item.sessionId===sessionId));
 for(let offset=0;offset<events.length;offset+=50){
   if(session?.user?.id!==owner)return;
   const batch=events.slice(offset,offset+50);
@@ -198,6 +198,7 @@ window.addEventListener('mila:session-completed',event=>{
   if(!sessionId)return;
   void (async()=>{
     try{
+      window.MilaAnswerJournal?.completeSession?.(sessionId);
       await uploadAnswerEvents(sessionId);
       if(dirty||pending||parse(localStorage.getItem(PENDING)))await flush();
     }catch(error){
@@ -227,6 +228,7 @@ try{
 if(!syncReady){await loginSync();syncReady=true;}
 await realtimeCleanup;
 subscribe();
+if(!hasActiveLearningSession())await uploadAnswerEvents();
 await flush();
 }catch(e){status('تعذر استئناف المزامنة: '+(e.message||e),'error')}
 })().finally(()=>{recoveryPromise=null});
