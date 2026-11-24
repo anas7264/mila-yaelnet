@@ -5,7 +5,13 @@ const Journal = require("../static/answer-journal.js");
 
 function memoryStorage() {
   const values = new Map();
-  return { getItem: key => values.get(key) ?? null, setItem: (key,value) => values.set(key,String(value)) };
+  return {
+    get length() { return values.size; },
+    key: index => [...values.keys()][index] ?? null,
+    getItem: key => values.get(key) ?? null,
+    setItem: (key,value) => values.set(key,String(value)),
+    removeItem: key => values.delete(key)
+  };
 }
 const event = (id="event-1", extra={}) => ({
   eventId:id, sessionId:"session-1", wordId:"word-1", mode:"typed-he-ar",
