@@ -54,6 +54,9 @@
     librarySearch: "",
     libraryVisibleCount: 20,
     libraryObserver: null,
+    stageVisibleCount: 20,
+    reviewVisibleCount: 20,
+    progressiveObserver: null,
     session: null,
     toastTimer: null,
     timerHandle: null,
@@ -397,7 +400,30 @@
     return `<div class="word-list">${rows}</div>`;
   }
 
+  function progressiveMarkup(words, visibleCount, sentinelId, action, options = {}) {
+    const count = Math.max(20, Number(visibleCount) || 20);
+    const visible = wordListMarkup(words.slice(0, count), options);
+    if (words.length <= count) return visible;
+    return visible + `<div class="progressive-load-sentinel" id="${sentinelId}"><button class="button button-secondary" type="button" data-action="${action}">تحميل 20 كلمة إضافية</button></div>`;
+  }
+
+  function observeProgressiveSentinel(id, action) {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
+    const sentinel = $(id);
+    if (!sentinel || !("IntersectionObserver" in window)) return;
+    ui.progressiveObserver = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        const button = sentinel.querySelector(`[data-action="${action}"]`);
+        if (button) handleAction(action, button);
+      }
+    }, { root: null, rootMargin: "320px 0px", threshold: 0 });
+    ui.progressiveObserver.observe(sentinel);
+  }
+
   function renderStage() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
     const stage = stageById(ui.stageId);
     if (!stage) { ui.view = "stages"; render(); return; }
     const words = stageWords(stage.id);
@@ -407,7 +433,7 @@
     if (ui.stageTab === "words") {
       const search = ui.stageSearch || "";
       const filtered = ENGINE.filterWords(words, state.progress, { stageId: stage.id, search });
-      body = `<div class="toolbar"><div class="search-control"><input class="control" data-input="stage-search" value="${esc(search)}" placeholder="ابحث في كلمات هذه المرحلة فقط"></div><div class="toolbar-group"><button class="button button-secondary button-small" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">اختبار مفردات المرحلة</button><button class="button button-soft button-small" data-action="stage-tab" data-tab="favorites">المفضلة</button></div></div>${wordListMarkup(filtered)}</div>`;
+      body = `<div class="toolbar"><div class="search-control"><input class="control" data-input="stage-search" value="${esc(search)}" placeholder="ابحث في كلمات هذه المرحلة فقط"></div><div class="toolbar-group"><button class="button button-secondary button-small" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">اختبار مفردات المرحلة</button><button class="button button-soft button-small" data-action="stage-tab" data-tab="favorites">المفضلة</button></div></div>${progressiveMarkup(filtered, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more")}</div>`;
     } else if (ui.stageTab === "study") {
       const word = words[ui.studyIndex % Math.max(1, words.length)];
       body = words.length ? `<div class="flashcard"><div class="question-kicker">STAGE ${stage.number} · STUDY CARD ${ui.studyIndex + 1} / ${words.length}</div><div class="question-prompt">${esc(word.he)}</div>${ui.studyFlipped ? `<div class="flashcard-back">${esc(word.ar)}</div><span class="badge badge-green">المعنى الصحيح</span>` : '<p class="question-hint">حاول تذكر المعنى قبل إظهاره</p>'}<div class="form-actions"><button class="button button-secondary" data-action="flip-card">${ui.studyFlipped ? "إخفاء المعنى" : "إظهار المعنى"}</button><button class="button button-primary" data-action="next-card">البطاقة التالية →</button><button class="icon-action ${progressOf(word.id).favorite ? "is-active" : ""}" data-action="toggle-favorite" data-word-id="${esc(word.id)}">★</button><button class="icon-action" data-action="speak" data-word-id="${esc(word.id)}">◖</button></div></div>` : emptyState("◇","لا توجد مفردات","أضف مفردات المرحلة أولًا.");
@@ -415,21 +441,22 @@
       body = `<div class="empty-hero"><div class="empty-icon">✳</div><h3>اختبار مستقل لهذه المرحلة</h3><p>ستكون الأسئلة من مفردات ${esc(stage.title)} فقط. أما المشتّتات فتُختار من بنك الكلمات الأوسع لتكون الخيارات أكثر تنوعًا دون تغيير نطاق الأسئلة.</p><button class="button button-primary" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">ابدأ الاختبار الآن</button><button class="button button-secondary" data-action="open-studio-stage" data-stage-id="${esc(stage.id)}">تخصيص إعدادات الاختبار</button></div>`;
     } else if (ui.stageTab === "due") {
       const due = dueWords(words);
-      body = `${due.length ? '<div class="toolbar"><span class="badge badge-red">' + due.length + ' مراجعة مستحقة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="due">اختبر المستحق</button></div>' : ""}${wordListMarkup(due,{emptyTitle:"لا توجد مراجعات مستحقة في هذه المرحلة",emptyCopy:"ستظهر الكلمة هنا عندما يحين موعد استعادتها حسب جدول المراجعة."})}`;
+      body = `${due.length ? '<div class="toolbar"><span class="badge badge-red">' + due.length + ' مراجعة مستحقة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="due">اختبر المستحق</button></div>' : ""}${progressiveMarkup(due, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", {emptyTitle:"لا توجد مراجعات مستحقة في هذه المرحلة",emptyCopy:"ستظهر الكلمة هنا عندما يحين موعد استعادتها حسب جدول المراجعة."})}`;
     } else if (ui.stageTab === "review") {
       const mistakes = stageMistakes(stage.id);
       const ids = new Set(mistakes.map((m) => m.wordId));
       const review = words.filter((w) => ids.has(w.id) || (Number(progressOf(w.id).mistakes) || 0) > 0);
-      body = `${review.length ? '<div class="toolbar"><span class="badge badge-red">' + review.length + ' كلمة تحتاج إعادة مراجعة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="mistakes">اختبر الأخطاء فقط</button></div>' : ""}${wordListMarkup(review,{emptyTitle:"هذه المرحلة بلا أخطاء مسجلة",emptyCopy:"الإجابات الخاطئة ستظهر هنا تلقائيًا بعد الاختبارات."})}`;
+      body = `${review.length ? '<div class="toolbar"><span class="badge badge-red">' + review.length + ' كلمة تحتاج إعادة مراجعة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="mistakes">اختبر الأخطاء فقط</button></div>' : ""}${progressiveMarkup(review, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", {emptyTitle:"هذه المرحلة بلا أخطاء مسجلة",emptyCopy:"الإجابات الخاطئة ستظهر هنا تلقائيًا بعد الاختبارات."})}`;
     } else if (ui.stageTab === "favorites") {
-      body = wordListMarkup(favoriteWords(words), { emptyTitle: "لم تضف مفضلات بعد", emptyCopy: "اضغط على النجمة بجوار الكلمة لحفظها هنا." });
+      body = progressiveMarkup(favoriteWords(words), ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", { emptyTitle: "لم تضف مفضلات بعد", emptyCopy: "اضغط على النجمة بجوار الكلمة لحفظها هنا." });
     } else {
       body = `<div class="stats-grid">${statCard("مفردات المرحلة",words.length,"◇","الكلمات الرسمية في هذه المرحلة")}${statCard("إجابات",a.attempted,"✓","إجابات من هذه المرحلة فقط")}${statCard("دقة",a.accuracy+"%","◎","صحة إجابات هذه المرحلة")}${statCard("متقنة",mastered,"✦","من إجمالي "+words.length+" كلمة")}</div><div class="panel-card"><div class="panel-heading"><h2>تقدم إتقان المرحلة</h2><span class="badge badge-gold">${Math.round(mastered/Math.max(1,words.length)*100)}%</span></div>${progressTrack(mastered/Math.max(1,words.length)*100)}<div class="progress-meta"><span>${mastered} متقنة</span><span>${words.length-mastered} لم تتقن بعد</span></div><div class="section-divider"></div><div class="history-list"><div class="history-row"><strong>الأخطاء المسجلة</strong><span>${stageMistakes(stage.id).length}</span></div><div class="history-row"><strong>الكلمات المفضلة</strong><span>${favoriteWords(words).length}</span></div><div class="history-row"><strong>المراجعات المستحقة</strong><span>${dueWords(words).length}</span></div></div></div>`;
     }
     $("appView").innerHTML = `
       ${pageHead(`STAGE WORKSPACE · ${stage.number}`, stage.title, stage.description, '<button class="button button-primary" data-action="open-studio-stage" data-stage-id="' + esc(stage.id) + '">✳ تمرين مخصص</button>')}
       <section class="stats-grid">${statCard("عدد المفردات",words.length,"◇","في هذه المرحلة فقط")}${statCard("الإجابات",a.attempted,"✓","سجل المرحلة")}${statCard("الدقة",a.accuracy+"%","◎","لا تشمل المراحل الأخرى")}${statCard("المراجعة",stageMistakes(stage.id).length,"↻","أخطاء هذه المرحلة")}</section>
-      ${stageTabsMarkup()}<section class="stack">${body}</section>`;
+${stageTabsMarkup()}<section class="stack">${body}</section>`;
+    if (["words","due","review","favorites"].includes(ui.stageTab)) observeProgressiveSentinel("stageLoadMoreSentinel", "stage-load-more");
   }
 
   function renderStudio() {
@@ -592,17 +619,20 @@
   }
 
   function renderReview() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
     const tabs = [["due","المستحقة"],["weak","الضعيفة"],["mistakes","الأخطاء"],["new","الجديدة"]];
     const source = ui.reviewFilter || "due";
     let words = source === "weak" ? weakWords() : source === "mistakes" ? mistakeWords() : source === "new" ? newWords() : dueWords();
     const list = `<section class="panel-card"><div class="panel-heading"><div><h2>قائمة المراجعة</h2><p>الكلمات المعروضة مصدرها هذا التصنيف فقط</p></div><span class="badge badge-gold">${words.length} كلمة</span></div>
       ${words.length ? '<div class="toolbar"><button class="button button-primary button-small" data-action="practice-source" data-source="' + source + '">اختبر هذه المجموعة</button></div>' : ""}
-      ${wordListMarkup(words,{emptyTitle:"القائمة فارغة",emptyCopy:"ستُضاف الكلمات إلى هذا التصنيف حسب إجاباتك وجدولة المراجعة."})}
+      ${progressiveMarkup(words, ui.reviewVisibleCount, "reviewLoadMoreSentinel", "review-load-more", {emptyTitle:"القائمة فارغة",emptyCopy:"ستُضاف الكلمات إلى هذا التصنيف حسب إجاباتك وجدولة المراجعة."})}
     </section>`;
     $("appView").innerHTML = `
       ${pageHead("RETRIEVAL & REVIEW", "مركز المراجعة", "استهدف الكلمات التي تحتاج عملًا بدل تكرار كل المفردات بالتساوي.", '<button class="button button-primary" data-action="open-studio">بناء جلسة مخصصة</button>')}
       <section class="stats-grid">${statCard("مستحقة",dueWords().length,"↻","حان موعد مراجعتها")}${statCard("ضعيفة",weakWords().length,"⌁","دقة أقل من 70% بعد المحاولة")}${statCard("أخطاء",state.mistakes.length,"!", "إجابات خاطئة مسجلة")}${statCard("جديدة",newWords().length,"＋","لم تُختبر بعد")}</section>
       <div class="stage-tabs">${tabs.map(([id,label])=>`<button class="stage-tab ${source===id?"active":""}" data-action="review-filter" data-filter="${id}">${label}</button>`).join("")}</div>${list}`;
+    observeProgressiveSentinel("reviewLoadMoreSentinel", "review-load-more");
   }
 
   function renderAnalytics() {
@@ -694,6 +724,8 @@
   }
 
   function render() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
     ui.libraryObserver?.disconnect();
     ui.libraryObserver = null;
     renderShell();
@@ -1682,7 +1714,7 @@
       case "open-studio-stage": ui.stageId=target.dataset.stageId;ui.studioDraft.source="stage";ui.studioDraft.stageIds=[ui.stageId];navigate("studio");break;
       case "open-stage": navigate("stage",{stageId:target.dataset.stageId,tab:"words"});break;
       case "stage-quiz": ui.stageId=target.dataset.stageId;startStudioSession({...ui.studioDraft,source:"stage",stageId:ui.stageId,stageIds:[ui.stageId],count:"all"});break;
-      case "stage-tab": ui.stageTab=target.dataset.tab;renderStage();break;
+      case "stage-tab": ui.stageTab=target.dataset.tab;ui.stageVisibleCount=20;renderStage();break;
       case "flip-card": ui.studyFlipped=!ui.studyFlipped;renderStage();break;
       case "next-card": ui.studyIndex=(ui.studyIndex+1)%stageWords(ui.stageId).length;ui.studyFlipped=false;renderStage();break;
       case "practice-stage-source": {
@@ -1694,6 +1726,20 @@
       }
       case "practice-source": ui.studioDraft.source=target.dataset.source;startStudioSession({...ui.studioDraft,source:target.dataset.source,count:"all"});break;
       case "library-filter": ui.libraryFilter=target.dataset.filter;ui.libraryVisibleCount=20;renderLibrary();break;
+      case "stage-load-more": {
+        const scroll = window.scrollY;
+        ui.stageVisibleCount += 20;
+        renderStage();
+        window.scrollTo(window.scrollX, scroll);
+        break;
+      }
+      case "review-load-more": {
+        const scroll = window.scrollY;
+        ui.reviewVisibleCount += 20;
+        renderReview();
+        window.scrollTo(window.scrollX, scroll);
+        break;
+      }
       case "library-load-more": {
         const currentScroll = window.scrollY;
         ui.libraryVisibleCount = Math.min((ui.libraryVisibleCount || 20) + 20, allWords().length);
@@ -1701,7 +1747,7 @@
         window.scrollTo(window.scrollX, currentScroll);
         break;
       }
-      case "review-filter": ui.reviewFilter=target.dataset.filter;renderReview();break;
+      case "review-filter": ui.reviewFilter=target.dataset.filter;ui.reviewVisibleCount=20;renderReview();break;
       case "toggle-favorite": toggleFavorite(id);break;
       case "toggle-mastered": toggleMastered(id);break;
       case "rate-word": setReviewRating(id,target.dataset.rating);break;
@@ -1830,6 +1876,7 @@
       }
       if(event.target.dataset.input==="stage-search"){
         ui.stageSearch=event.target.value;
+        ui.stageVisibleCount=20;
         const scroll=window.scrollY;
         renderStage();window.scrollTo(0,scroll);
         const field=document.querySelector('[data-input="stage-search"]');
