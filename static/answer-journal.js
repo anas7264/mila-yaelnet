@@ -1,15 +1,22 @@
 (function attachAnswerJournal(root) {
   "use strict";
-  const KEY = "mila-yaelnet-answer-journal-v1";
+  const KEY_PREFIX = "mila-yaelnet-answer-event:";
   const MAX_EVENT_BYTES = 12000;
   const MAX_PENDING_EVENTS = 50000;
   const ratings = new Set(["again", "hard", "good", "easy"]);
+  const eventKey = id => KEY_PREFIX + encodeURIComponent(String(id));
 
-  function safeRead(storage) {
-    try {
-      const parsed = JSON.parse(storage.getItem(KEY) || "[]");
-      return Array.isArray(parsed) ? parsed.filter(item => item && typeof item === "object" && typeof item.eventId === "string") : [];
-    } catch { return []; }
+  function listEvents(storage) {
+    const events = [];
+    for (let index = 0; index < storage.length; index++) {
+      const key = storage.key(index);
+      if (!key || !key.startsWith(KEY_PREFIX)) continue;
+      try {
+        const item = JSON.parse(storage.getItem(key) || "null");
+        if (item && typeof item === "object" && typeof item.eventId === "string") events.push({ key, item });
+      } catch { /* Ignore a corrupt individual entry without hiding other events. */ }
+    }
+    return events;
   }
 
   function normalizeEvent(input) {
@@ -49,30 +56,29 @@
     const target = storage || root.localStorage;
     if (!target) throw new Error("Local storage is unavailable");
     const event = normalizeEvent(input);
-    const events = safeRead(target);
-    if (events.some(item => item.eventId === event.eventId)) return { inserted: false, event };
-    if (events.length >= MAX_PENDING_EVENTS) throw new RangeError("Answer journal capacity reached; sync is required before continuing");
-    events.push({ ...event, syncedAt: null });
-    target.setItem(KEY, JSON.stringify(events));
+    const key = eventKey(event.eventId);
+    if (target.getItem(key)) return { inserted: false, event };
+    if (listEvents(target).length >= MAX_PENDING_EVENTS) throw new RangeError("Answer journal capacity reached; sync is required before continuing");
+    target.setItem(key, JSON.stringify(event));
     return { inserted: true, event };
   }
 
   function pending(storage, sessionId = null) {
-    const events = safeRead(storage || root.localStorage).filter(item => !item.syncedAt);
-    return sessionId ? events.filter(item => item.sessionId === sessionId) : events;
+    const target = storage || root.localStorage;
+    return listEvents(target).map(entry => entry.item)
+      .filter(item => !item.syncedAt && (!sessionId || item.sessionId === sessionId));
   }
 
   function completeSession(sessionId, storage, completedAt = Date.now()) {
     const target = storage || root.localStorage;
     const id = String(sessionId || "").trim();
     if (!target || !id) return 0;
-    const events = safeRead(target);
     let count = 0;
-    const next = events.map(item => {
-      if (item.sessionId === id && !item.completedAt) { count++; return { ...item, completedAt }; }
-      return item;
-    });
-    if (count) target.setItem(KEY, JSON.stringify(next));
+    for (const { key, item } of listEvents(target)) {
+      if (item.sessionId !== id || item.completedAt) continue;
+      target.setItem(key, JSON.stringify({ ...item, completedAt }));
+      count++;
+    }
     return count;
   }
 
@@ -80,13 +86,12 @@
     const target = storage || root.localStorage;
     const owner = String(ownerId || "").trim();
     if (!target || !owner || owner.length > 80) return 0;
-    const events = safeRead(target);
     let count = 0;
-    const next = events.map(item => {
-      if (!item.ownerId && !item.syncedAt) { count++; return { ...item, ownerId: owner }; }
-      return item;
-    });
-    if (count) target.setItem(KEY, JSON.stringify(next));
+    for (const { key, item } of listEvents(target)) {
+      if (item.ownerId || item.syncedAt) continue;
+      target.setItem(key, JSON.stringify({ ...item, ownerId: owner }));
+      count++;
+    }
     return count;
   }
 
@@ -94,22 +99,23 @@
     const target = storage || root.localStorage;
     const ids = new Set((Array.isArray(eventIds) ? eventIds : []).map(String));
     if (!ids.size) return 0;
-    const events = safeRead(target);
-    const next = events.filter(item => !ids.has(item.eventId));
-    const count = events.length - next.length;
-    if (count) target.setItem(KEY, JSON.stringify(next));
+    let count = 0;
+    for (const id of ids) {
+      const key = eventKey(id);
+      if (target.getItem(key) !== null) { target.removeItem(key); count++; }
+    }
     return count;
   }
 
   function remove(eventId, storage) {
     const target = storage || root.localStorage;
-    const events = safeRead(target);
-    const next = events.filter(item => item.eventId !== String(eventId));
-    if (next.length !== events.length) target.setItem(KEY, JSON.stringify(next));
-    return next.length !== events.length;
+    const key = eventKey(eventId);
+    if (target.getItem(key) === null) return false;
+    target.removeItem(key);
+    return true;
   }
 
-  const api = Object.freeze({ key: KEY, append, pending, completeSession, claimUnownedEvents, acknowledge, remove, normalizeEvent });
+  const api = Object.freeze({ key: KEY_PREFIX, append, pending, completeSession, claimUnownedEvents, acknowledge, remove, normalizeEvent });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.MilaAnswerJournal = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
