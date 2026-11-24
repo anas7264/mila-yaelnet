@@ -1415,7 +1415,13 @@
       return false;
     }
     renderSessionSummary(sessionRecord);
-    window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt } }));
+    if (typeof CustomEvent !== "undefined") {
+      window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt } }));
+    } else if (typeof Event !== "undefined") {
+      const completedEvent = new Event("mila:session-completed");
+      completedEvent.detail = { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt };
+      window.dispatchEvent(completedEvent);
+    }
     return true;
   }
 
