@@ -52,7 +52,7 @@ test("the service worker and document use fresh, matching sync module versions",
   assert.match(merge, /\.\/sync-core\.mjs\?v=7/);
   assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v45"/);
   assert.ok(sw.includes('"/sync.js?v=13"'));
-  assert.ok(sw.includes('"/sync-core.mjs?v=7"'));
+  assert.ok(sw.includes('"/sync-core.mjs?v=8"'));
   assert.ok(sw.includes('"/sync-merge-core.mjs?v=3"'));
 });
 
