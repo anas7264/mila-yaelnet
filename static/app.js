@@ -880,9 +880,9 @@
           ? [document.activeElement.selectionStart, document.activeElement.selectionEnd]
           : null;
         render();
-        window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
+        window.scrollTo(scrollX, scrollY);
         const target = activeId ? $(activeId) : activeInput
-          ? document.querySelector('[data-input="' + activeInput.replace(/["\\\\]/g, "") + '"]')
+          ? Array.from(document.querySelectorAll("[data-input]")).find(node => node.dataset.input === activeInput)
           : null;
         if (target && document.activeElement !== target) {
           target.focus({ preventScroll: true });
