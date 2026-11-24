@@ -1,6 +1,6 @@
 export const SNAPSHOT_FORMAT='mila-localstorage-snapshot',SNAPSHOT_VERSION=1;
 const LEARNING_PREFIX='mila-yaelnet-';
-export function isLearningStorageKey(k){return typeof k==='string'&&k.startsWith(LEARNING_PREFIX)}
+export function isLearningStorageKey(k){return typeof k==='string'&&k.startsWith(LEARNING_PREFIX)&&k!=='mila-yaelnet-answer-journal-v1'}
 export function isInternalStorageKey(k){return !isLearningStorageKey(k)}
 export function createSnapshot(a){if(!Array.isArray(a))throw TypeError('Storage entries must be an array');return{format:SNAPSHOT_FORMAT,version:SNAPSHOT_VERSION,entries:a.filter(e=>Array.isArray(e)&&e.length===2&&isLearningStorageKey(e[0])).map(([k,v])=>[k,String(v??'')]).sort(([a],[b])=>a<b?-1:a>b?1:0)}}
 export function isSnapshot(v){return!!v&&v.format===SNAPSHOT_FORMAT&&v.version===SNAPSHOT_VERSION&&Array.isArray(v.entries)&&v.entries.every(e=>Array.isArray(e)&&e.length===2&&typeof e[0]==='string'&&typeof e[1]==='string')}
