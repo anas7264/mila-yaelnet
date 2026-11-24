@@ -156,6 +156,7 @@
         </div>
         <div class="adaptive-footer-note"><span>✓ حفظ تلقائي بعد كل إجابة</span><span>✓ سجل مستقل لكل اتجاه</span><span>✓ لا يوجد حد ثابت للأسئلة</span></div>
       </section>`;
+    window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderSession() {
@@ -211,6 +212,7 @@
         <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا على هذا الجهاز.</p>
       </section>`;
     if (!session.answered && !session.paused) $("adaptiveAnswer")?.focus({ preventScroll: true });
+    window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function openMode() {
@@ -408,6 +410,28 @@
     event.preventDefault();
     submitAdaptiveAnswer(event.target.elements.answer?.value ?? "");
   }, true);
+
+  function isSessionActive() {
+    return Boolean(state.session);
+  }
+
+  function refreshFromStorage() {
+    if (isSessionActive()) return false;
+    try {
+      state = normalize(localStorage.getItem(STORAGE_KEY));
+      collectWords();
+      if (document.querySelector(".adaptive-page")) {
+        if (state.session) renderSession();
+        else renderHome();
+      }
+      return true;
+    } catch (error) {
+      console.error("Mila adaptive state refresh after cloud sync failed:", error);
+      return false;
+    }
+  }
+
+  window.MilaAdaptiveBridge = Object.freeze({ isSessionActive, refreshFromStorage });
 
   function init() {
     collectWords();
