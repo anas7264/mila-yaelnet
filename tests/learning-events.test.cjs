@@ -54,6 +54,6 @@ test("answer recording attaches event payload and adaptive direction metadata", 
   const app = fs.readFileSync(path.join(__dirname, "..", "static/app.js"), "utf8");
   assert.match(app, /state\.learningEvents\[ledgerKey\] = \{/);
   assert.match(app, /direction: metadata\?\.direction/);
-  assert.match(app, /recordAnswer\(wordId, event\.correct, null, "التدريب التكيفي", eventId, \{ direction: event\.direction, at: event\.at \}\)/);
+  assert.match(app, /recordAnswer\(wordId, event\.correct, null, "التدريب التكيفي", eventId, \{[\s\S]*?direction: event\.direction[\s\S]*?sessionId: event\.sessionId/);
   assert.match(app, /state\.learningEvents = previousLearningEvents/);
 });
