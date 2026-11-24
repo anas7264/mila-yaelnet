@@ -246,9 +246,12 @@
     try {
       integrated = bridge.recordAdaptiveAnswer({
         eventId: q.questionId,
+        sessionId: state.session?.id || "adaptive-session",
         wordId: q.wordId,
         correct: result.correct,
         direction: q.direction,
+        mode: "adaptive",
+        prompt: q.prompt || "",
         at: result.state.session?.lastResult?.at
       });
     } catch (error) {
