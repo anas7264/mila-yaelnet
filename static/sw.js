@@ -1,9 +1,10 @@
-const CACHE_NAME = "mila-yaelnet-v37";
+const CACHE_NAME = "mila-yaelnet-v38";
 const CORE_ASSETS = [
   "/",
   "/health",
   "/static/style.css",
   "/static/catalog.js",
+  "/static/word-index.js?v=1",
   "/static/expanded-vocabulary.js?v=1",
   "/static/academic-stage-data.js?v=1",
   "/static/stage-vocabulary.js?v=1",

@@ -13,14 +13,16 @@ test("app entrypoint loads the automatic sync runtime", () => {
   assert.match(html, /import\(['"]\/sync\.js\?v=10['"]\)/);
   assert.match(html, /static\/storage\.js/);
   assert.match(html, /static\/adaptive-ui\.js/);
+  assert.match(html, /static\/word-index\.js\?v=1/);
 });
 
 test("service worker precaches sync runtime and local Supabase SDK", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /mila-yaelnet-v37/);
+  assert.match(sw, /mila-yaelnet-v38/);
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);
+  assert.match(sw, /static\/word-index\.js\?v=1/);
   assert.match(sw, /sync-merge-core\.mjs\?v=3/);
   assert.match(sw, /static\/vendor\/supabase\.umd\.js/);
 });
@@ -38,6 +40,16 @@ test("sync retries persist a stable mutation id and original snapshot", () => {
   assert.doesNotMatch(sync, /p_mutation_id:uuid\(\)/);
   assert.match(sync, /data\.status==='duplicate'&&data\.state&&!isSameSnapshot/);
   assert.match(sync, /makeMutation\(c\.local,c\.revision,uuid\(\)\)/);
+});
+
+test("platform reuses the expanded vocabulary index instead of rebuilding it per render", () => {
+  const html = read("index.html");
+  const app = read("static/app.js");
+  const sw = read("static/sw.js");
+  assert.match(html, /static\/word-index\.js\?v=1/);
+  assert.match(app, /YaelWordIndex\.create/);
+  assert.match(app, /wordIndex\.invalidate\(\)/);
+  assert.match(sw, /static\/word-index\.js\?v=1/);
 });
 
 test("adaptive answers still flow through the local platform bridge", () => {
