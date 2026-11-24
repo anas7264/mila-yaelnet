@@ -58,7 +58,9 @@
     const event = normalizeEvent(input);
     const key = eventKey(event.eventId);
     if (target.getItem(key)) return { inserted: false, event };
-    if (listEvents(target).length >= MAX_PENDING_EVENTS) throw new RangeError("Answer journal capacity reached; sync is required before continuing");
+    if (target.length >= MAX_PENDING_EVENTS + 100 && listEvents(target).length >= MAX_PENDING_EVENTS) {
+      throw new RangeError("Answer journal capacity reached; sync is required before continuing");
+    }
     target.setItem(key, JSON.stringify(event));
     return { inserted: true, event };
   }
