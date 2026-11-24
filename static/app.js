@@ -52,6 +52,8 @@
     stageTab: "words",
     libraryFilter: "all",
     librarySearch: "",
+    libraryVisibleCount: 20,
+    libraryObserver: null,
     session: null,
     toastTimer: null,
     timerHandle: null,
@@ -567,8 +569,19 @@
       ${addForm}
       <section class="panel-card" style="margin-top:16px"><div class="toolbar"><div class="search-control"><input class="control" data-input="library-search" value="${esc(q)}" placeholder="ابحث بالعبرية أو العربية"></div><div class="toolbar-group">${filters.map(([id,label]) => `<button class="stage-tab ${ui.libraryFilter===id?"active":""}" data-action="library-filter" data-filter="${id}">${label}</button>`).join("")}</div></div>
         <div class="panel-heading"><div><h2>نتائج المكتبة</h2><p>${words.length} كلمة مطابقة</p></div><span class="badge badge-neutral">${ui.libraryFilter === "all" ? "كل الكلمات" : esc(filters.find(f=>f[0]===ui.libraryFilter)?.[1] || "")}</span></div>
-        ${wordListMarkup(words)}
+        ${wordListMarkup(words.slice(0, ui.libraryVisibleCount || 20))}
+        ${words.length > (ui.libraryVisibleCount || 20) ? `<div class="progressive-load-sentinel" id="libraryLoadMoreSentinel"><button class="button button-secondary" type="button" data-action="library-load-more">تحميل 20 كلمة إضافية</button></div>` : `<p class="session-footnote" aria-live="polite">تم عرض جميع الكلمات (${words.length}).</p>`}
       </section>`;
+    const sentinel = $("libraryLoadMoreSentinel");
+    if (sentinel && "IntersectionObserver" in window) {
+      ui.libraryObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          const button = sentinel.querySelector("[data-action=library-load-more]");
+          if (button) handleAction("library-load-more", button);
+        }
+      }, { root: null, rootMargin: "360px 0px", threshold: 0 });
+      ui.libraryObserver.observe(sentinel);
+    }
   }
 
   function renderReview() {
@@ -674,6 +687,8 @@
   }
 
   function render() {
+    ui.libraryObserver?.disconnect();
+    ui.libraryObserver = null;
     renderShell();
     applySettings();
     if (ui.view === "dashboard") renderDashboard();
@@ -1626,7 +1641,14 @@
         break;
       }
       case "practice-source": ui.studioDraft.source=target.dataset.source;startStudioSession({...ui.studioDraft,source:target.dataset.source,count:"all"});break;
-      case "library-filter": ui.libraryFilter=target.dataset.filter;renderLibrary();break;
+      case "library-filter": ui.libraryFilter=target.dataset.filter;ui.libraryVisibleCount=20;renderLibrary();break;
+      case "library-load-more": {
+        const currentScroll = window.scrollY;
+        ui.libraryVisibleCount = Math.min((ui.libraryVisibleCount || 20) + 20, allWords().length);
+        renderLibrary();
+        window.scrollTo(window.scrollX, currentScroll);
+        break;
+      }
       case "review-filter": ui.reviewFilter=target.dataset.filter;renderReview();break;
       case "toggle-favorite": toggleFavorite(id);break;
       case "toggle-mastered": toggleMastered(id);break;
@@ -1748,6 +1770,7 @@
     document.addEventListener("input",(event)=>{
       if(event.target.dataset.input==="library-search"){
         ui.librarySearch=event.target.value;
+        ui.libraryVisibleCount=20;
         const scroll=window.scrollY;
         renderLibrary();window.scrollTo(0,scroll);
         const field=document.querySelector('[data-input="library-search"]');
