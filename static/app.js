@@ -807,7 +807,7 @@
       const session = ui.session;
       const question = session?.questions?.[session.current] || null;
       const word = wordMap().get(wordId);
-      const reverse = session?.mode === "ar-he" || session?.mode === "typed-ar-he";
+      const reverse = metadata?.direction === "ar-he" || session?.mode === "ar-he" || session?.mode === "typed-ar-he";
       const correctAnswer = reverse ? word?.he : word?.ar;
       const choices = Array.isArray(question?.choices) ? question.choices.map(choice => {
         const option = wordMap().get(choice.wordId);
