@@ -33,6 +33,7 @@ const CORE_ASSETS = [
   "/sync.js?v=12",
   "/sync.js?v=13",
   "/sync-core.mjs?v=7",
+  "/sync-core.mjs?v=8",
   "/sync-settings-core.mjs?v=3"
 ];
 
