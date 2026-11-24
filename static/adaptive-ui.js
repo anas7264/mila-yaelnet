@@ -68,6 +68,7 @@
       return true;
     } catch (error) {
       console.error("Adaptive progress save failed", error);
+      window.MilaErrorMonitor?.captureException?.(error, { area: "storage", action: "save-adaptive-state" });
       toast(error.message || "تعذر حفظ التقدم محليًا. صدّر نسخة احتياطية من الإعدادات.", true);
       return false;
     }
