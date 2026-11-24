@@ -46,7 +46,7 @@ test("the service worker and document use fresh, matching sync module versions",
   const merge = read("sync-merge-core.mjs");
   const sw = read("static/sw.js");
 
-  assert.match(html, /\/sync\.js\?v=10/);
+  assert.match(html, /\/sync\.js\?v=11/);
   assert.match(sync, /\.\/sync-core\.mjs\?v=7/);
   assert.match(sync, /\.\/sync-merge-core\.mjs\?v=3/);
   assert.match(merge, /\.\/sync-core\.mjs\?v=7/);
