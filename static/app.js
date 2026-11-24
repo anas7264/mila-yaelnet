@@ -77,19 +77,22 @@
     }
   };
 
-  const allWords = () => {
-    const extras = state.extras.map((w) => ({
-      ...w, source: "extra", stageId: null, stageTitle: "كلمات إضافية",
-      category: w.category || "إضافية"
-    }));
-    const base = [...new Map([...OFFICIAL, ...extras].map((word) => [word.id, word])).values()];
-    return window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
-  };
-  const wordMap = () => new Map(allWords().map((w) => [w.id, w]));
+  const wordIndex = window.YaelWordIndex.create({
+    officialWords: OFFICIAL,
+    getExtras: () => state.extras,
+    mergeExpanded: (words) => window.YaelExpandedVocabulary?.merge
+      ? window.YaelExpandedVocabulary.merge(words)
+      : words
+  });
+  const allWords = () => wordIndex.getWords();
+  const wordMap = () => wordIndex.getMap();
   const progressOf = (id) => state.progress[id] || {};
   const stageById = (id) => CATALOG.stages.find((s) => s.id === id) || CATALOG.stages[0];
   const stageWords = (id) => OFFICIAL.filter((w) => w.stageId === id);
-  const stageMistakes = (id) => state.mistakes.filter((m) => wordMap().get(m.wordId)?.stageId === id);
+  const stageMistakes = (id) => {
+    const index = wordMap();
+    return state.mistakes.filter((m) => index.get(m.wordId)?.stageId === id);
+  };
   const stageAccuracy = (id) => {
     const words = stageWords(id);
     const records = words.map((w) => progressOf(w.id));
@@ -1328,6 +1331,7 @@
     if (duplicate || duplicateOfficial) { toast("هذه الكلمة موجودة مسبقًا في المكتبة.", "error"); return; }
     state.extras.push({ id: uid(), he, ar, source:"extra", tags:[], createdAt:Date.now() });
     if (!persist()) { state.extras.pop(); return; }
+    wordIndex.invalidate();
     toast("أضيفت المفردة إلى بنك الكلمات.");
     renderLibrary();
   }
@@ -1343,7 +1347,7 @@
         if (!he||!ar||/[<>]/.test(he+ar)) {toast("بيانات غير صالحة.","error");return false;}
         const duplicate=state.extras.some((w)=>w.id!==id&&ENGINE.normalizeText(w.he)===ENGINE.normalizeText(he))||OFFICIAL.some((w)=>ENGINE.normalizeText(w.he)===ENGINE.normalizeText(he));
         if(duplicate){toast("هذه الكلمة موجودة مسبقًا.","error");return false;}
-        word.he=he;word.ar=ar;persist();render();toast("تم تحديث المفردة.");return true;
+        word.he=he;word.ar=ar;persist();wordIndex.invalidate();render();toast("تم تحديث المفردة.");return true;
       });
   }
 
@@ -1352,7 +1356,7 @@
     if(index<0)return;
     const word=state.extras[index];
     openModal("حذف مفردة","سيتم حذف هذه المفردة من بنكك الشخصي. تبقى سجلات الجلسات السابقة محفوظة.",`<div class="hebrew-chip" style="display:inline-block">${esc(word.he)}</div><p>${esc(word.ar)}</p>`,"حذف",()=>{
-      state.extras.splice(index,1);delete state.progress[id];state.mistakes=state.mistakes.filter(m=>m.wordId!==id);persist();render();toast("تم حذف المفردة.");return true;
+      state.extras.splice(index,1);delete state.progress[id];state.mistakes=state.mistakes.filter(m=>m.wordId!==id);persist();wordIndex.invalidate();render();toast("تم حذف المفردة.");return true;
     },"button-danger");
   }
 
@@ -1365,16 +1369,19 @@
         const rows=raw.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
         if(rows.length>500){toast("الحد الأقصى 500 سطر في المرة الواحدة.","error");return false;}
         let added=0,skipped=0;
+        const knownWords = new Set(allWords().map(word => ENGINE.normalizeText(word.he)));
         for(const line of rows){
           const parts=line.split(/[|｜]/);
           if(parts.length<2){skipped++;continue;}
           const he=parts.shift().trim(),ar=parts.join("|").trim();
           if(!he||!ar||he.length>100||ar.length>240||/[<>]/.test(he+ar)){skipped++;continue;}
-          const dup=allWords().some(w=>ENGINE.normalizeText(w.he)===ENGINE.normalizeText(he));
-          if(dup){skipped++;continue;}
+          const normalizedHebrew = ENGINE.normalizeText(he);
+          if(knownWords.has(normalizedHebrew)){skipped++;continue;}
+          knownWords.add(normalizedHebrew);
           state.extras.push({id:uid(),he,ar,source:"extra",tags:[],createdAt:Date.now()});added++;
         }
         if(!persist()){state.extras.splice(-added,added);return false;}
+        if(added)wordIndex.invalidate();
         toast("تم استيراد "+added+" كلمة"+(skipped?"، وتجاهل "+skipped+" سطرًا مكررًا أو غير صالح.":"."));renderLibrary();return true;
       });
   }
