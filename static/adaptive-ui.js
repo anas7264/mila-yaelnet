@@ -345,6 +345,8 @@
         return;
       }
       renderHome();
+      window.dispatchEvent(new CustomEvent("mila:learning-session-change"));
+      window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: session.id, finishedAt: Date.now() } }));
     }
   }
 
@@ -435,7 +437,12 @@
     }
   }
 
-  window.MilaAdaptiveBridge = Object.freeze({ isSessionActive, refreshFromStorage, refreshVocabulary });
+  window.MilaAdaptiveBridge = Object.freeze({
+    isSessionActive,
+    hasUnfinishedSession: () => Boolean(state.session),
+    refreshFromStorage,
+    refreshVocabulary
+  });
 
   window.addEventListener("storage", event => {
     if (event.key === "mila-yaelnet-studio-v3") refreshVocabulary();
