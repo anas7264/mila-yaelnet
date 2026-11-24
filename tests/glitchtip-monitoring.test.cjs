@@ -119,7 +119,7 @@ test("GlitchTip SDK is pinned, error-only, and scrubs request and personal data 
   assert.equal(options.maxBreadcrumbs, 0);
   assert.equal(options.defaultIntegrations, false);
   assert.deepEqual(options.integrations, []);
-  assert.match(read("static/error-monitoring.js"), /@11\.17\.0/);
+  assert.match(read("static/error-monitoring.js"), /browser\.sentry-cdn\.com\/11\.17\.0\/bundle\.min\.js/);
 
   const event = {
     message: "Failure for learner@example.com Bearer abc.def.ghi",
@@ -138,9 +138,9 @@ test("GlitchTip SDK is pinned, error-only, and scrubs request and personal data 
   assert.equal(Object.hasOwn(scrubbed, "request"), false);
   assert.equal(Object.hasOwn(scrubbed, "breadcrumbs"), false);
   assert.equal(Object.hasOwn(scrubbed, "extra"), false);
-  assert.match(scrubbed.message, /\[redacted-email\]/);
-  assert.match(scrubbed.message, /Bearer \[redacted\]/);
-  assert.match(scrubbed.exception.values[0].value, /\[redacted\]/);
+  assert.equal(scrubbed.message, "JavaScript exception message redacted");
+  assert.equal(scrubbed.message.includes("learner@example.com"), false);
+  assert.equal(scrubbed.exception.values[0].value, "Error: [message redacted]");
   assert.equal(Object.hasOwn(scrubbed.exception.values[0].stacktrace.frames[0], "vars"), false);
   assert.equal(scrubbed.exception.values[0].stacktrace.frames[0].filename.includes("?"), false);
   assert.deepEqual(scrubbed.tags, { area: "adaptive" });
