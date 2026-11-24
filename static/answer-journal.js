@@ -62,16 +62,27 @@
     return sessionId ? events.filter(item => item.sessionId === sessionId) : events;
   }
 
-  function acknowledge(eventIds, storage, syncedAt = Date.now()) {
+  function completeSession(sessionId, storage, completedAt = Date.now()) {
+    const target = storage || root.localStorage;
+    const id = String(sessionId || "").trim();
+    if (!target || !id) return 0;
+    const events = safeRead(target);
+    let count = 0;
+    const next = events.map(item => {
+      if (item.sessionId === id && !item.completedAt) { count++; return { ...item, completedAt }; }
+      return item;
+    });
+    if (count) target.setItem(KEY, JSON.stringify(next));
+    return count;
+  }
+
+  function acknowledge(eventIds, storage) {
     const target = storage || root.localStorage;
     const ids = new Set((Array.isArray(eventIds) ? eventIds : []).map(String));
     if (!ids.size) return 0;
     const events = safeRead(target);
-    let count = 0;
-    const next = events.map(item => {
-      if (ids.has(item.eventId) && !item.syncedAt) { count++; return { ...item, syncedAt }; }
-      return item;
-    });
+    const next = events.filter(item => !ids.has(item.eventId));
+    const count = events.length - next.length;
     if (count) target.setItem(KEY, JSON.stringify(next));
     return count;
   }
@@ -84,7 +95,7 @@
     return next.length !== events.length;
   }
 
-  const api = Object.freeze({ key: KEY, append, pending, acknowledge, remove, normalizeEvent });
+  const api = Object.freeze({ key: KEY, append, pending, completeSession, acknowledge, remove, normalizeEvent });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.MilaAnswerJournal = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
