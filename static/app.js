@@ -675,6 +675,7 @@
     else if (ui.view === "analytics") renderAnalytics();
     else if (ui.view === "settings") renderSettings();
     else if (ui.view === "session") renderSession();
+    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function closeSidebar() {
@@ -854,9 +855,6 @@
 
   function returnToPlatform() {
     try {
-      // The platform state has already been updated and persisted by the adaptive
-      // learning bridge. Re-render the existing view from that same in-memory
-      // state instead of forcing a full document reload.
       render();
       return true;
     } catch (error) {
@@ -865,11 +863,48 @@
     }
   }
 
+  function isSessionActive() {
+    return Boolean(ui.view === "session" && ui.session && !ui.session.finished && !ui.session.paused);
+  }
+
+  function refreshFromStorage() {
+    if (isSessionActive()) return false;
+    try {
+      state = STORE.loadState(localStorage, OFFICIAL);
+      wordIndex.invalidate();
+      if (!document.querySelector(".adaptive-page")) {
+        const scrollX = window.scrollX, scrollY = window.scrollY;
+        const activeId = document.activeElement?.id || "";
+        const activeInput = document.activeElement?.dataset?.input || "";
+        const selection = typeof document.activeElement?.selectionStart === "number"
+          ? [document.activeElement.selectionStart, document.activeElement.selectionEnd]
+          : null;
+        render();
+        window.scrollTo(scrollX, scrollY);
+        const target = activeId ? $(activeId) : activeInput
+          ? Array.from(document.querySelectorAll("[data-input]")).find(node => node.dataset.input === activeInput)
+          : null;
+        if (target && document.activeElement !== target) {
+          target.focus({ preventScroll: true });
+          if (selection && typeof target.setSelectionRange === "function") {
+            try { target.setSelectionRange(selection[0], selection[1]); } catch {}
+          }
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error("Mila state refresh after cloud sync failed:", error);
+      return false;
+    }
+  }
+
   window.MilaLearningBridge = Object.freeze({
     recordAdaptiveAnswer,
     recordAdaptiveSession,
     pausePlatformSessionForAdaptive,
-    returnToPlatform
+    returnToPlatform,
+    isSessionActive,
+    refreshFromStorage
   });
 
   function setReviewRating(wordId, rating) {
@@ -1071,6 +1106,7 @@
       speakWord(q.targetWordId);
     }
     if (session.timerSeconds && !session.answered && !session.paused && !ui.timerHandle) startTimer();
+    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderFeedback(question, word, correct) {
@@ -1312,6 +1348,7 @@
         ${wrongWords.length ? '<div class="section-divider"></div><div class="panel-heading"><h3>الكلمات التي تحتاج مراجعة</h3><span class="badge badge-red">' + wrongWords.length + '</span></div><div class="due-list">' + wrongWords.map(w=>`<div class="due-item"><span class="hebrew-chip">${esc(w.he)}</span><div class="due-meaning"><strong>${esc(w.ar)}</strong><small>${esc(w.stageTitle||"كلمات إضافية")}</small></div></div>`).join("") + '</div>' : '<div class="answer-feedback good">رائع — لا توجد أخطاء في هذه الجلسة.</div>'}
         <div class="summary-actions"><button class="button button-primary" data-action="replay-wrong" ${wrongWords.length?"":"disabled"}>إعادة الأخطاء</button><button class="button button-secondary" data-action="open-studio">جلسة جديدة</button><button class="button button-quiet" data-action="finish-to-dashboard">الرئيسية</button></div>
       </div>`;
+    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderExtrasPanel() {
