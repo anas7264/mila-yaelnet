@@ -1329,6 +1329,7 @@
         ${wrongWords.length ? '<div class="section-divider"></div><div class="panel-heading"><h3>الكلمات التي تحتاج مراجعة</h3><span class="badge badge-red">' + wrongWords.length + '</span></div><div class="due-list">' + wrongWords.map(w=>`<div class="due-item"><span class="hebrew-chip">${esc(w.he)}</span><div class="due-meaning"><strong>${esc(w.ar)}</strong><small>${esc(w.stageTitle||"كلمات إضافية")}</small></div></div>`).join("") + '</div>' : '<div class="answer-feedback good">رائع — لا توجد أخطاء في هذه الجلسة.</div>'}
         <div class="summary-actions"><button class="button button-primary" data-action="replay-wrong" ${wrongWords.length?"":"disabled"}>إعادة الأخطاء</button><button class="button button-secondary" data-action="open-studio">جلسة جديدة</button><button class="button button-quiet" data-action="finish-to-dashboard">الرئيسية</button></div>
       </div>`;
+    window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderExtrasPanel() {
