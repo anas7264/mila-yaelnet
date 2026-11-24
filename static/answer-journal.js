@@ -23,6 +23,7 @@
     const rating = ratings.has(input.selfRating) ? input.selfRating : null;
     const event = {
       eventId, sessionId, wordId,
+      ownerId: typeof input.ownerId === "string" && input.ownerId.length <= 80 ? input.ownerId : null,
       occurredAt: Math.max(0, Number(input.occurredAt) || Date.now()),
       mode: String(input.mode || "unknown").slice(0, 40),
       direction: ["he-ar", "ar-he"].includes(input.direction) ? input.direction : null,
