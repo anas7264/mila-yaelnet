@@ -40,6 +40,16 @@ test("sync retries persist a stable mutation id and original snapshot", () => {
   assert.match(sync, /makeMutation\(c\.local,c\.revision,uuid\(\)\)/);
 });
 
+test("platform reuses the expanded vocabulary index instead of rebuilding it per render", () => {
+  const html = read("index.html");
+  const app = read("static/app.js");
+  const sw = read("static/sw.js");
+  assert.match(html, /static\/word-index\.js\?v=1/);
+  assert.match(app, /YaelWordIndex\.create/);
+  assert.match(app, /wordIndex\.invalidate\(\)/);
+  assert.match(sw, /static\/word-index\.js\?v=1/);
+});
+
 test("adaptive answers still flow through the local platform bridge", () => {
   const ui = read("static/adaptive-ui.js");
   const app = read("static/app.js");
