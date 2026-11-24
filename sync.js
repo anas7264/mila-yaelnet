@@ -28,7 +28,19 @@ const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000})
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0,deferredCloudUpdate=null,deferredAccountSession=null;
-window.MilaSyncBridge=Object.freeze({getUserId:()=>session?.user?.id||null});
+window.MilaSyncBridge=Object.freeze({
+  getUserId:()=>session?.user?.id||null,
+  getAnswerAnalytics:async()=>{
+    if(!session?.user?.id)throw new Error('سجّل الدخول لعرض سجل الإجابات السحابي.');
+    const [words,confusions]=await Promise.all([
+      sb.from('learning_answer_word_stats').select('word_id,direction,answer_attempts,correct_count,incorrect_count,again_count,hard_count,good_count,easy_count,last_attempt_at').order('answer_attempts',{ascending:false}).limit(1000),
+      sb.from('learning_answer_confusion_stats').select('word_id,direction,selected_answer,selected_wrong_count,last_selected_at').order('selected_wrong_count',{ascending:false}).limit(100)
+    ]);
+    if(words.error)throw words.error;
+    if(confusions.error)throw confusions.error;
+    return {wordStats:words.data||[],confusions:confusions.data||[]};
+  }
+});
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null,allowAccountSwitch=false)=>{const current=meta();if(current.userId&&userId&&current.userId!==userId&&!allowAccountSwitch)throw Error('Refusing to overwrite metadata for another account.');if(current.userId===userId&&Number.isInteger(current.revision)&&current.revision>r){revision=current.revision;baseline=current.baseline;return false}revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}));return true};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
