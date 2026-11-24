@@ -542,6 +542,8 @@
   }
 
   function renderLibrary() {
+    ui.libraryObserver?.disconnect();
+    ui.libraryObserver = null;
     const filters = [
       ["all","الكل"],["stage","مراحل"],["expanded","موسّعة"],["extra","إضافية"],["weak","ضعيفة"],["due","مستحقة"],["mistakes","أخطاء"],["favorites","مفضلة"],["new","جديدة"],["mastered","متقنة"]
     ];
