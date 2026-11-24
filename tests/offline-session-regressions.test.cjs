@@ -39,7 +39,7 @@ test("beginSession defines a JSON-safe config before storing it", () => {
 
 test("service-worker cache version includes the automatic sync runtime", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v42"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v43"'));
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);

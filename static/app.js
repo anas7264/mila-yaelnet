@@ -126,7 +126,10 @@
 
   function persist() {
     const ok = STORE.saveState(state, localStorage);
-    if (!ok) toast("تعذر حفظ البيانات. قد تكون مساحة المتصفح ممتلئة؛ صدّر نسخة احتياطية.", "error");
+    if (!ok) {
+      window.MilaErrorMonitor?.captureException?.(new Error("Local learning state persistence failed"), { area: "storage", action: "save-main-state" });
+      toast("تعذر حفظ البيانات. قد تكون مساحة المتصفح ممتلئة؛ صدّر نسخة احتياطية.", "error");
+    }
     return ok;
   }
 
@@ -1531,7 +1534,7 @@
           window.setTimeout(() => location.reload(), 250);
           return true;
         });
-    }catch{toast("تعذرت قراءة ملف النسخة الاحتياطية.","error");}
+    }catch(error){window.MilaErrorMonitor?.captureException?.(error,{area:"backup",action:"read-import"});toast("تعذرت قراءة ملف النسخة الاحتياطية.","error");}
   }
 
   function exportCsv() {
@@ -1686,13 +1689,13 @@
       if(button.dataset.view && !button.dataset.action){
         event.preventDefault();
         try { navigate(button.dataset.view); }
-        catch(error){ console.error("Mila navigation failed:", error); toast("تعذر فتح الصفحة. أعد المحاولة؛ إذا تكرر الخطأ فحدّث الصفحة.", "error"); }
+        catch(error){ console.error("Mila navigation failed:", error); window.MilaErrorMonitor?.captureException?.(error,{area:"platform",action:"navigation"}); toast("تعذر فتح الصفحة. أعد المحاولة؛ إذا تكرر الخطأ فحدّث الصفحة.", "error"); }
         return;
       }
       if(button.dataset.action){
         event.preventDefault();
         try { handleAction(button.dataset.action,button); }
-        catch(error){ console.error("Mila action failed:", button.dataset.action, error); toast("تعذر تنفيذ هذا الإجراء: "+(error?.message || "خطأ غير متوقع"), "error"); }
+        catch(error){ console.error("Mila action failed:", button.dataset.action, error); window.MilaErrorMonitor?.captureException?.(error,{area:"platform",action:"delegated-action"}); toast("تعذر تنفيذ هذا الإجراء: "+(error?.message || "خطأ غير متوقع"), "error"); }
       }
     }, true);
 
