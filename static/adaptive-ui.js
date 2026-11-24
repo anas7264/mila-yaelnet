@@ -412,7 +412,7 @@
   }, true);
 
   function isSessionActive() {
-    return Boolean(state.session);
+    return Boolean(state.session && !state.session.paused);
   }
 
   function refreshFromStorage() {
