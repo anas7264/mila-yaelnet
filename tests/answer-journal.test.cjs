@@ -48,3 +48,15 @@ test("failed local writes propagate instead of silently accepting an answer", ()
   const storage = { getItem: () => "[]", setItem() { throw new Error("quota"); } };
   assert.throws(() => Journal.append(event(), storage), /quota/);
 });
+
+test("only completed sessions are eligible for cloud upload and unowned events require explicit adoption", () => {
+  const storage = memoryStorage();
+  Journal.append(event("event-a"), storage);
+  Journal.append(event("event-b", { sessionId:"session-2" }), storage);
+  assert.equal(Journal.completeSession("session-1", storage), 1);
+  const pending = Journal.pending(storage);
+  assert.ok(pending.find(item => item.eventId === "event-a").completedAt);
+  assert.equal(pending.find(item => item.eventId === "event-b").completedAt, undefined);
+  assert.equal(Journal.claimUnownedEvents("user-a", storage), 2);
+  assert.ok(Journal.pending(storage).every(item => item.ownerId === "user-a"));
+});
