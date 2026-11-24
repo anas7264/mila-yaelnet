@@ -76,6 +76,20 @@
     return count;
   }
 
+  function claimUnownedEvents(ownerId, storage) {
+    const target = storage || root.localStorage;
+    const owner = String(ownerId || "").trim();
+    if (!target || !owner || owner.length > 80) return 0;
+    const events = safeRead(target);
+    let count = 0;
+    const next = events.map(item => {
+      if (!item.ownerId && !item.syncedAt) { count++; return { ...item, ownerId: owner }; }
+      return item;
+    });
+    if (count) target.setItem(KEY, JSON.stringify(next));
+    return count;
+  }
+
   function acknowledge(eventIds, storage) {
     const target = storage || root.localStorage;
     const ids = new Set((Array.isArray(eventIds) ? eventIds : []).map(String));
@@ -95,7 +109,7 @@
     return next.length !== events.length;
   }
 
-  const api = Object.freeze({ key: KEY, append, pending, completeSession, acknowledge, remove, normalizeEvent });
+  const api = Object.freeze({ key: KEY, append, pending, completeSession, claimUnownedEvents, acknowledge, remove, normalizeEvent });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.MilaAnswerJournal = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
