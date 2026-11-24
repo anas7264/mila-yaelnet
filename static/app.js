@@ -675,6 +675,7 @@
     else if (ui.view === "analytics") renderAnalytics();
     else if (ui.view === "settings") renderSettings();
     else if (ui.view === "session") renderSession();
+    window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function closeSidebar() {
@@ -854,9 +855,6 @@
 
   function returnToPlatform() {
     try {
-      // The platform state has already been updated and persisted by the adaptive
-      // learning bridge. Re-render the existing view from that same in-memory
-      // state instead of forcing a full document reload.
       render();
       return true;
     } catch (error) {
@@ -865,11 +863,30 @@
     }
   }
 
+  function isSessionActive() {
+    return Boolean(ui.view === "session" && ui.session && !ui.session.finished);
+  }
+
+  function refreshFromStorage() {
+    if (isSessionActive()) return false;
+    try {
+      state = STORE.loadState(localStorage, OFFICIAL);
+      wordIndex.invalidate();
+      if (!document.querySelector(".adaptive-page")) render();
+      return true;
+    } catch (error) {
+      console.error("Mila state refresh after cloud sync failed:", error);
+      return false;
+    }
+  }
+
   window.MilaLearningBridge = Object.freeze({
     recordAdaptiveAnswer,
     recordAdaptiveSession,
     pausePlatformSessionForAdaptive,
-    returnToPlatform
+    returnToPlatform,
+    isSessionActive,
+    refreshFromStorage
   });
 
   function setReviewRating(wordId, rating) {
