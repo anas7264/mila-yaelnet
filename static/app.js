@@ -1245,7 +1245,7 @@ ${stageTabsMarkup()}<section class="stack">${body}</section>`;
     session.selectedWordId = selectedWordId;
     session.feedbackVisible = true;
     session.results[session.current] = { ...answer, correct: isCorrect, timedOut, targetWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId), { timedOut, prompt: q.prompt, mode: session.mode });
     if (!persist()) {
       restoreLearningCheckpoint(checkpoint);
       renderSession();
@@ -1329,7 +1329,7 @@ ${stageTabsMarkup()}<section class="stack">${body}</section>`;
       if (q) {
         const idx = session.questions.indexOf(q);
         session.results[idx] = { correct: true, targetWordId: id };
-        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"));
+        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"), { prompt: word?.he || "", selectedAnswer: word?.ar || "", mode: "matching" });
       }
       if (match.matched.length === match.words.length) {
         const nextIndex = session.current + match.words.length;
@@ -1758,7 +1758,7 @@ ${stageTabsMarkup()}<section class="stack">${body}</section>`;
       case "answer-choice": answerChoice(id);break;
       case "next-question": nextQuestion();break;
       case "pause-session": pauseSession();break;
-      case "exit-session": if(confirm("هل تريد إنهاء الجلسة الحالية؟")){stopTimer();ui.session=null;navigate("dashboard");}break;
+      case "exit-session": if(confirm("هل تريد إنهاء الجلسة الحالية؟"))finishSession();break;
       case "reveal-flashcard": if(ui.session){ui.session.flashRevealed=true;renderSession();}break;
       case "flash-rate": rateFlashcard(target.dataset.rating);break;
       case "match-left": handleMatch("left",id);break;
