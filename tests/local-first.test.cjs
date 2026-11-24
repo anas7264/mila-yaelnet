@@ -10,7 +10,7 @@ const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8")
 test("app entrypoint loads the automatic sync runtime", () => {
   const html = read("index.html");
   assert.match(html, /sync-config\.js/);
-  assert.match(html, /import\(['"]\/sync\.js\?v=10['"]\)/);
+  assert.match(html, /import\(['"]\/sync\.js\?v=11['"]\)/);
   assert.match(html, /static\/storage\.js/);
   assert.match(html, /static\/adaptive-ui\.js/);
   assert.match(html, /static\/word-index\.js\?v=1/);
