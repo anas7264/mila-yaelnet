@@ -86,6 +86,13 @@
   });
   const allWords = () => wordIndex.getWords();
   const wordMap = () => wordIndex.getMap();
+
+  function invalidateWordIndex() {
+    wordIndex.invalidate();
+    // The adaptive workspace owns a separate vocabulary snapshot. Refresh it
+    // only after the platform state has been persisted successfully.
+    window.MilaAdaptiveBridge?.refreshVocabulary?.();
+  }
   const progressOf = (id) => state.progress[id] || {};
   const stageById = (id) => CATALOG.stages.find((s) => s.id === id) || CATALOG.stages[0];
   const stageWords = (id) => OFFICIAL.filter((w) => w.stageId === id);
@@ -879,7 +886,7 @@
     if (isSessionActive()) return false;
     try {
       state = STORE.loadState(localStorage, OFFICIAL);
-      wordIndex.invalidate();
+      invalidateWordIndex();
       if (!document.querySelector(".adaptive-page")) {
         const scrollX = window.scrollX, scrollY = window.scrollY;
         const activeId = document.activeElement?.id || "";
@@ -1376,7 +1383,7 @@
     if (duplicate || duplicateOfficial) { toast("هذه الكلمة موجودة مسبقًا في المكتبة.", "error"); return; }
     state.extras.push({ id: uid(), he, ar, source:"extra", tags:[], createdAt:Date.now() });
     if (!persist()) { state.extras.pop(); return; }
-    wordIndex.invalidate();
+    invalidateWordIndex();
     toast("أضيفت المفردة إلى بنك الكلمات.");
     renderLibrary();
   }
@@ -1392,7 +1399,7 @@
         if (!he||!ar||/[<>]/.test(he+ar)) {toast("بيانات غير صالحة.","error");return false;}
         const duplicate=state.extras.some((w)=>w.id!==id&&ENGINE.normalizeText(w.he)===ENGINE.normalizeText(he))||OFFICIAL.some((w)=>ENGINE.normalizeText(w.he)===ENGINE.normalizeText(he));
         if(duplicate){toast("هذه الكلمة موجودة مسبقًا.","error");return false;}
-        word.he=he;word.ar=ar;persist();wordIndex.invalidate();render();toast("تم تحديث المفردة.");return true;
+        word.he=he;word.ar=ar;persist();invalidateWordIndex();render();toast("تم تحديث المفردة.");return true;
       });
   }
 
@@ -1401,7 +1408,7 @@
     if(index<0)return;
     const word=state.extras[index];
     openModal("حذف مفردة","سيتم حذف هذه المفردة من بنكك الشخصي. تبقى سجلات الجلسات السابقة محفوظة.",`<div class="hebrew-chip" style="display:inline-block">${esc(word.he)}</div><p>${esc(word.ar)}</p>`,"حذف",()=>{
-      state.extras.splice(index,1);delete state.progress[id];state.mistakes=state.mistakes.filter(m=>m.wordId!==id);persist();wordIndex.invalidate();render();toast("تم حذف المفردة.");return true;
+      state.extras.splice(index,1);delete state.progress[id];state.mistakes=state.mistakes.filter(m=>m.wordId!==id);persist();invalidateWordIndex();render();toast("تم حذف المفردة.");return true;
     },"button-danger");
   }
 
@@ -1426,7 +1433,7 @@
           state.extras.push({id:uid(),he,ar,source:"extra",tags:[],createdAt:Date.now()});added++;
         }
         if(!persist()){state.extras.splice(-added,added);return false;}
-        if(added)wordIndex.invalidate();
+        if(added)invalidateWordIndex();
         toast("تم استيراد "+added+" كلمة"+(skipped?"، وتجاهل "+skipped+" سطرًا مكررًا أو غير صالح.":"."));renderLibrary();return true;
       });
   }
