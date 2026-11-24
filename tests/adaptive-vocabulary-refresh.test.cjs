@@ -46,6 +46,13 @@ test("adaptive word pool refreshes newly persisted custom vocabulary without a p
     vm.runInContext(read(file), context, { filename: file });
   }
   assert.equal(context.YaelStorage.saveState(context.YaelStorage.createDefaultState(), storage), true);
+  context.MilaLearningBridge = {
+    getCanonicalWords() {
+      const current = context.YaelStorage.loadState(storage, context.YaelCatalog.officialWords());
+      const base = [...context.YaelCatalog.officialWords(), ...(current.extras || [])];
+      return context.YaelExpandedVocabulary.merge(base);
+    }
+  };
   vm.runInContext(read("static/adaptive-ui.js"), context, { filename: "static/adaptive-ui.js" });
 
   assert.equal(typeof context.MilaAdaptiveBridge.refreshVocabulary, "function");

@@ -10,7 +10,7 @@ const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8")
 test("app entrypoint loads the automatic sync runtime", () => {
   const html = read("index.html");
   assert.match(html, /sync-config\.js/);
-  assert.match(html, /import\(['"]\/sync\.js\?v=12['"]\)/);
+  assert.match(html, /import\(['"]\/sync\.js\?v=14['"]\)/);
   assert.match(html, /static\/storage\.js/);
   assert.match(html, /static\/adaptive-ui\.js/);
   assert.match(html, /static\/word-index\.js\?v=1/);
@@ -18,7 +18,7 @@ test("app entrypoint loads the automatic sync runtime", () => {
 
 test("service worker precaches sync runtime and local Supabase SDK", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /mila-yaelnet-v43/);
+  assert.match(sw, /mila-yaelnet-v47/);
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);

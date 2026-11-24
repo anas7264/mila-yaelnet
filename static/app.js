@@ -52,6 +52,11 @@
     stageTab: "words",
     libraryFilter: "all",
     librarySearch: "",
+    libraryVisibleCount: 20,
+    libraryObserver: null,
+    stageVisibleCount: 20,
+    reviewVisibleCount: 20,
+    progressiveObserver: null,
     session: null,
     toastTimer: null,
     timerHandle: null,
@@ -125,6 +130,11 @@
   const newWords = (source = allWords()) => source.filter((w) => !(Number(progressOf(w.id).attempts) || 0));
 
   function persist() {
+    if (ui.journalWriteFailed) {
+      ui.journalWriteFailed = false;
+      toast("تعذر حفظ سجل الإجابة محليًا. لم ننتقل إلى السؤال التالي؛ تحقق من مساحة التخزين.", "error");
+      return false;
+    }
     const ok = STORE.saveState(state, localStorage);
     if (!ok) {
       window.MilaErrorMonitor?.captureException?.(new Error("Local learning state persistence failed"), { area: "storage", action: "save-main-state" });
@@ -390,7 +400,30 @@
     return `<div class="word-list">${rows}</div>`;
   }
 
+  function progressiveMarkup(words, visibleCount, sentinelId, action, options = {}) {
+    const count = Math.max(20, Number(visibleCount) || 20);
+    const visible = wordListMarkup(words.slice(0, count), options);
+    if (words.length <= count) return visible;
+    return visible + `<div class="progressive-load-sentinel" id="${sentinelId}"><button class="button button-secondary" type="button" data-action="${action}">تحميل 20 كلمة إضافية</button></div>`;
+  }
+
+  function observeProgressiveSentinel(id, action) {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
+    const sentinel = $(id);
+    if (!sentinel || !("IntersectionObserver" in window)) return;
+    ui.progressiveObserver = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        const button = sentinel.querySelector(`[data-action="${action}"]`);
+        if (button) handleAction(action, button);
+      }
+    }, { root: null, rootMargin: "320px 0px", threshold: 0 });
+    ui.progressiveObserver.observe(sentinel);
+  }
+
   function renderStage() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
     const stage = stageById(ui.stageId);
     if (!stage) { ui.view = "stages"; render(); return; }
     const words = stageWords(stage.id);
@@ -400,7 +433,7 @@
     if (ui.stageTab === "words") {
       const search = ui.stageSearch || "";
       const filtered = ENGINE.filterWords(words, state.progress, { stageId: stage.id, search });
-      body = `<div class="toolbar"><div class="search-control"><input class="control" data-input="stage-search" value="${esc(search)}" placeholder="ابحث في كلمات هذه المرحلة فقط"></div><div class="toolbar-group"><button class="button button-secondary button-small" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">اختبار مفردات المرحلة</button><button class="button button-soft button-small" data-action="stage-tab" data-tab="favorites">المفضلة</button></div></div>${wordListMarkup(filtered)}</div>`;
+      body = `<div class="toolbar"><div class="search-control"><input class="control" data-input="stage-search" value="${esc(search)}" placeholder="ابحث في كلمات هذه المرحلة فقط"></div><div class="toolbar-group"><button class="button button-secondary button-small" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">اختبار مفردات المرحلة</button><button class="button button-soft button-small" data-action="stage-tab" data-tab="favorites">المفضلة</button></div></div>${progressiveMarkup(filtered, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more")}</div>`;
     } else if (ui.stageTab === "study") {
       const word = words[ui.studyIndex % Math.max(1, words.length)];
       body = words.length ? `<div class="flashcard"><div class="question-kicker">STAGE ${stage.number} · STUDY CARD ${ui.studyIndex + 1} / ${words.length}</div><div class="question-prompt">${esc(word.he)}</div>${ui.studyFlipped ? `<div class="flashcard-back">${esc(word.ar)}</div><span class="badge badge-green">المعنى الصحيح</span>` : '<p class="question-hint">حاول تذكر المعنى قبل إظهاره</p>'}<div class="form-actions"><button class="button button-secondary" data-action="flip-card">${ui.studyFlipped ? "إخفاء المعنى" : "إظهار المعنى"}</button><button class="button button-primary" data-action="next-card">البطاقة التالية →</button><button class="icon-action ${progressOf(word.id).favorite ? "is-active" : ""}" data-action="toggle-favorite" data-word-id="${esc(word.id)}">★</button><button class="icon-action" data-action="speak" data-word-id="${esc(word.id)}">◖</button></div></div>` : emptyState("◇","لا توجد مفردات","أضف مفردات المرحلة أولًا.");
@@ -408,21 +441,22 @@
       body = `<div class="empty-hero"><div class="empty-icon">✳</div><h3>اختبار مستقل لهذه المرحلة</h3><p>ستكون الأسئلة من مفردات ${esc(stage.title)} فقط. أما المشتّتات فتُختار من بنك الكلمات الأوسع لتكون الخيارات أكثر تنوعًا دون تغيير نطاق الأسئلة.</p><button class="button button-primary" data-action="practice-stage-source" data-stage-id="${esc(stage.id)}" data-source="all">ابدأ الاختبار الآن</button><button class="button button-secondary" data-action="open-studio-stage" data-stage-id="${esc(stage.id)}">تخصيص إعدادات الاختبار</button></div>`;
     } else if (ui.stageTab === "due") {
       const due = dueWords(words);
-      body = `${due.length ? '<div class="toolbar"><span class="badge badge-red">' + due.length + ' مراجعة مستحقة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="due">اختبر المستحق</button></div>' : ""}${wordListMarkup(due,{emptyTitle:"لا توجد مراجعات مستحقة في هذه المرحلة",emptyCopy:"ستظهر الكلمة هنا عندما يحين موعد استعادتها حسب جدول المراجعة."})}`;
+      body = `${due.length ? '<div class="toolbar"><span class="badge badge-red">' + due.length + ' مراجعة مستحقة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="due">اختبر المستحق</button></div>' : ""}${progressiveMarkup(due, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", {emptyTitle:"لا توجد مراجعات مستحقة في هذه المرحلة",emptyCopy:"ستظهر الكلمة هنا عندما يحين موعد استعادتها حسب جدول المراجعة."})}`;
     } else if (ui.stageTab === "review") {
       const mistakes = stageMistakes(stage.id);
       const ids = new Set(mistakes.map((m) => m.wordId));
       const review = words.filter((w) => ids.has(w.id) || (Number(progressOf(w.id).mistakes) || 0) > 0);
-      body = `${review.length ? '<div class="toolbar"><span class="badge badge-red">' + review.length + ' كلمة تحتاج إعادة مراجعة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="mistakes">اختبر الأخطاء فقط</button></div>' : ""}${wordListMarkup(review,{emptyTitle:"هذه المرحلة بلا أخطاء مسجلة",emptyCopy:"الإجابات الخاطئة ستظهر هنا تلقائيًا بعد الاختبارات."})}`;
+      body = `${review.length ? '<div class="toolbar"><span class="badge badge-red">' + review.length + ' كلمة تحتاج إعادة مراجعة</span><button class="button button-primary button-small" data-action="practice-stage-source" data-stage-id="' + esc(stage.id) + '" data-source="mistakes">اختبر الأخطاء فقط</button></div>' : ""}${progressiveMarkup(review, ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", {emptyTitle:"هذه المرحلة بلا أخطاء مسجلة",emptyCopy:"الإجابات الخاطئة ستظهر هنا تلقائيًا بعد الاختبارات."})}`;
     } else if (ui.stageTab === "favorites") {
-      body = wordListMarkup(favoriteWords(words), { emptyTitle: "لم تضف مفضلات بعد", emptyCopy: "اضغط على النجمة بجوار الكلمة لحفظها هنا." });
+      body = progressiveMarkup(favoriteWords(words), ui.stageVisibleCount, "stageLoadMoreSentinel", "stage-load-more", { emptyTitle: "لم تضف مفضلات بعد", emptyCopy: "اضغط على النجمة بجوار الكلمة لحفظها هنا." });
     } else {
       body = `<div class="stats-grid">${statCard("مفردات المرحلة",words.length,"◇","الكلمات الرسمية في هذه المرحلة")}${statCard("إجابات",a.attempted,"✓","إجابات من هذه المرحلة فقط")}${statCard("دقة",a.accuracy+"%","◎","صحة إجابات هذه المرحلة")}${statCard("متقنة",mastered,"✦","من إجمالي "+words.length+" كلمة")}</div><div class="panel-card"><div class="panel-heading"><h2>تقدم إتقان المرحلة</h2><span class="badge badge-gold">${Math.round(mastered/Math.max(1,words.length)*100)}%</span></div>${progressTrack(mastered/Math.max(1,words.length)*100)}<div class="progress-meta"><span>${mastered} متقنة</span><span>${words.length-mastered} لم تتقن بعد</span></div><div class="section-divider"></div><div class="history-list"><div class="history-row"><strong>الأخطاء المسجلة</strong><span>${stageMistakes(stage.id).length}</span></div><div class="history-row"><strong>الكلمات المفضلة</strong><span>${favoriteWords(words).length}</span></div><div class="history-row"><strong>المراجعات المستحقة</strong><span>${dueWords(words).length}</span></div></div></div>`;
     }
     $("appView").innerHTML = `
       ${pageHead(`STAGE WORKSPACE · ${stage.number}`, stage.title, stage.description, '<button class="button button-primary" data-action="open-studio-stage" data-stage-id="' + esc(stage.id) + '">✳ تمرين مخصص</button>')}
       <section class="stats-grid">${statCard("عدد المفردات",words.length,"◇","في هذه المرحلة فقط")}${statCard("الإجابات",a.attempted,"✓","سجل المرحلة")}${statCard("الدقة",a.accuracy+"%","◎","لا تشمل المراحل الأخرى")}${statCard("المراجعة",stageMistakes(stage.id).length,"↻","أخطاء هذه المرحلة")}</section>
-      ${stageTabsMarkup()}<section class="stack">${body}</section>`;
+${stageTabsMarkup()}<section class="stack">${body}</section>`;
+    if (["words","due","review","favorites"].includes(ui.stageTab)) observeProgressiveSentinel("stageLoadMoreSentinel", "stage-load-more");
   }
 
   function renderStudio() {
@@ -540,6 +574,8 @@
   }
 
   function renderLibrary() {
+    ui.libraryObserver?.disconnect();
+    ui.libraryObserver = null;
     const filters = [
       ["all","الكل"],["stage","مراحل"],["expanded","موسّعة"],["extra","إضافية"],["weak","ضعيفة"],["due","مستحقة"],["mistakes","أخطاء"],["favorites","مفضلة"],["new","جديدة"],["mastered","متقنة"]
     ];
@@ -567,22 +603,36 @@
       ${addForm}
       <section class="panel-card" style="margin-top:16px"><div class="toolbar"><div class="search-control"><input class="control" data-input="library-search" value="${esc(q)}" placeholder="ابحث بالعبرية أو العربية"></div><div class="toolbar-group">${filters.map(([id,label]) => `<button class="stage-tab ${ui.libraryFilter===id?"active":""}" data-action="library-filter" data-filter="${id}">${label}</button>`).join("")}</div></div>
         <div class="panel-heading"><div><h2>نتائج المكتبة</h2><p>${words.length} كلمة مطابقة</p></div><span class="badge badge-neutral">${ui.libraryFilter === "all" ? "كل الكلمات" : esc(filters.find(f=>f[0]===ui.libraryFilter)?.[1] || "")}</span></div>
-        ${wordListMarkup(words)}
+        ${wordListMarkup(words.slice(0, ui.libraryVisibleCount || 20))}
+        ${words.length > (ui.libraryVisibleCount || 20) ? `<div class="progressive-load-sentinel" id="libraryLoadMoreSentinel"><button class="button button-secondary" type="button" data-action="library-load-more">تحميل 20 كلمة إضافية</button></div>` : `<p class="session-footnote" aria-live="polite">تم عرض جميع الكلمات (${words.length}).</p>`}
       </section>`;
+    const sentinel = $("libraryLoadMoreSentinel");
+    if (sentinel && "IntersectionObserver" in window) {
+      ui.libraryObserver = new IntersectionObserver(entries => {
+        if (entries.some(entry => entry.isIntersecting)) {
+          const button = sentinel.querySelector("[data-action=library-load-more]");
+          if (button) handleAction("library-load-more", button);
+        }
+      }, { root: null, rootMargin: "360px 0px", threshold: 0 });
+      ui.libraryObserver.observe(sentinel);
+    }
   }
 
   function renderReview() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
     const tabs = [["due","المستحقة"],["weak","الضعيفة"],["mistakes","الأخطاء"],["new","الجديدة"]];
     const source = ui.reviewFilter || "due";
     let words = source === "weak" ? weakWords() : source === "mistakes" ? mistakeWords() : source === "new" ? newWords() : dueWords();
     const list = `<section class="panel-card"><div class="panel-heading"><div><h2>قائمة المراجعة</h2><p>الكلمات المعروضة مصدرها هذا التصنيف فقط</p></div><span class="badge badge-gold">${words.length} كلمة</span></div>
       ${words.length ? '<div class="toolbar"><button class="button button-primary button-small" data-action="practice-source" data-source="' + source + '">اختبر هذه المجموعة</button></div>' : ""}
-      ${wordListMarkup(words,{emptyTitle:"القائمة فارغة",emptyCopy:"ستُضاف الكلمات إلى هذا التصنيف حسب إجاباتك وجدولة المراجعة."})}
+      ${progressiveMarkup(words, ui.reviewVisibleCount, "reviewLoadMoreSentinel", "review-load-more", {emptyTitle:"القائمة فارغة",emptyCopy:"ستُضاف الكلمات إلى هذا التصنيف حسب إجاباتك وجدولة المراجعة."})}
     </section>`;
     $("appView").innerHTML = `
       ${pageHead("RETRIEVAL & REVIEW", "مركز المراجعة", "استهدف الكلمات التي تحتاج عملًا بدل تكرار كل المفردات بالتساوي.", '<button class="button button-primary" data-action="open-studio">بناء جلسة مخصصة</button>')}
       <section class="stats-grid">${statCard("مستحقة",dueWords().length,"↻","حان موعد مراجعتها")}${statCard("ضعيفة",weakWords().length,"⌁","دقة أقل من 70% بعد المحاولة")}${statCard("أخطاء",state.mistakes.length,"!", "إجابات خاطئة مسجلة")}${statCard("جديدة",newWords().length,"＋","لم تُختبر بعد")}</section>
       <div class="stage-tabs">${tabs.map(([id,label])=>`<button class="stage-tab ${source===id?"active":""}" data-action="review-filter" data-filter="${id}">${label}</button>`).join("")}</div>${list}`;
+    observeProgressiveSentinel("reviewLoadMoreSentinel", "review-load-more");
   }
 
   function renderAnalytics() {
@@ -629,6 +679,10 @@
     $("appView").innerHTML = `
       ${pageHead("LEARNING ANALYTICS", "التحليلات والأداء", "راقب السلوك الفعلي للتعلم: الدقة، الكلمات الصعبة، التقدم المرحلي وسجل الجلسات.")}
       <section class="stats-grid">${statCard("الإجابات",s.attempted,"✓","إجمالي المحاولات")}${statCard("الدقة",s.accuracy+"%","◎","المجموع الحالي")}${statCard("الكلمات المتقنة",s.mastered,"✦","معلّمة كمتقنة")}${statCard("جلسات التدريب",s.sessions,"◷","جلسات مكتملة")}</section>
+       <section class="panel-card" id="answerEventAnalytics" style="margin-top:16px" dir="rtl">
+         <div class="panel-heading"><div><h2>تحليل سجل كل إجابة</h2><p>البيانات المحفوظة في Supabase، منفصلة عن ملخصات التقدم المحلية</p></div><span class="badge badge-neutral">ANSWER LEDGER</span></div>
+         <p class="session-footnote">جارٍ تحميل تحليل الإجابات...</p>
+       </section>
       <div class="analytics-grid">
         <section class="panel-card"><div class="panel-heading"><div><h2>دقة آخر الجلسات</h2><p>آخر 7 جلسات محفوظة، من جميع أوضاع التدريب</p></div><span class="badge badge-gold">TREND</span></div>
           ${recent.length ? '<div class="chart-bars">' + bars + '</div>' : emptyState("▥","لا توجد بيانات بعد","أكمل جلسات التدريب لعرض منحنى الدقة.")}
@@ -648,6 +702,35 @@
       <section class="panel-card" style="margin-top:16px"><div class="panel-heading"><div><h2>سجل الجلسات العام</h2><p>النتائج الفعلية دون احتسابها كعلامة رسمية لامتحان יעלנט</p></div><button class="button button-secondary button-small" data-action="print-report">طباعة التقرير</button></div>
         ${recent.length ? '<div class="history-list">' + state.sessions.slice().reverse().map((session)=>`<div class="history-row"><div><strong>${esc(session.title || "جلسة تدريب")}</strong><small>${formatDate(session.finishedAt)} · ${session.total} سؤال · ${session.correct} صحيح</small></div><span class="badge ${session.accuracy>=75?"badge-green":"badge-gold"}">${session.accuracy}%</span></div>`).join("") + '</div>' : emptyState("◷","لا يوجد سجل","الجلسة المكتملة ستظهر هنا.")}
       </section>`;
+    loadCloudAnswerAnalytics();
+  }
+
+  function loadCloudAnswerAnalytics() {
+    const target = $("answerEventAnalytics");
+    if (!target) return;
+    const bridge = window.MilaSyncBridge;
+    if (!bridge?.getAnswerAnalytics) {
+      target.innerHTML = '<p class="session-footnote">سجل الإجابات السحابي غير متاح حاليًا. تحقق من اتصال المزامنة.</p>';
+      return;
+    }
+    const labels = { "he-ar": "عبري ← عربي", "ar-he": "عربي ← عبري" };
+    bridge.getAnswerAnalytics().then(({wordStats,confusions}) => {
+      if (ui.view !== "analytics" || $("answerEventAnalytics") !== target) return;
+      const valid = (Array.isArray(wordStats) ? wordStats : []).map(row => {
+        const word = wordMap().get(row.word_id);
+        const attempts = Number(row.answer_attempts) || 0;
+        const correct = Number(row.correct_count) || 0;
+        return { row, word, attempts, correct, accuracy: attempts ? correct / attempts : 0 };
+      }).filter(item => item.word && item.attempts > 0);
+      const difficult = valid.filter(item => item.attempts >= 3).sort((x,y) => x.accuracy-y.accuracy).slice(0,8);
+      const easy = valid.filter(item => item.attempts >= 5 && item.accuracy >= 0.85).sort((x,y) => y.accuracy-x.accuracy).slice(0,8);
+      const renderRows = (items, kind) => items.length ? '<div class="due-list">' + items.map(({row,word,attempts,correct,accuracy}) => `<div class="due-item"><span class="hebrew-chip">${esc(word.he)}</span><div class="due-meaning"><strong>${esc(word.ar)}</strong><small>${esc(labels[row.direction] || "اتجاه غير محدد")} · ${correct}/${attempts} صحيح</small></div><span class="badge ${kind === "hard" ? "badge-red" : "badge-green"}">${Math.round(accuracy*100)}%</span></div>`).join("") + '</div>' : emptyState("◇",kind === "hard" ? "لا توجد كلمات صعبة مثبتة بعد" : "لا توجد كلمات سهلة مثبتة بعد","يحتاج التصنيف إلى عدد كافٍ من المحاولات.");
+      const confusionRows = (Array.isArray(confusions) ? confusions : []).slice(0,8);
+      target.innerHTML = `<div class="analytics-grid"><div><h3>كلمات صعبة</h3><p class="session-footnote">3 محاولات على الأقل، مرتبة حسب أدنى دقة</p>${renderRows(difficult,"hard")}</div><div><h3>كلمات سهلة</h3><p class="session-footnote">5 محاولات على الأقل ودقة 85% فأكثر</p>${renderRows(easy,"easy")}</div></div><div class="section-divider"></div><h3>الخيارات الخاطئة المتكررة</h3>${confusionRows.length ? '<div class="history-list">' + confusionRows.map(item => { const word=wordMap().get(item.word_id); return `<div class="history-row"><div><strong>${esc(word?.he || item.word_id)} · ${esc(item.selected_answer || "")}</strong><small>${esc(word?.ar || "")} · ${esc(labels[item.direction] || "اتجاه غير محدد")}</small></div><span class="badge badge-red">${Number(item.selected_wrong_count)||0} مرة</span></div>`; }).join("") + '</div>' : emptyState("◇","لا توجد خيارات خاطئة متكررة","ستظهر هنا الخيارات التي تختارها خطأً أكثر من مرة.")}`;
+    }).catch(error => {
+      if (ui.view !== "analytics" || $("answerEventAnalytics") !== target) return;
+      target.innerHTML = '<p class="session-footnote">تعذر تحميل سجل الإجابات السحابي: ' + esc(error?.message || "خطأ غير معروف") + '</p>';
+    });
   }
 
   function renderSettings() {
@@ -674,6 +757,10 @@
   }
 
   function render() {
+    ui.progressiveObserver?.disconnect();
+    ui.progressiveObserver = null;
+    ui.libraryObserver?.disconnect();
+    ui.libraryObserver = null;
     renderShell();
     applySettings();
     if (ui.view === "dashboard") renderDashboard();
@@ -781,6 +868,40 @@
       if (state.mistakes.length > 500) state.mistakes.splice(0, state.mistakes.length - 500);
     }
     updateDailyStreak();
+    if (eventId && window.MilaAnswerJournal?.append) {
+      const session = ui.session;
+      const question = session?.questions?.[session.current] || null;
+      const word = wordMap().get(wordId);
+      const reverse = metadata?.direction === "ar-he" || session?.mode === "ar-he" || session?.mode === "typed-ar-he";
+      const correctAnswer = reverse ? word?.he : word?.ar;
+      const choices = Array.isArray(question?.choices) ? question.choices.map(choice => {
+        const option = wordMap().get(choice.wordId);
+        return { wordId: choice.wordId, text: reverse ? option?.he : option?.ar };
+      }) : [];
+      try {
+        window.MilaAnswerJournal.append({
+          eventId: String(eventId).slice(0, 180),
+          sessionId: String(metadata?.sessionId || session?.id || "adaptive-session"),
+          ownerId: window.MilaSyncBridge?.getUserId?.() || null,
+          wordId,
+          occurredAt: Number(metadata?.at) || now,
+          mode: String(metadata?.mode || session?.mode || source || "adaptive"),
+          direction: metadata?.direction || (reverse ? "ar-he" : "he-ar"),
+          eventType: metadata?.selfRating ? "self-rating" : "answer",
+          prompt: String(metadata?.prompt || question?.prompt || (reverse ? word?.ar : word?.he) || ""),
+          choices,
+          correctAnswer: String(correctAnswer || metadata?.correctAnswer || ""),
+          selectedAnswer: String(metadata?.selectedAnswer || (selectedWordId ? (reverse ? wordMap().get(selectedWordId)?.he : wordMap().get(selectedWordId)?.ar) : "") || ""),
+          typedAnswer: String(metadata?.typedAnswer || ""),
+          isCorrect: metadata?.selfRating ? null : Boolean(correct),
+          selfRating: metadata?.selfRating || null,
+          timedOut: Boolean(metadata?.timedOut)
+        });
+      } catch (error) {
+        ui.journalWriteFailed = true;
+        window.MilaErrorMonitor?.captureException?.(error, { area: "storage", action: "append-answer-journal" });
+      }
+    }
     return next;
   }
 
@@ -813,7 +934,10 @@
     const previousMistakes = state.mistakes.slice();
     const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
     const previousLearningEvents = { ...(state.learningEvents || {}) };
-    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, { direction: event.direction, at: event.at });
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, {
+      direction: event.direction, at: event.at, sessionId: event.sessionId, mode: event.mode,
+      prompt: event.prompt, selectedAnswer: event.selectedAnswer, correctAnswer: event.correctAnswer
+    });
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
@@ -922,7 +1046,10 @@
     pausePlatformSessionForAdaptive,
     returnToPlatform,
     isSessionActive,
-    refreshFromStorage
+    refreshFromStorage,
+    getCanonicalWords: () => wordIndex.getWords(),
+    getCanonicalWordMap: () => wordIndex.getMap(),
+    hasUnfinishedSession: () => Boolean(ui.session && !ui.session.finished)
   });
 
   function setReviewRating(wordId, rating) {
@@ -1151,7 +1278,7 @@
     session.selectedWordId = selectedWordId;
     session.feedbackVisible = true;
     session.results[session.current] = { ...answer, correct: isCorrect, timedOut, targetWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, isCorrect, selectedWordId, null, createAnswerEventId(session.id, session.current, q.targetWordId), { timedOut, prompt: q.prompt, mode: session.mode });
     if (!persist()) {
       restoreLearningCheckpoint(checkpoint);
       renderSession();
@@ -1180,7 +1307,7 @@
     session.selectedWordId = null;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: checked.correct, targetWordId: q.targetWordId, selectedWordId: null, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId), { typedAnswer: value, prompt: q.prompt, mode: session.mode });
     if (!persist()) {
       restoreLearningCheckpoint(checkpoint);
       renderSession();
@@ -1235,7 +1362,7 @@
       if (q) {
         const idx = session.questions.indexOf(q);
         session.results[idx] = { correct: true, targetWordId: id };
-        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"));
+        recordAnswer(id, true, id, null, createAnswerEventId(session.id, idx, id + ":matching-correct"), { prompt: word?.he || "", selectedAnswer: word?.ar || "", mode: "matching" });
       }
       if (match.matched.length === match.words.length) {
         const nextIndex = session.current + match.words.length;
@@ -1250,10 +1377,10 @@
       const q = session.questions.find((item)=>item.targetWordId===leftId);
       if (q) {
         const idx = session.questions.indexOf(q);
-        if (!session.results[idx]) {
-          session.results[idx] = { correct: false, targetWordId: leftId };
-          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong"));
-        }
+        if (!session.results[idx]) session.results[idx] = { correct: false, targetWordId: leftId };
+        recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong:" + uid()), {
+          prompt: word?.he || "", selectedAnswer: wordMap().get(id)?.ar || "", mode: "matching"
+        });
       }
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
       match.selectedLeft = null;
@@ -1276,7 +1403,7 @@
     session.answered = true;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: good, targetWordId: q.targetWordId, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId), { selfRating: rating, prompt: q.prompt, mode: session.mode });
     const p = progressOf(q.targetWordId);
     state.progress[q.targetWordId] = { ...p, ...ENGINE.scheduleReview(p, rating, Date.now()) };
     if (!persist()) {
@@ -1353,6 +1480,13 @@
       return false;
     }
     renderSessionSummary(sessionRecord);
+    if (typeof CustomEvent !== "undefined") {
+      window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt } }));
+    } else if (typeof Event !== "undefined") {
+      const completedEvent = new Event("mila:session-completed");
+      completedEvent.detail = { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt };
+      window.dispatchEvent(completedEvent);
+    }
     return true;
   }
 
@@ -1613,7 +1747,7 @@
       case "open-studio-stage": ui.stageId=target.dataset.stageId;ui.studioDraft.source="stage";ui.studioDraft.stageIds=[ui.stageId];navigate("studio");break;
       case "open-stage": navigate("stage",{stageId:target.dataset.stageId,tab:"words"});break;
       case "stage-quiz": ui.stageId=target.dataset.stageId;startStudioSession({...ui.studioDraft,source:"stage",stageId:ui.stageId,stageIds:[ui.stageId],count:"all"});break;
-      case "stage-tab": ui.stageTab=target.dataset.tab;renderStage();break;
+      case "stage-tab": ui.stageTab=target.dataset.tab;ui.stageVisibleCount=20;renderStage();break;
       case "flip-card": ui.studyFlipped=!ui.studyFlipped;renderStage();break;
       case "next-card": ui.studyIndex=(ui.studyIndex+1)%stageWords(ui.stageId).length;ui.studyFlipped=false;renderStage();break;
       case "practice-stage-source": {
@@ -1624,8 +1758,29 @@
         break;
       }
       case "practice-source": ui.studioDraft.source=target.dataset.source;startStudioSession({...ui.studioDraft,source:target.dataset.source,count:"all"});break;
-      case "library-filter": ui.libraryFilter=target.dataset.filter;renderLibrary();break;
-      case "review-filter": ui.reviewFilter=target.dataset.filter;renderReview();break;
+      case "library-filter": ui.libraryFilter=target.dataset.filter;ui.libraryVisibleCount=20;renderLibrary();break;
+      case "stage-load-more": {
+        const scroll = window.scrollY;
+        ui.stageVisibleCount += 20;
+        renderStage();
+        window.scrollTo(window.scrollX, scroll);
+        break;
+      }
+      case "review-load-more": {
+        const scroll = window.scrollY;
+        ui.reviewVisibleCount += 20;
+        renderReview();
+        window.scrollTo(window.scrollX, scroll);
+        break;
+      }
+      case "library-load-more": {
+        const currentScroll = window.scrollY;
+        ui.libraryVisibleCount = Math.min((ui.libraryVisibleCount || 20) + 20, allWords().length);
+        renderLibrary();
+        window.scrollTo(window.scrollX, currentScroll);
+        break;
+      }
+      case "review-filter": ui.reviewFilter=target.dataset.filter;ui.reviewVisibleCount=20;renderReview();break;
       case "toggle-favorite": toggleFavorite(id);break;
       case "toggle-mastered": toggleMastered(id);break;
       case "rate-word": setReviewRating(id,target.dataset.rating);break;
@@ -1636,7 +1791,7 @@
       case "answer-choice": answerChoice(id);break;
       case "next-question": nextQuestion();break;
       case "pause-session": pauseSession();break;
-      case "exit-session": if(confirm("هل تريد إنهاء الجلسة الحالية؟")){stopTimer();ui.session=null;navigate("dashboard");}break;
+      case "exit-session": if(confirm("هل تريد إنهاء الجلسة الحالية؟"))finishSession();break;
       case "reveal-flashcard": if(ui.session){ui.session.flashRevealed=true;renderSession();}break;
       case "flash-rate": rateFlashcard(target.dataset.rating);break;
       case "match-left": handleMatch("left",id);break;
@@ -1746,6 +1901,7 @@
     document.addEventListener("input",(event)=>{
       if(event.target.dataset.input==="library-search"){
         ui.librarySearch=event.target.value;
+        ui.libraryVisibleCount=20;
         const scroll=window.scrollY;
         renderLibrary();window.scrollTo(0,scroll);
         const field=document.querySelector('[data-input="library-search"]');
@@ -1753,6 +1909,7 @@
       }
       if(event.target.dataset.input==="stage-search"){
         ui.stageSearch=event.target.value;
+        ui.stageVisibleCount=20;
         const scroll=window.scrollY;
         renderStage();window.scrollTo(0,scroll);
         const field=document.querySelector('[data-input="stage-search"]');

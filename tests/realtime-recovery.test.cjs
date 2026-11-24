@@ -46,14 +46,14 @@ test("the service worker and document use fresh, matching sync module versions",
   const merge = read("sync-merge-core.mjs");
   const sw = read("static/sw.js");
 
-  assert.match(html, /\/sync\.js\?v=12/);
-  assert.match(sync, /\.\/sync-core\.mjs\?v=7/);
-  assert.match(sync, /\.\/sync-merge-core\.mjs\?v=3/);
-  assert.match(merge, /\.\/sync-core\.mjs\?v=7/);
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v43"/);
-  assert.ok(sw.includes('"/sync.js?v=12"'));
-  assert.ok(sw.includes('"/sync-core.mjs?v=7"'));
-  assert.ok(sw.includes('"/sync-merge-core.mjs?v=3"'));
+  assert.match(html, /\/sync\.js\?v=14/);
+  assert.match(sync, /\.\/sync-core\.mjs\?v=9/);
+  assert.match(sync, /\.\/sync-merge-core\.mjs\?v=4/);
+  assert.match(merge, /\.\/sync-core\.mjs\?v=9/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v47"/);
+  assert.ok(sw.includes('"/sync.js?v=14"'));
+  assert.ok(sw.includes('"/sync-core.mjs?v=9"'));
+  assert.ok(sw.includes('"/sync-merge-core.mjs?v=4"'));
 });
 
 test("Realtime failures remove their channel and retry with capped exponential backoff", async () => {

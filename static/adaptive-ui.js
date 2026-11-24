@@ -17,18 +17,21 @@
   let wordMap = new Map();
 
   function collectWords() {
-    const core = window.YaelCatalog?.officialWords?.() || [];
+    const canonical = window.MilaLearningBridge?.getCanonicalWords?.();
+    if (!Array.isArray(canonical)) {
+      throw new Error("Canonical vocabulary bridge is unavailable; adaptive training cannot build a divergent word list.");
+    }
     const legacyAcademicTerms = window.YaelAcademicTerms || [];
     if (legacyAcademicTerms.length) {
       const byHebrew = new Map();
-      for (const word of core) {
+      for (const word of canonical) {
         const key = Engine.normalizeText(word.he);
         if (key && !byHebrew.has(key)) byHebrew.set(key, word);
       }
       const idMap = new Map();
       for (const term of legacyAcademicTerms) {
-        const canonical = byHebrew.get(Engine.normalizeText(term.he));
-        if (canonical && canonical.id !== term.id) idMap.set(term.id, canonical.id);
+        const canonicalWord = byHebrew.get(Engine.normalizeText(term.he));
+        if (canonicalWord && canonicalWord.id !== term.id) idMap.set(term.id, canonicalWord.id);
       }
       const migration = Engine.migrateWordIds(state, idMap);
       if (migration.migrated) {
@@ -37,22 +40,8 @@
         if (!save()) state = previous;
       }
     }
-    let extras = [];
-    try {
-      const legacy = window.YaelStorage?.loadState?.(localStorage, core);
-      extras = Array.isArray(legacy?.extras) ? legacy.extras.map(item => ({
-        ...item, category: "كلمات شخصية", level: "مخصص", source: "extra"
-      })) : [];
-    } catch (_) {}
-    const base = [...core, ...extras];
-    const combined = window.YaelExpandedVocabulary?.merge ? window.YaelExpandedVocabulary.merge(base) : base;
-    const seen = new Set();
-    words = combined.filter(word => {
-      if (!word?.id || seen.has(word.id) || !String(word.he || "").trim() || !String(word.ar || "").trim()) return false;
-      seen.add(word.id);
-      return true;
-    });
-    wordMap = new Map(words.map(word => [word.id, word]));
+    words = canonical;
+    wordMap = window.MilaLearningBridge.getCanonicalWordMap?.() || new Map(words.map(word => [word.id, word]));
     if (state.session) {
       state.session.queue = state.session.queue.filter(id => wordMap.has(id));
       state.session.cursor = Math.min(state.session.cursor, Math.max(0, state.session.queue.length - 1));
@@ -257,9 +246,12 @@
     try {
       integrated = bridge.recordAdaptiveAnswer({
         eventId: q.questionId,
+        sessionId: state.session?.id || "adaptive-session",
         wordId: q.wordId,
         correct: result.correct,
         direction: q.direction,
+        mode: "adaptive",
+        prompt: q.prompt || "",
         at: result.state.session?.lastResult?.at
       });
     } catch (error) {
@@ -356,6 +348,8 @@
         return;
       }
       renderHome();
+      window.dispatchEvent(new CustomEvent("mila:learning-session-change"));
+      window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: session.id, finishedAt: Date.now() } }));
     }
   }
 
@@ -446,7 +440,12 @@
     }
   }
 
-  window.MilaAdaptiveBridge = Object.freeze({ isSessionActive, refreshFromStorage, refreshVocabulary });
+  window.MilaAdaptiveBridge = Object.freeze({
+    isSessionActive,
+    hasUnfinishedSession: () => Boolean(state.session),
+    refreshFromStorage,
+    refreshVocabulary
+  });
 
   window.addEventListener("storage", event => {
     if (event.key === "mila-yaelnet-studio-v3") refreshVocabulary();

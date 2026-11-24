@@ -52,5 +52,6 @@ test("new vocabulary is loaded before app code and is merged into both training 
   assert.ok(html.indexOf("static/expanded-vocabulary.js") < html.indexOf("static/app.js"));
   assert.match(app, /YaelExpandedVocabulary\?\.merge/);
   assert.match(app, /expandedTopics/);
-  assert.match(adaptive, /YaelExpandedVocabulary\?\.merge/);
+  assert.match(adaptive, /MilaLearningBridge\?\.getCanonicalWords\?\.\(\)/);
+  assert.doesNotMatch(adaptive, /YaelExpandedVocabulary\?\.merge/);
 });

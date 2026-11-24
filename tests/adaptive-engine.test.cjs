@@ -167,8 +167,8 @@ test("short-term retries are bounded and defer when there is not enough spacing 
 
 test("matching wrong-then-correct answers use distinct idempotency events", () => {
   const app = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
-  assert.match(app, /recordAnswer\(id, true, id, null, createAnswerEventId\(session\.id, idx, id \+ ":matching-correct"\)\)/);
-  assert.match(app, /recordAnswer\(leftId, false, id, null, createAnswerEventId\(session\.id, idx, leftId \+ ":matching-wrong"\)\)/);
+  assert.match(app, /recordAnswer\(id, true, id, null, createAnswerEventId\(session\.id, idx, id \+ ":matching-correct"\)/);
+  assert.match(app, /matching-wrong:[\s\S]{0,30}uid\(\)/);
 });
 
 test("adaptive session persists start time and a deduplicatable answer history", () => {
@@ -473,7 +473,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v43"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v47"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);

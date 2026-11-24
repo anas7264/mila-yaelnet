@@ -155,7 +155,7 @@ test("index loads the monitor before app scripts and the service worker caches i
   const html = read("index.html");
   const sw = read("static/sw.js");
   assert.ok(html.indexOf("static/error-monitoring.js?v=1") < html.indexOf("static/app.js"));
-  assert.ok(sw.includes("mila-yaelnet-v43"));
+  assert.ok(sw.includes("mila-yaelnet-v47"));
   assert.ok(sw.includes("/static/error-monitoring.js?v=1"));
 });
 

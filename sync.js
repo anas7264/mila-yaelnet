@@ -1,7 +1,7 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=7';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=9';
 
 import{buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
-import{mergeSnapshots}from'./sync-merge-core.mjs?v=3';
+import{mergeSnapshots}from'./sync-merge-core.mjs?v=4';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',ACCOUNT_BACKUP_PREFIX=P+'account_backup_v1_',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
 const card$=id=>card.querySelector('#'+id);
 const statusController=createStatusController(()=>card$('mila-sync-status'));
@@ -28,6 +28,19 @@ const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000})
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0,deferredCloudUpdate=null,deferredAccountSession=null;
+window.MilaSyncBridge=Object.freeze({
+  getUserId:()=>session?.user?.id||null,
+  getAnswerAnalytics:async()=>{
+    if(!session?.user?.id)throw new Error('سجّل الدخول لعرض سجل الإجابات السحابي.');
+    const [words,confusions]=await Promise.all([
+      sb.from('learning_answer_word_stats').select('word_id,direction,answer_attempts,correct_count,incorrect_count,again_count,hard_count,good_count,easy_count,last_attempt_at').order('answer_attempts',{ascending:false}).limit(1000),
+      sb.from('learning_answer_confusion_stats').select('word_id,direction,selected_answer,selected_wrong_count,last_selected_at').order('selected_wrong_count',{ascending:false}).limit(100)
+    ]);
+    if(words.error)throw words.error;
+    if(confusions.error)throw confusions.error;
+    return {wordStats:words.data||[],confusions:confusions.data||[]};
+  }
+});
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null,allowAccountSwitch=false)=>{const current=meta();if(current.userId&&userId&&current.userId!==userId&&!allowAccountSwitch)throw Error('Refusing to overwrite metadata for another account.');if(current.userId===userId&&Number.isInteger(current.revision)&&current.revision>r){revision=current.revision;baseline=current.baseline;return false}revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}));return true};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
@@ -74,11 +87,11 @@ return true;
 }
 };
 const apply=v=>{if(!isSnapshot(v))throw Error('صيغة بيانات السحابة غير معروفة. لم تتغير بيانات الجهاز.');const b=Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).map(k=>[k,localStorage.getItem(k)]),entries=v.entries.filter(([k])=>!isInternalStorageKey(k));suppress=true;try{b.forEach(([k])=>localStorage.removeItem(k));entries.forEach(([k,x])=>localStorage.setItem(k,x))}catch(e){Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).forEach(k=>localStorage.removeItem(k));b.forEach(([k,x])=>localStorage.setItem(k,x));throw e}finally{suppress=false}};
-const hasActiveLearningSession=()=>Boolean(window.MilaLearningBridge?.isSessionActive?.()||window.MilaAdaptiveBridge?.isSessionActive?.());
+const hasActiveLearningSession=()=>Boolean(window.MilaLearningBridge?.hasUnfinishedSession?.()||window.MilaAdaptiveBridge?.hasUnfinishedSession?.()||window.MilaLearningBridge?.isSessionActive?.()||window.MilaAdaptiveBridge?.isSessionActive?.());
 const notifyLearningStateApplied=()=>{window.MilaLearningBridge?.refreshFromStorage?.();window.MilaAdaptiveBridge?.refreshFromStorage?.()};
 const deferCloudUpdate=(snapshot,cloudRevision,userId=session?.user?.id||null)=>{if(deferredCloudUpdate&&deferredCloudUpdate.revision>cloudRevision)return false;deferredCloudUpdate={snapshot,revision:cloudRevision,userId};status('وصل تحديث من جهاز آخر. سنحفظ جلستك الحالية أولًا ثم ندمج التحديث دون مقاطعة التدريب.','info');return false};
 const applyCloudUpdate=(snapshot,cloudRevision,userId=session?.user?.id||null)=>{if(hasActiveLearningSession())return deferCloudUpdate(snapshot,cloudRevision,userId);apply(snapshot);writeMeta(cloudRevision,snapshot,userId);notifyLearningStateApplied();return true};
-window.addEventListener('mila:learning-session-change',()=>{if(hasActiveLearningSession())return;if(deferredAccountSession){const next=deferredAccountSession;deferredAccountSession=null;void activate(next);return}if(deferredCloudUpdate){const update=deferredCloudUpdate;deferredCloudUpdate=null;void autoMerge(snap(),update.snapshot,update.revision)} });
+window.addEventListener('mila:learning-session-change',()=>{if(hasActiveLearningSession())return;if(dirty||pending||parse(localStorage.getItem(PENDING))){clearTimeout(timer);timer=setTimeout(flush,0)}if(deferredAccountSession){const next=deferredAccountSession;deferredAccountSession=null;void activate(next);return}if(deferredCloudUpdate){const update=deferredCloudUpdate;deferredCloudUpdate=null;void autoMerge(snap(),update.snapshot,update.revision)} });
 const isolateLocalAccount=userId=>{
 const currentMeta=meta();
 if(!isDifferentAccount(currentMeta.userId,userId)){
@@ -172,8 +185,39 @@ if(m.revision===data.revision&&m.baseline&&isSameSnapshot(l,m.baseline)){applyCl
 if(isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state,userId);status('بيانات الجهاز والسحابة متطابقة.','ok');return}
 await autoMerge(l,data.state,data.revision);
 };
-const flush=async()=>{if(!session||deferredCloudUpdate||deferredAccountSession||!navigator.onLine||conflict)return;if(isDifferentAccount(meta().userId,session.user.id)){status('أوقفت المزامنة لأن بيانات الجهاز مرتبطة بحساب آخر. سجّل الخروج أو أعد عزل الحساب.','error');return}const current=snap(),storedPendingAtStart=parse(localStorage.getItem(PENDING));if(baseline&&isSameSnapshot(current,baseline)&&!pending&&!storedPendingAtStart)return;status('جارٍ حفظ التعديلات في السحابة…');let mutation=null;try{const normalized=normalizePendingMutation(parse(localStorage.getItem(PENDING))||pending,revision,uuid);if(normalized?.userId&&normalized.userId!==session.user.id){status('توقفت المزامنة لحماية بيانات حساب آخر. أعد تسجيل الدخول إلى الحساب الصحيح.','error');return}mutation=normalized?(normalized.userId?normalized:makeMutation(normalized.snapshot,normalized.expectedRevision,normalized.mutationId,normalized.createdAt)):makeMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.stale)return;if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){if(mutation&&session?.user?.id===mutation.userId){const stored=parse(localStorage.getItem(PENDING));if(!stored||stored.mutationId===mutation.mutationId){pending=mutation;try{localStorage.setItem(PENDING,JSON.stringify(mutation))}catch{}}}dirty=true;status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error');if(navigator.onLine){clearTimeout(timer);timer=setTimeout(flush,3000)}}};
-const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;clearTimeout(timer);timer=setTimeout(flush,900)};
+const flush=async()=>{if(!session||deferredCloudUpdate||deferredAccountSession||!navigator.onLine||conflict||hasActiveLearningSession())return;if(isDifferentAccount(meta().userId,session.user.id)){status('أوقفت المزامنة لأن بيانات الجهاز مرتبطة بحساب آخر. سجّل الخروج أو أعد عزل الحساب.','error');return}const current=snap(),storedPendingAtStart=parse(localStorage.getItem(PENDING));if(baseline&&isSameSnapshot(current,baseline)&&!pending&&!storedPendingAtStart)return;status('جارٍ حفظ التعديلات في السحابة…');let mutation=null;try{const normalized=normalizePendingMutation(parse(localStorage.getItem(PENDING))||pending,revision,uuid);if(normalized?.userId&&normalized.userId!==session.user.id){status('توقفت المزامنة لحماية بيانات حساب آخر. أعد تسجيل الدخول إلى الحساب الصحيح.','error');return}mutation=normalized?(normalized.userId?normalized:makeMutation(normalized.snapshot,normalized.expectedRevision,normalized.mutationId,normalized.createdAt)):makeMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.stale)return;if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){if(mutation&&session?.user?.id===mutation.userId){const stored=parse(localStorage.getItem(PENDING));if(!stored||stored.mutationId===mutation.mutationId){pending=mutation;try{localStorage.setItem(PENDING,JSON.stringify(mutation))}catch{}}}dirty=true;status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error');if(navigator.onLine){clearTimeout(timer);timer=setTimeout(flush,3000)}}};
+const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;if(hasActiveLearningSession())return;clearTimeout(timer);timer=setTimeout(flush,900)};
+const uploadAnswerEvents=async sessionId=>{
+if(!session?.user?.id||!navigator.onLine||!window.MilaAnswerJournal?.pending)return;
+const owner=session.user.id;
+const events=window.MilaAnswerJournal.pending().filter(item=>item.ownerId===owner&&item.completedAt&&(!sessionId||item.sessionId===sessionId));
+for(let offset=0;offset<events.length;offset+=50){
+  if(session?.user?.id!==owner)return;
+  const batch=events.slice(offset,offset+50);
+  const rows=batch.map(item=>({
+    user_id:owner,event_id:item.eventId,session_id:item.sessionId,
+    occurred_at:new Date(item.occurredAt).toISOString(),event_type:item.eventType,
+    payload:item
+  }));
+  const {error}=await sb.from('learning_answer_events').upsert(rows,{onConflict:'user_id,event_id',ignoreDuplicates:true});
+  if(error)throw error;
+  if(session?.user?.id!==owner)return;
+  window.MilaAnswerJournal.acknowledge(batch.map(item=>item.eventId));
+}
+};
+window.addEventListener('mila:session-completed',event=>{
+  const sessionId=String(event.detail?.sessionId||'');
+  if(!sessionId)return;
+  void (async()=>{
+    try{
+      window.MilaAnswerJournal?.completeSession?.(sessionId);
+      await uploadAnswerEvents(sessionId);
+      if(dirty||pending||parse(localStorage.getItem(PENDING)))await flush();
+    }catch(error){
+      status('تعذر رفع سجل الإجابات بعد انتهاء الجلسة؛ بقي محفوظًا محليًا وستتم إعادة المحاولة عند انتهاء جلسة لاحقة. '+(error?.message||''),'error');
+    }
+  })();
+});
 const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(hasActiveLearningSession()){deferCloudUpdate(r.state,r.revision);return}if(dirty||(baseline&&!isSameSnapshot(l,baseline))){void autoMerge(l,r.state,r.revision);return}try{applyCloudUpdate(r.state,r.revision)}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
 const realtimeManager=createRealtimeRetryManager({
 createChannel:onStatus=>sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new)).subscribe(onStatus),
@@ -196,6 +240,7 @@ try{
 if(!syncReady){await loginSync();syncReady=true;}
 await realtimeCleanup;
 subscribe();
+if(!hasActiveLearningSession())await uploadAnswerEvents();
 await flush();
 }catch(e){status('تعذر استئناف المزامنة: '+(e.message||e),'error')}
 })().finally(()=>{recoveryPromise=null});
@@ -221,7 +266,7 @@ card$('mila-sync-signup').onclick=async()=>{const{email,password}=creds();if(!em
 card$('mila-sync-resend').onclick=async()=>{const{email}=creds();if(!email)return status('أدخل البريد الإلكتروني أولًا.','error');status('جارٍ إرسال رسالة تأكيد جديدة…');const{error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:emailRedirect()}});if(error)return status(error.message,'error');status('أُرسلت رسالة جديدة. استخدم أحدث رسالة فقط.','ok')};
 card$('mila-sync-logout').onclick=async()=>{const{error}=await sb.auth.signOut();if(error)status(error.message,'error');else await activate(null)};card$('mila-sync-now').onclick=flush;
 card$('mila-sync-use-cloud').onclick=()=>{if(!conflict)return;try{const selected=conflict;clearConflict();dirty=false;pending=null;localStorage.removeItem(PENDING);applyCloudUpdate(selected.cloud,selected.revision);status('تم اعتماد نسخة السحابة وتحديث الواجهة دون إعادة تحميل.','ok')}catch(e){status(e.message,'error')}};
-card$('mila-sync-use-device').onclick=async()=>{if(!conflict)return;const c=conflict;clearConflict();try{const mutation=makeMutation(c.local,c.revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.stale)return;if(r.conflict)showConflict(c.local,r.data.state,r.data.revision);else status('اعتمدت بيانات هذا الجهاز وحُفظت في السحابة.','ok')}catch(e){showConflict(c.local,c.cloud,c.revision);status('تعذرت الكتابة: '+e.message,'error')}};
+card$('mila-sync-use-device').onclick=async()=>{if(!conflict)return;const c=conflict;clearConflict();try{const mutation=makeMutation(c.local,c.revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.stale)return;if(r.conflict)showConflict(c.local,r.data.state,r.data.revision);else {window.MilaAnswerJournal?.claimUnownedEvents?.(session.user.id);await uploadAnswerEvents();status('اعتمدت بيانات هذا الجهاز وحُفظت في السحابة.','ok')}}catch(e){showConflict(c.local,c.cloud,c.revision);status('تعذرت الكتابة: '+e.message,'error')}};
 const set=Storage.prototype.setItem,remove=Storage.prototype.removeItem,clear=Storage.prototype.clear;
 Storage.prototype.setItem=function(k,v){set.call(this,k,v);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
 Storage.prototype.removeItem=function(k){remove.call(this,k);if(this===localStorage&&!isInternalStorageKey(String(k)))schedule()};
