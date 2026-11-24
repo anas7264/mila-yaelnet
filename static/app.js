@@ -869,7 +869,10 @@
     const previousMistakes = state.mistakes.slice();
     const previousAdaptiveEventIds = { ...state.adaptiveEventIds };
     const previousLearningEvents = { ...(state.learningEvents || {}) };
-    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, { direction: event.direction, at: event.at });
+    recordAnswer(wordId, event.correct, null, "التدريب التكيفي", eventId, {
+      direction: event.direction, at: event.at, sessionId: event.sessionId, mode: event.mode,
+      prompt: event.prompt, selectedAnswer: event.selectedAnswer, correctAnswer: event.correctAnswer
+    });
     rememberAdaptiveEvent(ledgerKey);
     if (!persist()) {
       if (previousProgress) state.progress[wordId] = previousProgress; else delete state.progress[wordId];
