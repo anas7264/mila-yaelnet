@@ -35,3 +35,40 @@ grant usage, select on sequence public.learning_answer_events_id_seq to authenti
 
 comment on table public.learning_answer_events is
   'Append-only per-answer learning history. Client inserts and reads only its own rows; updates and deletes are intentionally not granted.';
+
+create or replace view public.learning_answer_word_stats
+with (security_invoker = true)
+as
+select
+  user_id,
+  payload ->> 'wordId' as word_id,
+  coalesce(payload ->> 'direction', 'unknown') as direction,
+  count(*) filter (where event_type = 'answer')::bigint as answer_attempts,
+  count(*) filter (where event_type = 'answer' and payload ->> 'isCorrect' = 'true')::bigint as correct_count,
+  count(*) filter (where event_type = 'answer' and payload ->> 'isCorrect' = 'false')::bigint as incorrect_count,
+  count(*) filter (where event_type = 'self-rating' and payload ->> 'selfRating' = 'again')::bigint as again_count,
+  count(*) filter (where event_type = 'self-rating' and payload ->> 'selfRating' = 'hard')::bigint as hard_count,
+  count(*) filter (where event_type = 'self-rating' and payload ->> 'selfRating' = 'good')::bigint as good_count,
+  count(*) filter (where event_type = 'self-rating' and payload ->> 'selfRating' = 'easy')::bigint as easy_count,
+  max(occurred_at) as last_attempt_at
+from public.learning_answer_events
+group by user_id, payload ->> 'wordId', coalesce(payload ->> 'direction', 'unknown');
+
+create or replace view public.learning_answer_confusion_stats
+with (security_invoker = true)
+as
+select
+  user_id,
+  payload ->> 'wordId' as word_id,
+  coalesce(payload ->> 'direction', 'unknown') as direction,
+  payload ->> 'selectedAnswer' as selected_answer,
+  count(*)::bigint as selected_wrong_count,
+  max(occurred_at) as last_selected_at
+from public.learning_answer_events
+where event_type = 'answer'
+  and payload ->> 'isCorrect' = 'false'
+  and coalesce(payload ->> 'selectedAnswer', '') <> ''
+group by user_id, payload ->> 'wordId', coalesce(payload ->> 'direction', 'unknown'), payload ->> 'selectedAnswer';
+
+grant select on public.learning_answer_word_stats to authenticated;
+grant select on public.learning_answer_confusion_stats to authenticated;
