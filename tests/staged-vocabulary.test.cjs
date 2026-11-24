@@ -35,7 +35,7 @@ test("the former academic vocabulary is loaded as data, not as a standalone page
   assert.ok(html.indexOf("static/academic-stage-data.js") < html.indexOf("static/stage-vocabulary.js"));
   assert.ok(html.indexOf("static/stage-vocabulary.js") < html.indexOf("static/app.js"));
   assert.ok(html.indexOf("static/word-index.js") < html.indexOf("static/app.js"));
-  assert.match(sw, /mila-yaelnet-v40/);
+  assert.match(sw, /mila-yaelnet-v41/);
   assert.ok(sw.includes("/static/academic-stage-data.js?v=1"));
 });
 
