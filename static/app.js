@@ -126,7 +126,10 @@
 
   function persist() {
     const ok = STORE.saveState(state, localStorage);
-    if (!ok) toast("تعذر حفظ البيانات. قد تكون مساحة المتصفح ممتلئة؛ صدّر نسخة احتياطية.", "error");
+    if (!ok) {
+      window.MilaErrorMonitor?.captureException?.(new Error("Local learning state persistence failed"), { area: "storage", action: "save-main-state" });
+      toast("تعذر حفظ البيانات. قد تكون مساحة المتصفح ممتلئة؛ صدّر نسخة احتياطية.", "error");
+    }
     return ok;
   }
 
