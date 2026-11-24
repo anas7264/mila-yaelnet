@@ -679,6 +679,10 @@ ${stageTabsMarkup()}<section class="stack">${body}</section>`;
     $("appView").innerHTML = `
       ${pageHead("LEARNING ANALYTICS", "التحليلات والأداء", "راقب السلوك الفعلي للتعلم: الدقة، الكلمات الصعبة، التقدم المرحلي وسجل الجلسات.")}
       <section class="stats-grid">${statCard("الإجابات",s.attempted,"✓","إجمالي المحاولات")}${statCard("الدقة",s.accuracy+"%","◎","المجموع الحالي")}${statCard("الكلمات المتقنة",s.mastered,"✦","معلّمة كمتقنة")}${statCard("جلسات التدريب",s.sessions,"◷","جلسات مكتملة")}</section>
+       <section class="panel-card" id="answerEventAnalytics" style="margin-top:16px" dir="rtl">
+         <div class="panel-heading"><div><h2>تحليل سجل كل إجابة</h2><p>البيانات المحفوظة في Supabase، منفصلة عن ملخصات التقدم المحلية</p></div><span class="badge badge-neutral">ANSWER LEDGER</span></div>
+         <p class="session-footnote">جارٍ تحميل تحليل الإجابات...</p>
+       </section>
       <div class="analytics-grid">
         <section class="panel-card"><div class="panel-heading"><div><h2>دقة آخر الجلسات</h2><p>آخر 7 جلسات محفوظة، من جميع أوضاع التدريب</p></div><span class="badge badge-gold">TREND</span></div>
           ${recent.length ? '<div class="chart-bars">' + bars + '</div>' : emptyState("▥","لا توجد بيانات بعد","أكمل جلسات التدريب لعرض منحنى الدقة.")}
@@ -698,6 +702,35 @@ ${stageTabsMarkup()}<section class="stack">${body}</section>`;
       <section class="panel-card" style="margin-top:16px"><div class="panel-heading"><div><h2>سجل الجلسات العام</h2><p>النتائج الفعلية دون احتسابها كعلامة رسمية لامتحان יעלנט</p></div><button class="button button-secondary button-small" data-action="print-report">طباعة التقرير</button></div>
         ${recent.length ? '<div class="history-list">' + state.sessions.slice().reverse().map((session)=>`<div class="history-row"><div><strong>${esc(session.title || "جلسة تدريب")}</strong><small>${formatDate(session.finishedAt)} · ${session.total} سؤال · ${session.correct} صحيح</small></div><span class="badge ${session.accuracy>=75?"badge-green":"badge-gold"}">${session.accuracy}%</span></div>`).join("") + '</div>' : emptyState("◷","لا يوجد سجل","الجلسة المكتملة ستظهر هنا.")}
       </section>`;
+    loadCloudAnswerAnalytics();
+  }
+
+  function loadCloudAnswerAnalytics() {
+    const target = $("answerEventAnalytics");
+    if (!target) return;
+    const bridge = window.MilaSyncBridge;
+    if (!bridge?.getAnswerAnalytics) {
+      target.innerHTML = '<p class="session-footnote">سجل الإجابات السحابي غير متاح حاليًا. تحقق من اتصال المزامنة.</p>';
+      return;
+    }
+    const labels = { "he-ar": "عبري ← عربي", "ar-he": "عربي ← عبري" };
+    bridge.getAnswerAnalytics().then(({wordStats,confusions}) => {
+      if (ui.view !== "analytics" || $("answerEventAnalytics") !== target) return;
+      const valid = (Array.isArray(wordStats) ? wordStats : []).map(row => {
+        const word = wordMap().get(row.word_id);
+        const attempts = Number(row.answer_attempts) || 0;
+        const correct = Number(row.correct_count) || 0;
+        return { row, word, attempts, correct, accuracy: attempts ? correct / attempts : 0 };
+      }).filter(item => item.word && item.attempts > 0);
+      const difficult = valid.filter(item => item.attempts >= 3).sort((x,y) => x.accuracy-y.accuracy).slice(0,8);
+      const easy = valid.filter(item => item.attempts >= 5 && item.accuracy >= 0.85).sort((x,y) => y.accuracy-x.accuracy).slice(0,8);
+      const renderRows = (items, kind) => items.length ? '<div class="due-list">' + items.map(({row,word,attempts,correct,accuracy}) => `<div class="due-item"><span class="hebrew-chip">${esc(word.he)}</span><div class="due-meaning"><strong>${esc(word.ar)}</strong><small>${esc(labels[row.direction] || "اتجاه غير محدد")} · ${correct}/${attempts} صحيح</small></div><span class="badge ${kind === "hard" ? "badge-red" : "badge-green"}">${Math.round(accuracy*100)}%</span></div>`).join("") + '</div>' : emptyState("◇",kind === "hard" ? "لا توجد كلمات صعبة مثبتة بعد" : "لا توجد كلمات سهلة مثبتة بعد","يحتاج التصنيف إلى عدد كافٍ من المحاولات.");
+      const confusionRows = (Array.isArray(confusions) ? confusions : []).slice(0,8);
+      target.innerHTML = `<div class="analytics-grid"><div><h3>كلمات صعبة</h3><p class="session-footnote">3 محاولات على الأقل، مرتبة حسب أدنى دقة</p>${renderRows(difficult,"hard")}</div><div><h3>كلمات سهلة</h3><p class="session-footnote">5 محاولات على الأقل ودقة 85% فأكثر</p>${renderRows(easy,"easy")}</div></div><div class="section-divider"></div><h3>الخيارات الخاطئة المتكررة</h3>${confusionRows.length ? '<div class="history-list">' + confusionRows.map(item => { const word=wordMap().get(item.word_id); return `<div class="history-row"><div><strong>${esc(word?.he || item.word_id)} · ${esc(item.selected_answer || "")}</strong><small>${esc(word?.ar || "")} · ${esc(labels[item.direction] || "اتجاه غير محدد")}</small></div><span class="badge badge-red">${Number(item.selected_wrong_count)||0} مرة</span></div>`; }).join("") + '</div>' : emptyState("◇","لا توجد خيارات خاطئة متكررة","ستظهر هنا الخيارات التي تختارها خطأً أكثر من مرة.")}`;
+    }).catch(error => {
+      if (ui.view !== "analytics" || $("answerEventAnalytics") !== target) return;
+      target.innerHTML = '<p class="session-footnote">تعذر تحميل سجل الإجابات السحابي: ' + esc(error?.message || "خطأ غير معروف") + '</p>';
+    });
   }
 
   function renderSettings() {
