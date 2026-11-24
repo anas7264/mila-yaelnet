@@ -43,13 +43,17 @@ test("the app declares its existing SVG as the browser favicon", () => {
 test("the service worker and document use fresh, matching sync module versions", () => {
   const html = read("index.html");
   const sync = read("sync.js");
+  const merge = read("sync-merge-core.mjs");
   const sw = read("static/sw.js");
 
   assert.match(html, /\/sync\.js\?v=10/);
   assert.match(sync, /\.\/sync-core\.mjs\?v=7/);
+  assert.match(sync, /\.\/sync-merge-core\.mjs\?v=3/);
+  assert.match(merge, /\.\/sync-core\.mjs\?v=7/);
   assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v37"/);
   assert.ok(sw.includes('"/sync.js?v=10"'));
   assert.ok(sw.includes('"/sync-core.mjs?v=7"'));
+  assert.ok(sw.includes('"/sync-merge-core.mjs?v=3"'));
 });
 
 test("Realtime failures remove their channel and retry with capped exponential backoff", async () => {
