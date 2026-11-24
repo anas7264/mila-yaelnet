@@ -34,10 +34,20 @@ test("both learning modes expose idle-only cloud refresh hooks", () => {
   assert.equal(adaptive.includes("mila:learning-session-change"), true);
 });
 
+test("sync card mounts only after app render instead of observing the whole document", () => {
+  const sync = read("sync.js");
+  const app = read("static/app.js");
+  assert.equal(sync.includes("new MutationObserver"), false);
+  assert.equal(sync.includes("getClientRects"), false);
+  assert.equal(sync.includes("mila:app-render"), true);
+  assert.equal(app.includes("mila:app-render"), true);
+  assert.equal(app.includes("renderEvent.view = ui.view"), true);
+});
+
 test("new sync script is cache-busted and precached", () => {
   const html = read("index.html");
   const sw = read("static/sw.js");
-  assert.equal(html.includes("import('/sync.js?v=11')"), true);
-  assert.equal(sw.includes("mila-yaelnet-v39"), true);
-  assert.equal(sw.includes('"/sync.js?v=11"'), true);
+  assert.equal(html.includes("import('/sync.js?v=12')"), true);
+  assert.equal(sw.includes("mila-yaelnet-v40"), true);
+  assert.equal(sw.includes('"/sync.js?v=12"'), true);
 });

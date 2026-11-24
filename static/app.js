@@ -678,7 +678,12 @@
       if (ui.session?.finished && ui.session.summary) renderSessionSummary(ui.session.summary);
       else renderSession();
     }
-    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
+    if (typeof Event !== "undefined") {
+      const renderEvent = new Event("mila:app-render");
+      renderEvent.view = ui.view;
+      window.dispatchEvent(renderEvent);
+      window.dispatchEvent(new Event("mila:learning-session-change"));
+    }
   }
 
   function closeSidebar() {
@@ -1714,7 +1719,7 @@
       if(event.target.id==="singleStageSelect"){ui.studioDraft.stageId=event.target.value;updateStudioAvailability();}
       if(event.target.id==="backupFile"){readBackupFile(event.target.files?.[0]);event.target.value="";}
       if(event.target.id==="dailyGoalSetting"){
-        state.settings.dailyGoal=clamp(Number(event.target.value)||10,1,100);persist();toast("تم تحديث الهدف اليومي.");renderSettings();
+        state.settings.dailyGoal=clamp(Number(event.target.value)||10,1,100);persist();toast("تم تحديث الهدف اليومي.");render();
       }
       if(event.target.dataset.setting){
         state.settings[event.target.dataset.setting]=event.target.checked;persist();applySettings();toast("تم حفظ الإعداد.");
