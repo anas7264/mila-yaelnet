@@ -21,7 +21,7 @@ test("service worker precaches sync runtime and local Supabase SDK", () => {
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);
-  assert.match(sw, /sync-merge-core\.mjs\?v=2/);
+  assert.match(sw, /sync-merge-core\.mjs\?v=3/);
   assert.match(sw, /static\/vendor\/supabase\.umd\.js/);
 });
 
