@@ -922,7 +922,9 @@
     pausePlatformSessionForAdaptive,
     returnToPlatform,
     isSessionActive,
-    refreshFromStorage
+    refreshFromStorage,
+    getCanonicalWords: () => wordIndex.getWords(),
+    getCanonicalWordMap: () => wordIndex.getMap()
   });
 
   function setReviewRating(wordId, rating) {
