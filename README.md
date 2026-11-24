@@ -52,3 +52,15 @@ npm test
 ```
 
 The suite uses Node's built-in test runner and checks adaptive scheduling, persistence, bridge idempotency, academic progress, synchronization namespace inclusion, PWA assets, and static route rewrites.
+
+## Browser error monitoring
+
+The app includes an optional, privacy-filtered GlitchTip integration. It is disabled until a valid project DSN is configured.
+
+1. Create a JavaScript project in your GlitchTip organization and copy its **project DSN** from Project Settings.
+2. In Vercel, open the `mila-yaelnet-vocabulary` project's Environment Variables and add `GLITCHTIP_DSN` for Production. Add it for Preview only if preview errors should also be reported.
+3. Redeploy the relevant environment. The browser loads the pinned Sentry-compatible SDK only when the server-side config endpoint confirms a valid HTTPS DSN.
+
+The DSN is a public client key, not an admin token. The browser integration reports uncaught JavaScript errors, unhandled promise rejections, and selected caught application failures. It does not enable session replay, performance tracing, console/log collection, or automatic user tracking. Before sending, the integration removes request and user objects, breadcrumbs, extras, and redacts common email, password, bearer-token, JWT, and secret patterns. A missing DSN, blocked SDK, or offline connection does not block app startup or local learning.
+
+GlitchTip hosted Free currently includes up to 1,000 events per month and 30 days of event retention. See the [pricing page](https://glitchtip.com/pricing/) and [JavaScript SDK setup](https://glitchtip.com/sdkdocs/javascript/).
