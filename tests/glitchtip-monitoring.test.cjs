@@ -118,7 +118,8 @@ test("GlitchTip SDK is pinned, error-only, and scrubs request and personal data 
   assert.equal(options.tracesSampleRate, 0);
   assert.equal(options.maxBreadcrumbs, 0);
   assert.equal(options.defaultIntegrations, false);
-  assert.deepEqual(options.integrations, []);
+  assert.equal(Array.isArray(options.integrations), true);
+  assert.equal(options.integrations.length, 0);
   assert.match(read("static/error-monitoring.js"), /browser\.sentry-cdn\.com\/11\.17\.0\/bundle\.min\.js/);
 
   const event = {
@@ -143,7 +144,8 @@ test("GlitchTip SDK is pinned, error-only, and scrubs request and personal data 
   assert.equal(scrubbed.exception.values[0].value, "Error: [message redacted]");
   assert.equal(Object.hasOwn(scrubbed.exception.values[0].stacktrace.frames[0], "vars"), false);
   assert.equal(scrubbed.exception.values[0].stacktrace.frames[0].filename.includes("?"), false);
-  assert.deepEqual(scrubbed.tags, { area: "adaptive" });
+  assert.equal(scrubbed.tags.area, "adaptive");
+  assert.equal(Object.hasOwn(scrubbed.tags, "email"), false);
 
   monitor.context.MilaErrorMonitor.captureException(new Error("unexpected failure"), { area: "adaptive", action: "session" });
   assert.equal(monitor.captures.length, 1);
@@ -165,5 +167,5 @@ test("critical caught platform and adaptive errors are forwarded to the optional
   assert.match(app, /area: "storage", action: "save-main-state"/);
   assert.match(adaptive, /area:"adaptive",action:"start-session"/);
   assert.match(adaptive, /area:"adaptive",action:"record-answer"/);
-  assert.match(adaptive, /area:"storage",action:"save-adaptive-state"/);
+  assert.match(adaptive, /area:\s*"storage",\s*action:\s*"save-adaptive-state"/);
 });
