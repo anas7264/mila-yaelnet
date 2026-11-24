@@ -49,5 +49,5 @@ test("new sync script is cache-busted and precached", () => {
   const sw = read("static/sw.js");
   assert.equal(html.includes("import('/sync.js?v=14')"), true);
   assert.equal(sw.includes("mila-yaelnet-v46"), true);
-  assert.equal(sw.includes('"/sync.js?v=13"'), true);
+  assert.equal(sw.includes('"/sync.js?v=14"'), true);
 });
