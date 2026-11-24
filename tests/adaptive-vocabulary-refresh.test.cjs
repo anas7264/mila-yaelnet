@@ -77,7 +77,12 @@ test("adaptive entry and new-session creation refresh the word pool before use",
 
 test("all platform vocabulary mutations notify the adaptive vocabulary index", () => {
   const app = read("static/app.js");
-  assert.match(app, /function invalidateWordIndex\(\)\s*\{\s*wordIndex\.invalidate\(\);\s*window\.MilaAdaptiveBridge\?\.refreshVocabulary\?\.\(\);/);
+  const helperStart = app.indexOf("function invalidateWordIndex()");
+  const helperEnd = app.indexOf("\n  }", helperStart);
+  assert.ok(helperStart >= 0 && helperEnd > helperStart, "shared invalidation helper must exist");
+  const helper = app.slice(helperStart, helperEnd);
+  assert.match(helper, /wordIndex\.invalidate\(\);/);
+  assert.match(helper, /window\.MilaAdaptiveBridge\?\.refreshVocabulary\?\.\(\);/);
   assert.equal((app.match(/wordIndex\.invalidate\(\);/g) || []).length, 1,
     "mutation paths must use the shared invalidation helper");
   assert.ok((app.match(/invalidateWordIndex\(\);/g) || []).length >= 5,
