@@ -39,7 +39,7 @@ test("beginSession defines a JSON-safe config before storing it", () => {
 
 test("service-worker cache version includes the automatic sync runtime", () => {
   const sw = read("static/sw.js");
-  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v40"'));
+  assert.ok(sw.includes('const CACHE_NAME = "mila-yaelnet-v41"'));
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);
@@ -50,3 +50,16 @@ test("service-worker cache version includes the automatic sync runtime", () => {
 
 
 
+
+ 
+test("clicking inside a modal does not trigger the backdrop dismissal handler", () => {
+  const app = read("static/app.js");
+  const start = app.indexOf("function bindEvents()");
+  const end = app.indexOf('document.addEventListener("submit"', start);
+  assert.ok(start >= 0 && end > start, "click delegation handler must exist");
+  const handler = app.slice(start, end);
+  const guard = "if (button?.dataset.action === \"modal-backdrop\" && origin !== button) return;";
+  assert.ok(handler.includes(guard), "descendant clicks must not be handled as backdrop clicks");
+  assert.ok(handler.indexOf(guard) < handler.indexOf("event.preventDefault()"),
+    "modal content clicks must be ignored before action dispatch");
+});
