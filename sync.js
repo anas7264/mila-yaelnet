@@ -45,6 +45,7 @@ try{
 pending=mutation;
 localStorage.setItem(PENDING,JSON.stringify(mutation));
 apply(merged.snapshot);
+notifyLearningStateApplied();
 }catch(error){
 pending=previousPending;
 try{localStorage.removeItem(PENDING)}catch{}
@@ -75,7 +76,7 @@ return true;
 const apply=v=>{if(!isSnapshot(v))throw Error('صيغة بيانات السحابة غير معروفة. لم تتغير بيانات الجهاز.');const b=Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).map(k=>[k,localStorage.getItem(k)]),entries=v.entries.filter(([k])=>!isInternalStorageKey(k));suppress=true;try{b.forEach(([k])=>localStorage.removeItem(k));entries.forEach(([k,x])=>localStorage.setItem(k,x))}catch(e){Object.keys(localStorage).filter(k=>!isInternalStorageKey(k)).forEach(k=>localStorage.removeItem(k));b.forEach(([k,x])=>localStorage.setItem(k,x));throw e}finally{suppress=false}};
 const hasActiveLearningSession=()=>Boolean(window.MilaLearningBridge?.isSessionActive?.()||window.MilaAdaptiveBridge?.isSessionActive?.());
 const notifyLearningStateApplied=()=>{window.MilaLearningBridge?.refreshFromStorage?.();window.MilaAdaptiveBridge?.refreshFromStorage?.()};
-const deferCloudUpdate=(snapshot,cloudRevision,userId=session?.user?.id||null)=>{deferredCloudUpdate={snapshot,revision:cloudRevision,userId};status('وصل تحديث من جهاز آخر. سنحفظ جلستك الحالية أولًا ثم ندمج التحديث دون مقاطعة التدريب.','info');return false};
+const deferCloudUpdate=(snapshot,cloudRevision,userId=session?.user?.id||null)=>{if(deferredCloudUpdate&&deferredCloudUpdate.revision>cloudRevision)return false;deferredCloudUpdate={snapshot,revision:cloudRevision,userId};status('وصل تحديث من جهاز آخر. سنحفظ جلستك الحالية أولًا ثم ندمج التحديث دون مقاطعة التدريب.','info');return false};
 const applyCloudUpdate=(snapshot,cloudRevision,userId=session?.user?.id||null)=>{if(hasActiveLearningSession())return deferCloudUpdate(snapshot,cloudRevision,userId);apply(snapshot);writeMeta(cloudRevision,snapshot,userId);notifyLearningStateApplied();return true};
 window.addEventListener('mila:learning-session-change',()=>{if(hasActiveLearningSession())return;if(deferredAccountSession){const next=deferredAccountSession;deferredAccountSession=null;void activate(next);return}if(deferredCloudUpdate){const update=deferredCloudUpdate;deferredCloudUpdate=null;void autoMerge(snap(),update.snapshot,update.revision)} });
 const isolateLocalAccount=userId=>{
