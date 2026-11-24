@@ -872,7 +872,25 @@
     try {
       state = STORE.loadState(localStorage, OFFICIAL);
       wordIndex.invalidate();
-      if (!document.querySelector(".adaptive-page")) render();
+      if (!document.querySelector(".adaptive-page")) {
+        const scrollX = window.scrollX, scrollY = window.scrollY;
+        const activeId = document.activeElement?.id || "";
+        const activeInput = document.activeElement?.dataset?.input || "";
+        const selection = typeof document.activeElement?.selectionStart === "number"
+          ? [document.activeElement.selectionStart, document.activeElement.selectionEnd]
+          : null;
+        render();
+        window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
+        const target = activeId ? $(activeId) : activeInput
+          ? document.querySelector('[data-input="' + activeInput.replace(/["\\\\]/g, "") + '"]')
+          : null;
+        if (target && document.activeElement !== target) {
+          target.focus({ preventScroll: true });
+          if (selection && typeof target.setSelectionRange === "function") {
+            try { target.setSelectionRange(selection[0], selection[1]); } catch {}
+          }
+        }
+      }
       return true;
     } catch (error) {
       console.error("Mila state refresh after cloud sync failed:", error);
