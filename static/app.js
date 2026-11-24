@@ -864,7 +864,7 @@
   }
 
   function isSessionActive() {
-    return Boolean(ui.view === "session" && ui.session && !ui.session.finished);
+    return Boolean(ui.view === "session" && ui.session && !ui.session.finished && !ui.session.paused);
   }
 
   function refreshFromStorage() {
@@ -1106,6 +1106,7 @@
       speakWord(q.targetWordId);
     }
     if (session.timerSeconds && !session.answered && !session.paused && !ui.timerHandle) startTimer();
+    window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderFeedback(question, word, correct) {
