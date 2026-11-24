@@ -1,4 +1,4 @@
-import { createSnapshot, isSnapshot } from "./sync-core.mjs?v=6";
+import { createSnapshot, isSnapshot } from "./sync-core.mjs?v=7";
 
 const MAIN_KEY = "mila-yaelnet-studio-v3";
 const ADAPTIVE_KEY = "mila-yaelnet-adaptive-v1";
