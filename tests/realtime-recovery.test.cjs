@@ -95,7 +95,14 @@ test("Realtime failures remove their channel and retry with capped exponential b
   await timers.runNext();
 
   assert.equal(channels.length, 4);
-  channels[3].onStatus("SUBSCRIBED");
+  const expectedDelays = [8000, 16000, 30000, 30000, 30000];
+  for (const expectedDelay of expectedDelays) {
+    const currentChannel = channels[channels.length - 1];
+    currentChannel.onStatus("CHANNEL_ERROR", new Error("retry remains bounded"));
+    assert.deepEqual(timers.delays, [expectedDelay]);
+    await timers.runNext();
+  }
+  channels[channels.length - 1].onStatus("SUBSCRIBED");
   assert.equal(manager.getRetryCount(), 0);
   assert.deepEqual(timers.delays, []);
   assert.ok(reported.some((entry) => entry.message === "socket handshake failed" && entry.retryDelay === 1000));
