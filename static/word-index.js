@@ -40,7 +40,7 @@
     });
   }
 
-  const api = { createWordIndex };
+  const api = { create: createWordIndex, createWordIndex };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.YaelWordIndex = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
