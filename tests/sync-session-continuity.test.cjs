@@ -9,7 +9,9 @@ const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8")
 
 test("automatic cloud synchronization never forces a page reload", () => {
   const sync = read("sync.js");
-  assert.doesNotMatch(sync, /location\\.reload\\s*\\(/);
+  const automaticSync = sync.replace("card$('mila-sync-retry').onclick=()=>location.reload();", "");
+  assert.doesNotMatch(automaticSync, /location\\.reload\\s*\\(/);
+  assert.match(sync, /card\\$\\('mila-sync-retry'\\)\\.onclick=\\(\\)=>location\\.reload\\(\\)/);
   assert.match(sync, /deferCloudUpdate/);
   assert.match(sync, /hasActiveLearningSession/);
   assert.match(sync, /mila:learning-session-change/);
