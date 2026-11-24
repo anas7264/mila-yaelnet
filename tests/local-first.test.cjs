@@ -18,7 +18,7 @@ test("app entrypoint loads the automatic sync runtime", () => {
 
 test("service worker precaches sync runtime and local Supabase SDK", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /mila-yaelnet-v41/);
+  assert.match(sw, /mila-yaelnet-v42/);
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);

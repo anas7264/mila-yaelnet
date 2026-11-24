@@ -216,6 +216,7 @@
   }
 
   function openMode() {
+    refreshVocabulary(false);
     setNavActive(true);
     if (state.session && !state.session.paused) renderSession();
     else renderHome();
@@ -226,6 +227,7 @@
   function start(direction) {
     if (state.session && !window.confirm("بدء جلسة جديدة سيستبدل طابور الجلسة المحفوظة. هل تريد المتابعة؟")) return;
     try {
+      refreshVocabulary(false);
       state = Engine.startSession(state, words, direction);
       if (!save()) return;
       openMode();
@@ -415,11 +417,19 @@
     return Boolean(state.session && !state.session.paused);
   }
 
+  function refreshVocabulary(renderIfIdle = true) {
+    collectWords();
+    const count = $("adaptiveNavButton")?.querySelector(".nav-chip");
+    if (count) count.textContent = String(words.length);
+    if (renderIfIdle && document.querySelector(".adaptive-page") && !state.session) renderHome();
+    return words.length;
+  }
+
   function refreshFromStorage() {
     if (isSessionActive()) return false;
     try {
       state = normalize(localStorage.getItem(STORAGE_KEY));
-      collectWords();
+      refreshVocabulary(false);
       if (document.querySelector(".adaptive-page")) {
         if (state.session) renderSession();
         else renderHome();
@@ -431,7 +441,11 @@
     }
   }
 
-  window.MilaAdaptiveBridge = Object.freeze({ isSessionActive, refreshFromStorage });
+  window.MilaAdaptiveBridge = Object.freeze({ isSessionActive, refreshFromStorage, refreshVocabulary });
+
+  window.addEventListener("storage", event => {
+    if (event.key === "mila-yaelnet-studio-v3") refreshVocabulary();
+  });
 
   function init() {
     collectWords();
