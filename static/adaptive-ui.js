@@ -156,7 +156,7 @@
         </div>
         <div class="adaptive-footer-note"><span>✓ حفظ تلقائي بعد كل إجابة</span><span>✓ سجل مستقل لكل اتجاه</span><span>✓ لا يوجد حد ثابت للأسئلة</span></div>
       </section>`;
-    window.dispatchEvent(new Event("mila:learning-session-change"));
+    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function renderSession() {
@@ -212,7 +212,7 @@
         <p class="adaptive-session-hint">لا تُحتسب المحاولة مرتين. تُحفظ الإجابة والطابور محليًا على هذا الجهاز.</p>
       </section>`;
     if (!session.answered && !session.paused) $("adaptiveAnswer")?.focus({ preventScroll: true });
-    window.dispatchEvent(new Event("mila:learning-session-change"));
+    if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
   function openMode() {
