@@ -1672,6 +1672,9 @@
     document.addEventListener("click",(event)=>{
       const origin = event.target instanceof Element ? event.target : event.target?.parentElement;
       const button = origin?.closest("[data-action],[data-view]");
+      // A click inside the modal can resolve to its backdrop ancestor. Only a
+      // direct click on the backdrop surface itself should dismiss the dialog.
+      if (button?.dataset.action === "modal-backdrop" && origin !== button) return;
       if(!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
       if(button.dataset.view && !button.dataset.action){
         event.preventDefault();
