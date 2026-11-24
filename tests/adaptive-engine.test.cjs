@@ -205,7 +205,7 @@ test("main storage preserves adaptive idempotency keys and long session totals",
 
 test("academic words are official stage words and the main bridge records them once", () => {
   const files = [
-    "static/catalog.js", "static/quiz-engine.js", "static/storage.js",
+    "static/catalog.js", "static/word-index.js", "static/quiz-engine.js", "static/storage.js",
     "static/expanded-vocabulary.js", "static/academic-stage-data.js", "static/stage-vocabulary.js"
   ];
   const values = new Map();
@@ -287,7 +287,7 @@ test("academic words are official stage words and the main bridge records them o
 });
 
 test("returnToPlatform renders newly saved adaptive answers and analytics in the existing view", () => {
-  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const files = ["static/catalog.js", "static/word-index.js", "static/quiz-engine.js", "static/storage.js"];
   const values = new Map();
   const listeners = new Map();
   const makeClassList = () => ({
@@ -473,7 +473,7 @@ test("adaptive controls dispatch in capture phase and protect touch interactions
 
 test("service worker cache is versioned so updated scripts replace stale cached assets", () => {
   const sw = fs.readFileSync(path.join(__dirname, "../static/sw.js"), "utf8");
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v37"/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v38"/);
   assert.match(sw, /cache\.add\(asset\)/);
   assert.match(sw, /key !== CACHE_NAME\)\.map\(\(key\) => caches\.delete\(key\)\)/);
   assert.match(sw, /await self\.skipWaiting\(\)/);
@@ -590,7 +590,7 @@ test("stage workspace eyebrow interpolates the numeric stage and has no quoted p
 
 
 test("main learning progress auto-masters after three spaced successes and keeps mastery on a later miss", () => {
-  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const files = ["static/catalog.js", "static/word-index.js", "static/quiz-engine.js", "static/storage.js"];
   const values = new Map();
   const storage = {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
@@ -662,7 +662,7 @@ test("beginSession creates the declared config, defers end feedback, and saves c
   };
   context.window = context;
   vm.createContext(context);
-  for (const file of ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"]) {
+  for (const file of ["static/catalog.js", "static/word-index.js", "static/quiz-engine.js", "static/storage.js"]) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, "..", file), "utf8"), context, { filename: file });
   }
   let appSource = fs.readFileSync(path.join(__dirname, "../static/app.js"), "utf8");
@@ -707,7 +707,7 @@ test("beginSession creates the declared config, defers end feedback, and saves c
 
 
 test("adaptive answer bridge bounds persisted idempotency history to prevent localStorage exhaustion", () => {
-  const files = ["static/catalog.js", "static/quiz-engine.js", "static/storage.js"];
+  const files = ["static/catalog.js", "static/word-index.js", "static/quiz-engine.js", "static/storage.js"];
   const values = new Map();
   const storage = {
     getItem(key) { return values.has(key) ? values.get(key) : null; },
