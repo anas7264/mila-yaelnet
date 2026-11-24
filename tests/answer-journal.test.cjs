@@ -25,7 +25,7 @@ test("answer journal preserves incorrect and typed answers independently of prog
   const [saved] = Journal.pending(storage);
   assert.equal(saved.typedAnswer, "hello");
   assert.equal(saved.isCorrect, false);
-  assert.equal(saved.syncedAt, null);
+  assert.equal(saved.syncedAt, undefined);
 });
 
 test("answer journal records self-rating separately from correctness", () => {
@@ -51,7 +51,7 @@ test("answer journal rejects malformed or oversized events", () => {
 });
 
 test("failed local writes propagate instead of silently accepting an answer", () => {
-  const storage = { getItem: () => "[]", setItem() { throw new Error("quota"); } };
+  const storage = { length: 0, key: () => null, getItem: () => null, setItem() { throw new Error("quota"); }, removeItem() {} };
   assert.throws(() => Journal.append(event(), storage), /quota/);
 });
 
