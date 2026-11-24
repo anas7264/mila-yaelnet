@@ -13,14 +13,16 @@ test("app entrypoint loads the automatic sync runtime", () => {
   assert.match(html, /import\(['"]\/sync\.js\?v=10['"]\)/);
   assert.match(html, /static\/storage\.js/);
   assert.match(html, /static\/adaptive-ui\.js/);
+  assert.match(html, /static\/word-index\.js\?v=1/);
 });
 
 test("service worker precaches sync runtime and local Supabase SDK", () => {
   const sw = read("static/sw.js");
-  assert.match(sw, /mila-yaelnet-v37/);
+  assert.match(sw, /mila-yaelnet-v38/);
   assert.match(sw, /sync-config\.js/);
   assert.match(sw, /sync\.js/);
   assert.match(sw, /sync-core\.mjs/);
+  assert.match(sw, /static\/word-index\.js\?v=1/);
   assert.match(sw, /sync-merge-core\.mjs\?v=3/);
   assert.match(sw, /static\/vendor\/supabase\.umd\.js/);
 });
