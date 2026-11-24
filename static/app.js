@@ -817,6 +817,7 @@
         window.MilaAnswerJournal.append({
           eventId: String(eventId).slice(0, 180),
           sessionId: String(metadata?.sessionId || session?.id || "adaptive-session"),
+          ownerId: window.MilaSyncBridge?.getUserId?.() || null,
           wordId,
           occurredAt: Number(metadata?.at) || now,
           mode: String(metadata?.mode || session?.mode || source || "adaptive"),
@@ -979,7 +980,8 @@
     isSessionActive,
     refreshFromStorage,
     getCanonicalWords: () => wordIndex.getWords(),
-    getCanonicalWordMap: () => wordIndex.getMap()
+    getCanonicalWordMap: () => wordIndex.getMap(),
+    hasUnfinishedSession: () => Boolean(ui.session && !ui.session.finished)
   });
 
   function setReviewRating(wordId, rating) {
