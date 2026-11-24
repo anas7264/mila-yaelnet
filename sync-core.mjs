@@ -35,6 +35,176 @@ export function createStatusController(getElement, initialMessage = 'جارٍ ت
   };
 }
 
+/**
+ * Owns one user-scoped Realtime channel and retries terminal subscription
+ * failures with bounded exponential backoff. stop() invalidates callbacks
+ * and pending timers so stale sessions cannot reconnect.
+ */
+export function createRealtimeRetryManager({
+  createChannel,
+  removeChannel,
+  canConnect = () => true,
+  onStatus = () => {},
+  setTimeoutImpl = globalThis.setTimeout,
+  clearTimeoutImpl = globalThis.clearTimeout,
+  baseDelayMs = 1000,
+  maxDelayMs = 30000,
+} = {}) {
+  if (typeof createChannel !== "function" || typeof removeChannel !== "function") {
+    throw new TypeError("createChannel and removeChannel must be functions");
+  }
+  if (typeof canConnect !== "function" || typeof onStatus !== "function") {
+    throw new TypeError("canConnect and onStatus must be functions");
+  }
+  if (typeof setTimeoutImpl !== "function" || typeof clearTimeoutImpl !== "function") {
+    throw new TypeError("Timer implementations must be functions");
+  }
+  if (!Number.isFinite(baseDelayMs) || baseDelayMs < 1 ||
+      !Number.isFinite(maxDelayMs) || maxDelayMs < baseDelayMs) {
+    throw new RangeError("Retry delays must be positive and maxDelayMs must be at least baseDelayMs");
+  }
+
+  let started = false;
+  let activeChannel = null;
+  let retryTimer = null;
+  let retryCount = 0;
+  let generation = 0;
+  let cleanupPromise = Promise.resolve();
+
+  const report = (state, error = null, retryDelayMs = null) => {
+    try {
+      onStatus(state, error, retryDelayMs);
+    } catch {
+      // UI callbacks must not break channel lifecycle management.
+    }
+  };
+
+  const canStart = () => {
+    if (!started) return false;
+    try {
+      return Boolean(canConnect());
+    } catch (error) {
+      report("CHANNEL_ERROR", error);
+      return false;
+    }
+  };
+
+  const removeSafely = (channel) => {
+    if (!channel) return Promise.resolve();
+    return Promise.resolve()
+      .then(() => removeChannel(channel))
+      .catch((error) => report("REMOVE_ERROR", error));
+  };
+
+  const scheduleRetry = (state, error, failedChannel, token) => {
+    if (!started || token !== generation) return;
+    if (activeChannel === failedChannel) activeChannel = null;
+
+    const retryDelayMs = Math.min(
+      maxDelayMs,
+      baseDelayMs * (2 ** Math.min(retryCount, 30))
+    );
+    retryCount += 1;
+    report(state, error, retryDelayMs);
+
+    cleanupPromise = removeSafely(failedChannel);
+    if (!canStart()) return;
+
+    const pendingCleanup = cleanupPromise;
+    retryTimer = setTimeoutImpl(async () => {
+      retryTimer = null;
+      await pendingCleanup;
+      if (token !== generation || !canStart() || activeChannel) return;
+      connect(token);
+    }, retryDelayMs);
+  };
+
+  const handleChannelStatus = (channel, state, error, token) => {
+    if (!started || token !== generation || activeChannel !== channel) return;
+
+    if (state === "SUBSCRIBED") {
+      retryCount = 0;
+      report(state, error, 0);
+      return;
+    }
+
+    if (state === "CHANNEL_ERROR" || state === "TIMED_OUT" || state === "CLOSED") {
+      scheduleRetry(state, error, channel, token);
+      return;
+    }
+
+    report(state, error);
+  };
+
+  const connect = (token = generation) => {
+    if (token !== generation || !canStart() || activeChannel || retryTimer !== null) {
+      return activeChannel;
+    }
+
+    let createdChannel = null;
+    const synchronousStatuses = [];
+    const receiveStatus = (state, error) => {
+      if (!createdChannel) {
+        synchronousStatuses.push([state, error]);
+        return;
+      }
+      handleChannelStatus(createdChannel, state, error, token);
+    };
+
+    try {
+      createdChannel = createChannel(receiveStatus);
+      if (!createdChannel) throw new Error("Realtime channel creation returned no channel");
+    } catch (error) {
+      scheduleRetry("CHANNEL_ERROR", error, null, token);
+      return null;
+    }
+
+    if (!started || token !== generation) {
+      void removeSafely(createdChannel);
+      return null;
+    }
+
+    activeChannel = createdChannel;
+    for (const [state, error] of synchronousStatuses) {
+      handleChannelStatus(createdChannel, state, error, token);
+    }
+    return activeChannel;
+  };
+
+  return Object.freeze({
+    start() {
+      started = true;
+      return connect(generation);
+    },
+    stop() {
+      started = false;
+      generation += 1;
+      if (retryTimer !== null) {
+        clearTimeoutImpl(retryTimer);
+        retryTimer = null;
+      }
+      retryCount = 0;
+      const previousCleanup = cleanupPromise;
+      const channelToRemove = activeChannel;
+      activeChannel = null;
+      cleanupPromise = Promise.all([
+        previousCleanup,
+        removeSafely(channelToRemove),
+      ]).then(() => undefined);
+      return cleanupPromise;
+    },
+    getChannel() {
+      return activeChannel;
+    },
+    getRetryCount() {
+      return retryCount;
+    },
+    isStarted() {
+      return started;
+    },
+  });
+}
+
 export const SUPABASE_SDK_URLS = Object.freeze([
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js',
   'https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js',

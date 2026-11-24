@@ -1,7 +1,7 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=6';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=7';
 
 import{isSettingsLabel,buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
-import{mergeSnapshots}from'./sync-merge-core.mjs?v=2';
+import{mergeSnapshots}from'./sync-merge-core.mjs?v=3';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',ACCOUNT_BACKUP_PREFIX=P+'account_backup_v1_',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
 const card$=id=>card.querySelector('#'+id);
 const statusController=createStatusController(()=>card$('mila-sync-status'));
@@ -27,7 +27,7 @@ else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
-let session=null,revision=0,baseline=null,channel=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0;
+let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0;
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null,allowAccountSwitch=false)=>{const current=meta();if(current.userId&&userId&&current.userId!==userId&&!allowAccountSwitch)throw Error('Refusing to overwrite metadata for another account.');if(current.userId===userId&&Number.isInteger(current.revision)&&current.revision>r){revision=current.revision;baseline=current.baseline;return false}revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}));return true};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
@@ -168,18 +168,19 @@ await autoMerge(l,data.state,data.revision);
 const flush=async()=>{if(!session||!navigator.onLine||conflict)return;if(isDifferentAccount(meta().userId,session.user.id)){status('أوقفت المزامنة لأن بيانات الجهاز مرتبطة بحساب آخر. سجّل الخروج أو أعد عزل الحساب.','error');return}const current=snap(),storedPendingAtStart=parse(localStorage.getItem(PENDING));if(baseline&&isSameSnapshot(current,baseline)&&!pending&&!storedPendingAtStart)return;status('جارٍ حفظ التعديلات في السحابة…');let mutation=null;try{const normalized=normalizePendingMutation(parse(localStorage.getItem(PENDING))||pending,revision,uuid);if(normalized?.userId&&normalized.userId!==session.user.id){status('توقفت المزامنة لحماية بيانات حساب آخر. أعد تسجيل الدخول إلى الحساب الصحيح.','error');return}mutation=normalized?(normalized.userId?normalized:makeMutation(normalized.snapshot,normalized.expectedRevision,normalized.mutationId,normalized.createdAt)):makeMutation(current,revision,uuid());pending=mutation;localStorage.setItem(PENDING,JSON.stringify(mutation));const r=await save(mutation.snapshot,mutation.expectedRevision,mutation.mutationId);if(r.stale)return;if(r.conflict){await autoMerge(snap(),r.data.state,r.data.revision);return}status('تمت مزامنة دفعة التغييرات.','ok');const latest=snap();if(!isSameSnapshot(latest,mutation.snapshot)){dirty=true;clearTimeout(timer);timer=setTimeout(flush,0)}}catch(e){if(mutation&&session?.user?.id===mutation.userId){const stored=parse(localStorage.getItem(PENDING));if(!stored||stored.mutationId===mutation.mutationId){pending=mutation;try{localStorage.setItem(PENDING,JSON.stringify(mutation))}catch{}}}dirty=true;status('تعذرت المزامنة الآن؛ بقيت التغييرات محفوظة محليًا وستعاد المحاولة. '+(e.message||''),'error');if(navigator.onLine){clearTimeout(timer);timer=setTimeout(flush,3000)}}};
 const schedule=()=>{if(!session||suppress||conflict)return;dirty=true;clearTimeout(timer);timer=setTimeout(flush,900)};
 const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)return;const l=snap();if(dirty||(baseline&&!isSameSnapshot(l,baseline))){void autoMerge(l,r.state,r.revision);return}try{apply(r.state);writeMeta(r.revision,r.state);location.reload()}catch(e){status('تعذر تطبيق تحديث السحابة: '+e.message,'error')}};
-const pauseRealtime=()=>{
-const active=channel;channel=null;
-if(!active)return realtimeCleanup;
-try{realtimeCleanup=Promise.resolve(sb.removeChannel(active)).catch(()=>{});return realtimeCleanup}
-catch{return Promise.resolve()}
-};
-const subscribe=()=>{
-if(!session?.user?.id||navigator.onLine===false||document.visibilityState==='hidden'||channel)return;
-const nextChannel=sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new));
-channel=nextChannel;
-nextChannel.subscribe(s=>{if(channel!==nextChannel)return;if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')status('التحديث الفوري غير مستقر؛ المزامنة اليدوية متاحة.','error')});
-};
+const realtimeManager=createRealtimeRetryManager({
+createChannel:onStatus=>sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new)).subscribe(onStatus),
+removeChannel:active=>sb.removeChannel(active),
+canConnect:()=>Boolean(session?.user?.id)&&navigator.onLine!==false&&document.visibilityState!=='hidden',
+onStatus:(state,error,retryDelayMs)=>{
+if(state!=='CHANNEL_ERROR'&&state!=='TIMED_OUT'&&state!=='CLOSED')return;
+const detail=error?.message||String(error||state);
+console.warn('Mila Supabase Realtime subscription interrupted; retry scheduled.',{state,detail,retryDelayMs});
+status('انقطع الاتصال الفوري مؤقتًا؛ ستُعاد المحاولة تلقائيًا، وتبقى المزامنة اليدوية متاحة. '+detail,'error');
+}
+});
+const pauseRealtime=()=>{realtimeCleanup=realtimeManager.stop();return realtimeCleanup};
+const subscribe=()=>{if(!session?.user?.id)return;realtimeManager.start()};
 const recoverOnline=async()=>{
 if(!session||navigator.onLine===false||document.visibilityState==='hidden')return;
 if(recoveryPromise)return recoveryPromise;
