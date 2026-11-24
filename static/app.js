@@ -127,6 +127,11 @@
   const newWords = (source = allWords()) => source.filter((w) => !(Number(progressOf(w.id).attempts) || 0));
 
   function persist() {
+    if (ui.journalWriteFailed) {
+      ui.journalWriteFailed = false;
+      toast("تعذر حفظ سجل الإجابة محليًا. لم ننتقل إلى السؤال التالي؛ تحقق من مساحة التخزين.", "error");
+      return false;
+    }
     const ok = STORE.saveState(state, localStorage);
     if (!ok) {
       window.MilaErrorMonitor?.captureException?.(new Error("Local learning state persistence failed"), { area: "storage", action: "save-main-state" });
@@ -798,6 +803,39 @@
       if (state.mistakes.length > 500) state.mistakes.splice(0, state.mistakes.length - 500);
     }
     updateDailyStreak();
+    if (eventId && window.MilaAnswerJournal?.append) {
+      const session = ui.session;
+      const question = session?.questions?.[session.current] || null;
+      const word = wordMap().get(wordId);
+      const reverse = session?.mode === "ar-he" || session?.mode === "typed-ar-he";
+      const correctAnswer = reverse ? word?.he : word?.ar;
+      const choices = Array.isArray(question?.choices) ? question.choices.map(choice => {
+        const option = wordMap().get(choice.wordId);
+        return { wordId: choice.wordId, text: reverse ? option?.he : option?.ar };
+      }) : [];
+      try {
+        window.MilaAnswerJournal.append({
+          eventId: String(eventId).slice(0, 180),
+          sessionId: String(metadata?.sessionId || session?.id || "adaptive-session"),
+          wordId,
+          occurredAt: Number(metadata?.at) || now,
+          mode: String(metadata?.mode || session?.mode || source || "adaptive"),
+          direction: metadata?.direction || (reverse ? "ar-he" : "he-ar"),
+          eventType: metadata?.selfRating ? "self-rating" : "answer",
+          prompt: String(metadata?.prompt || question?.prompt || (reverse ? word?.ar : word?.he) || ""),
+          choices,
+          correctAnswer: String(correctAnswer || metadata?.correctAnswer || ""),
+          selectedAnswer: String(metadata?.selectedAnswer || (selectedWordId ? (reverse ? wordMap().get(selectedWordId)?.he : wordMap().get(selectedWordId)?.ar) : "") || ""),
+          typedAnswer: String(metadata?.typedAnswer || ""),
+          isCorrect: metadata?.selfRating ? null : Boolean(correct),
+          selfRating: metadata?.selfRating || null,
+          timedOut: Boolean(metadata?.timedOut)
+        });
+      } catch (error) {
+        ui.journalWriteFailed = true;
+        window.MilaErrorMonitor?.captureException?.(error, { area: "storage", action: "append-answer-journal" });
+      }
+    }
     return next;
   }
 
@@ -1199,7 +1237,7 @@
     session.selectedWordId = null;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: checked.correct, targetWordId: q.targetWordId, selectedWordId: null, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, checked.correct, null, null, createAnswerEventId(session.id, session.current, q.targetWordId), { typedAnswer: value, prompt: q.prompt, mode: session.mode });
     if (!persist()) {
       restoreLearningCheckpoint(checkpoint);
       renderSession();
@@ -1269,10 +1307,10 @@
       const q = session.questions.find((item)=>item.targetWordId===leftId);
       if (q) {
         const idx = session.questions.indexOf(q);
-        if (!session.results[idx]) {
-          session.results[idx] = { correct: false, targetWordId: leftId };
-          recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong"));
-        }
+        if (!session.results[idx]) session.results[idx] = { correct: false, targetWordId: leftId };
+        recordAnswer(leftId, false, id, null, createAnswerEventId(session.id, idx, leftId + ":matching-wrong:" + uid()), {
+          prompt: word?.he || "", selectedAnswer: wordMap().get(id)?.ar || "", mode: "matching"
+        });
       }
       toast("هذا الربط غير صحيح. جرّب مرة أخرى.", "error");
       match.selectedLeft = null;
@@ -1295,7 +1333,7 @@
     session.answered = true;
     session.feedbackVisible = true;
     session.results[session.current] = { correct: good, targetWordId: q.targetWordId, correctWordId: q.targetWordId };
-    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId));
+    recordAnswer(q.targetWordId, good, null, null, createAnswerEventId(session.id, session.current, q.targetWordId), { selfRating: rating, prompt: q.prompt, mode: session.mode });
     const p = progressOf(q.targetWordId);
     state.progress[q.targetWordId] = { ...p, ...ENGINE.scheduleReview(p, rating, Date.now()) };
     if (!persist()) {
@@ -1372,6 +1410,7 @@
       return false;
     }
     renderSessionSummary(sessionRecord);
+    window.dispatchEvent(new CustomEvent("mila:session-completed", { detail: { sessionId: sessionRecord.id, finishedAt: sessionRecord.finishedAt } }));
     return true;
   }
 
