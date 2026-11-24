@@ -18,7 +18,7 @@ const CORE_ASSETS = [
   "/sync-config.js",
   "/sync.js",
   "/sync-merge-core.mjs",
-  "/sync-merge-core.mjs?v=2",
+  "/sync-merge-core.mjs?v=3",
   "/sync-core.mjs",
   "/sync-settings-core.mjs",
   "/static/vendor/supabase.umd.js",
