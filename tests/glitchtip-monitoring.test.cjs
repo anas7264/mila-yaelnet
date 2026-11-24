@@ -156,3 +156,14 @@ test("index loads the monitor before app scripts and the service worker caches i
   assert.ok(sw.includes("mila-yaelnet-v43"));
   assert.ok(sw.includes("/static/error-monitoring.js?v=1"));
 });
+
+test("critical caught platform and adaptive errors are forwarded to the optional monitor", () => {
+  const app = read("static/app.js");
+  const adaptive = read("static/adaptive-ui.js");
+  assert.match(app, /captureException\?\.\(error,\s*\{area:"platform",action:"navigation"\}\)/);
+  assert.match(app, /captureException\?\.\(error,\s*\{area:"platform",action:"delegated-action"\}\)/);
+  assert.match(app, /area: "storage", action: "save-main-state"/);
+  assert.match(adaptive, /area:"adaptive",action:"start-session"/);
+  assert.match(adaptive, /area:"adaptive",action:"record-answer"/);
+  assert.match(adaptive, /area:"storage",action:"save-adaptive-state"/);
+});
