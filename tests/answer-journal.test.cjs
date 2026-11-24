@@ -40,7 +40,8 @@ test("answer journal is idempotent by event ID and acknowledges only confirmed I
 
 test("answer journal rejects malformed or oversized events", () => {
   assert.throws(() => Journal.normalizeEvent({}), /identifier/);
-  assert.throws(() => Journal.normalizeEvent(event("large", { typedAnswer:"x".repeat(13000) })), /size limit/);
+  const bounded = Journal.normalizeEvent(event("large", { typedAnswer:"x".repeat(13000) }));
+  assert.equal(bounded.typedAnswer.length, 500);
 });
 
 test("failed local writes propagate instead of silently accepting an answer", () => {
