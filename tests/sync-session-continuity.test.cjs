@@ -30,6 +30,7 @@ test("both learning modes expose idle-only cloud refresh hooks", () => {
   assert.equal(adaptive.includes("!state.session.paused"), true);
   assert.equal(adaptive.includes("refreshFromStorage"), true);
   assert.equal(app.includes("mila:learning-session-change"), true);
+  assert.equal(app.includes("ui.session?.finished && ui.session.summary"), true, "completed quiz summaries survive background refresh");
   assert.equal(adaptive.includes("mila:learning-session-change"), true);
 });
 

@@ -674,7 +674,10 @@
     else if (ui.view === "review") renderReview();
     else if (ui.view === "analytics") renderAnalytics();
     else if (ui.view === "settings") renderSettings();
-    else if (ui.view === "session") renderSession();
+    else if (ui.view === "session") {
+      if (ui.session?.finished && ui.session.summary) renderSessionSummary(ui.session.summary);
+      else renderSession();
+    }
     if (typeof Event !== "undefined") window.dispatchEvent(new Event("mila:learning-session-change"));
   }
 
