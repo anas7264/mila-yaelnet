@@ -17,3 +17,12 @@ test("library loads another 20 only when its sentinel is reached and resets afte
   assert.match(app, /ui\.libraryVisibleCount=20;renderLibrary\(\)/);
   assert.match(app, /ui\.libraryObserver\?\.disconnect\(\)/);
 });
+
+test("stage and review word collections also render progressively", () => {
+  assert.match(app, /stageVisibleCount:\s*20/);
+  assert.match(app, /reviewVisibleCount:\s*20/);
+  assert.match(app, /progressiveMarkup\(filtered, ui\.stageVisibleCount/);
+  assert.match(app, /progressiveMarkup\(words, ui\.reviewVisibleCount/);
+  assert.match(app, /observeProgressiveSentinel\("stageLoadMoreSentinel"/);
+  assert.match(app, /observeProgressiveSentinel\("reviewLoadMoreSentinel"/);
+});
