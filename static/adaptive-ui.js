@@ -232,7 +232,7 @@
       if (!save()) return;
       openMode();
       renderSession();
-    } catch (error) { toast(error.message || "تعذر بدء الجلسة.", true); }
+    } catch (error) { window.MilaErrorMonitor?.captureException?.(error,{area:"adaptive",action:"start-session"}); toast(error.message || "تعذر بدء الجلسة.", true); }
   }
 
   function submitAdaptiveAnswer(answer) {
@@ -263,6 +263,7 @@
       });
     } catch (error) {
       console.error("Adaptive answer bridge failed:", error);
+      window.MilaErrorMonitor?.captureException?.(error,{area:"adaptive",action:"record-answer"});
       toast("حدث خطأ أثناء تسجيل الإجابة في سجل المنصة. بقي السؤال دون اعتماد؛ أعد المحاولة.", true);
       return;
     }
@@ -371,6 +372,7 @@
         openMode();
       } catch (error) {
         console.error("Adaptive navigation failed:", error);
+        window.MilaErrorMonitor?.captureException?.(error,{area:"adaptive",action:"navigation"});
         toast("تعذر فتح التدريب التكيفي: " + (error?.message || "خطأ غير متوقع"), true);
       }
       return;
@@ -387,6 +389,7 @@
       try { handleAction(actionButton.getAttribute("data-adaptive-action")); }
       catch (error) {
         console.error("Adaptive action failed:", error);
+        window.MilaErrorMonitor?.captureException?.(error,{area:"adaptive",action:"delegated-action"});
         toast("تعذر تنفيذ الإجراء: " + (error?.message || "خطأ غير متوقع"), true);
       }
     }
@@ -437,6 +440,7 @@
       return true;
     } catch (error) {
       console.error("Mila adaptive state refresh after cloud sync failed:", error);
+      window.MilaErrorMonitor?.captureException?.(error,{area:"adaptive",action:"cloud-state-refresh"});
       return false;
     }
   }
