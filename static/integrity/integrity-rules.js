@@ -183,6 +183,7 @@
       const duplicateIds = ids.filter((id, index) => typeof id === "string" && ids.indexOf(id) !== index);
       const eventIdSet = new Set(ids.filter(id => typeof id === "string"));
       const orphanIds = Object.keys(eventIds).filter(key => {
+        if (key.startsWith("session:")) return false;
         const id = key.startsWith("answer:") ? key.slice(7) : key;
         return !eventIdSet.has(id);
       });
