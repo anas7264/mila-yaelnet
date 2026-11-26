@@ -169,12 +169,11 @@ test("MILA storage adapter reads only the two known state keys and never writes"
   assert.equal(snapshot.eventSourceAvailable, true);
   assert.deepEqual(reads.sort(), ["mila-yaelnet-adaptive-v1", "mila-yaelnet-studio-v3"]);
   assert.equal(writes, 0);
-  const report = Rules.run({
-    localState: snapshot.localState,
-    learningEvents: snapshot.learningEvents,
-    adaptiveEventIds: snapshot.adaptiveEventIds
-  });
+  reads.length = 0;
+  const report = Monitor.createFromStorage(storage);
   assert.equal(report.checks.find(x => x.id === "event_consistency").status, "PASS");
+  assert.deepEqual(reads.sort(), ["mila-yaelnet-adaptive-v1", "mila-yaelnet-studio-v3"]);
+  assert.equal(writes, 0);
 });
 
 test("retry policy outside adaptive-engine bounds fails closed", () => {
