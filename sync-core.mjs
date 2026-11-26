@@ -379,14 +379,10 @@ export function createAsyncGate({ onBusy = () => {}, onError = () => {} } = {}) 
 }
 
 /**
- * Coordinates Supabase auth refresh with browser connectivity and visibility.
- * Calling startAutoRefresh/stopAutoRefresh disables Supabase's managed
- * visibility listener, so this controller deliberately owns that lifecycle.
- */
-/**
  * Coordinates Supabase auth refresh with browser connectivity and page lifecycle.
- * Realtime/WebSocket owners suspend during hidden/frozen transitions and resume
- * after the page is active again (including BFCache restoration).
+ * Calling startAutoRefresh/stopAutoRefresh disables Supabase's managed visibility
+ * listener, so this controller owns refresh timing. Realtime owners can also
+ * suspend during hidden/frozen transitions and resume after BFCache restoration.
  */
 export function createNetworkLifecycle({
   auth,
