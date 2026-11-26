@@ -43,3 +43,12 @@ test("production sync migration enforces durable idempotency and RPC-only writes
   assert.match(hardening, /create policy "Users can insert their own sync mutations"/i);
   assert.match(hardening, /grant select, insert, update on table public\.learning_state to authenticated/i);
 });
+
+
+test("sync client keeps Supabase access tokens refreshed and adopts refreshed sessions", () => {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const source = fs.readFileSync(path.join(__dirname, "..", "sync.js"), "utf8");
+  assert.match(source, /autoRefreshToken\s*:\s*true/);
+  assert.match(source, /event\s*===\s*['"]TOKEN_REFRESHED['"][\s\S]*?session\s*=\s*nextSession/);
+});
