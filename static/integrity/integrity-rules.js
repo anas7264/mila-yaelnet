@@ -111,16 +111,13 @@
       return result("retry_eligibility", STATUS.FAIL, SEVERITY.HIGH, "بيانات الطابور أو عدادات الإعادة غير صالحة.");
     }
     const policy = isObject(state.policy) ? state.policy : {};
-    const minDelay = Number.isInteger(policy.minDelay) ? policy.minDelay : 2;
-    const maxDelay = Number.isInteger(policy.maxDelay) ? policy.maxDelay : 4;
-    const maxRetries = Number.isInteger(policy.maxRetries) ? policy.maxRetries : 3;
-    const minDelay = Number.isInteger(policy.minDelay) ? policy.minDelay : 2;
-    const maxDelay = Number.isInteger(policy.maxDelay) ? policy.maxDelay : 4;
-    if (minDelay < 1 || minDelay > 8 || maxDelay < minDelay || maxDelay > 12 ||
-        maxRetries < 1 || maxRetries > 5) {
-      return result("retry_limits", STATUS.FAIL, SEVERITY.HIGH, "سياسة إعادة المحاولة خارج الحدود التي يقبلها محرك MILA.", {
-        minDelay, maxDelay, maxRetries
-      });
+    const minDelay = policy.minDelay === undefined ? 2 : policy.minDelay;
+    const maxDelay = policy.maxDelay === undefined ? 4 : policy.maxDelay;
+    const maxRetries = policy.maxRetries === undefined ? 3 : policy.maxRetries;
+    if (!integer(minDelay) || minDelay < 1 || minDelay > 8 ||
+        !integer(maxDelay) || maxDelay < minDelay || maxDelay > 12 ||
+        !integer(maxRetries) || maxRetries < 1 || maxRetries > 5) {
+      return result("retry_eligibility", STATUS.FAIL, SEVERITY.HIGH, "سياسة إعادة المحاولة غير صالحة وفق حدود محرك MILA.");
     }
     const invalid = Object.entries(s.retryCounts).filter(([id, count]) =>
       !id || !integer(count) || count > maxRetries
@@ -138,7 +135,17 @@
   function checkRetryLimits(state) {
     const s = state?.session;
     if (!s) return result("retry_limits", STATUS.PASS, SEVERITY.LOW, "لا توجد جلسة نشطة.", { active: false });
-    const maxRetries = Number.isInteger(state?.policy?.maxRetries) ? state.policy.maxRetries : 3;
+    const policy = isObject(state.policy) ? state.policy : {};
+    const maxRetries = policy.maxRetries === undefined ? 3 : policy.maxRetries;
+    const minDelay = policy.minDelay === undefined ? 2 : policy.minDelay;
+    const maxDelay = policy.maxDelay === undefined ? 4 : policy.maxDelay;
+    if (!integer(minDelay) || minDelay < 1 || minDelay > 8 ||
+        !integer(maxDelay) || maxDelay < minDelay || maxDelay > 12 ||
+        !integer(maxRetries) || maxRetries < 1 || maxRetries > 5) {
+      return result("retry_limits", STATUS.FAIL, SEVERITY.HIGH, "سياسة إعادة المحاولة خارج الحدود التي يقبلها محرك MILA.", {
+        minDelay, maxDelay, maxRetries
+      });
+    }
     const counts = isObject(s.retryCounts) ? Object.values(s.retryCounts) : [];
     const invalid = counts.filter(count => !integer(count) || count > maxRetries);
     return invalid.length
