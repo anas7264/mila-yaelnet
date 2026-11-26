@@ -91,9 +91,14 @@ export function createRealtimeRetryManager({
 
   const removeSafely = (channel) => {
     if (!channel) return Promise.resolve();
-    return Promise.resolve()
-      .then(() => removeChannel(channel))
-      .catch((error) => report("REMOVE_ERROR", error));
+    try {
+      // Unsubscribe synchronously: pagehide/freeze may suspend queued microtasks.
+      return Promise.resolve(removeChannel(channel))
+        .catch((error) => report("REMOVE_ERROR", error));
+    } catch (error) {
+      report("REMOVE_ERROR", error);
+      return Promise.resolve();
+    }
   };
 
   const scheduleRetry = (state, error, failedChannel, token) => {
@@ -378,6 +383,11 @@ export function createAsyncGate({ onBusy = () => {}, onError = () => {} } = {}) 
  * Calling startAutoRefresh/stopAutoRefresh disables Supabase's managed
  * visibility listener, so this controller deliberately owns that lifecycle.
  */
+/**
+ * Coordinates Supabase auth refresh with browser connectivity and page lifecycle.
+ * Realtime/WebSocket owners suspend during hidden/frozen transitions and resume
+ * after the page is active again (including BFCache restoration).
+ */
 export function createNetworkLifecycle({
   auth,
   windowRef = globalThis.window,
@@ -385,6 +395,8 @@ export function createNetworkLifecycle({
   navigatorRef = globalThis.navigator,
   onOnline = () => {},
   onOffline = () => {},
+  onSuspend = () => {},
+  onResume = () => {},
 } = {}) {
   if (
     !auth ||
@@ -395,30 +407,39 @@ export function createNetworkLifecycle({
   }
 
   let disposed = false;
+  let pageSuspended = false;
+  let pageActive = documentRef?.visibilityState !== "hidden";
+
+  const isPageActive = () =>
+    !pageSuspended && documentRef?.visibilityState !== "hidden";
 
   const shouldRefresh = () =>
-    navigatorRef?.onLine !== false &&
-    documentRef?.visibilityState !== "hidden";
+    navigatorRef?.onLine !== false && isPageActive();
 
-  const notify = (callback) => {
+  const notify = (callback, event) => {
     try {
-      const result = callback();
-      if (result && typeof result.then === "function") {
-        result.catch(() => {});
-      }
+      const result = callback(event);
+      if (result && typeof result.then === "function") result.catch(() => {});
     } catch {
-      // Event callbacks must not create unhandled browser event errors.
+      // Browser lifecycle callbacks must never interrupt a page transition.
     }
   };
 
   const refreshAuth = () => {
     if (disposed) return false;
     const active = shouldRefresh();
-    if (active) {
-      void Promise.resolve(auth.startAutoRefresh()).catch(() => {});
-    } else {
-      void Promise.resolve(auth.stopAutoRefresh()).catch(() => {});
-    }
+    const operation = active ? auth.startAutoRefresh() : auth.stopAutoRefresh();
+    void Promise.resolve(operation).catch(() => {});
+    return active;
+  };
+
+  const updatePageActivity = (event) => {
+    if (disposed) return false;
+    const active = isPageActive();
+    const changed = active !== pageActive;
+    pageActive = active;
+    refreshAuth();
+    if (changed) notify(active ? onResume : onSuspend, event);
     return active;
   };
 
@@ -431,13 +452,36 @@ export function createNetworkLifecycle({
     if (navigatorRef?.onLine === false) notify(onOffline);
   };
 
-  const handleVisibilityChange = () => {
-    if (refreshAuth()) notify(onOnline);
+  const handleVisibilityChange = (event) => updatePageActivity(event);
+
+  const handlePageHide = (event) => {
+    pageSuspended = true;
+    updatePageActivity(event);
+  };
+
+  const handlePageShow = (event) => {
+    pageSuspended = false;
+    updatePageActivity(event);
+  };
+
+  const handleFreeze = (event) => {
+    pageSuspended = true;
+    updatePageActivity(event);
+  };
+
+  const handleResume = (event) => {
+    pageSuspended = false;
+    updatePageActivity(event);
   };
 
   windowRef?.addEventListener?.("online", handleOnline);
   windowRef?.addEventListener?.("offline", handleOffline);
+  windowRef?.addEventListener?.("pagehide", handlePageHide);
+  windowRef?.addEventListener?.("pageshow", handlePageShow);
   documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
+  // freeze/resume are Document events in the Page Lifecycle API.
+  documentRef?.addEventListener?.("freeze", handleFreeze);
+  documentRef?.addEventListener?.("resume", handleResume);
 
   refreshAuth();
   if (navigatorRef?.onLine === false) notify(onOffline);
@@ -449,12 +493,15 @@ export function createNetworkLifecycle({
       disposed = true;
       windowRef?.removeEventListener?.("online", handleOnline);
       windowRef?.removeEventListener?.("offline", handleOffline);
+      windowRef?.removeEventListener?.("pagehide", handlePageHide);
+      windowRef?.removeEventListener?.("pageshow", handlePageShow);
       documentRef?.removeEventListener?.("visibilitychange", handleVisibilityChange);
+      documentRef?.removeEventListener?.("freeze", handleFreeze);
+      documentRef?.removeEventListener?.("resume", handleResume);
       void Promise.resolve(auth.stopAutoRefresh()).catch(() => {});
     },
   });
 }
-
 
 export function createPendingMutation(snapshot, expectedRevision, mutationId, createdAt = Date.now(), userId = null) {
   if (!isSnapshot(snapshot)) throw new TypeError('A valid learning snapshot is required');
