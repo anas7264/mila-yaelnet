@@ -18,7 +18,7 @@
     const session = state?.session;
     if (session == null) return result("session_structure", STATUS.PASS, SEVERITY.LOW, "لا توجد جلسة نشطة.", { active: false });
     if (!isObject(session) || !["he-ar", "ar-he"].includes(session.direction) ||
-        !Array.isArray(session.queue) || session.queue.some(id => typeof id !== "string" || !id) ||
+        !Array.isArray(session.queue) || session.queue.length === 0 || session.queue.some(id => typeof id !== "string" || !id) ||
         typeof session.id !== "string" || !session.id ||
         !integer(session.cycle) || session.cycle < 1 ||
         typeof session.answered !== "boolean" || typeof session.paused !== "boolean") {
@@ -212,7 +212,10 @@
       seen.add(event.eventId);
     }
     const eventKeys = new Set(eventEntries.map(([key]) => key));
-    const orphanIds = ledgerKeys.filter(key => !eventKeys.has(key));
+    // adaptiveEventIds also stores session:<id> idempotency markers; only answer entries
+    // have a corresponding learningEvents record.
+    const answerLedgerKeys = ledgerKeys.filter(key => key.startsWith("answer:"));
+    const orphanIds = answerLedgerKeys.filter(key => !eventKeys.has(key));
     const untrackedEvents = eventEntries.filter(([key]) => !Object.prototype.hasOwnProperty.call(eventIds, key)).length;
     missingIds += eventEntries.filter(([, event]) => !event?.eventId).length;
     if (missingIds || duplicateIds || malformedEvents || keyMismatches || orphanIds.length || untrackedEvents) {
