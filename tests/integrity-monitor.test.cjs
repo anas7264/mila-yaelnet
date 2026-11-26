@@ -193,3 +193,27 @@ test("overall report status gives confirmed failures precedence over unknown evi
   assert.equal(report.summary.total, 10);
   assert.equal(report.summary.pass + report.summary.fail + report.summary.warn + report.summary.unknown, 10);
 });
+
+
+test("session structure rejects an empty queue even when marked answered", () => {
+  const report = Rules.run({ localState: state({ session: {
+    queue: [], cursor: 0, answered: true
+  } }) });
+  assert.equal(report.checks.find(x => x.id === "session_structure").status, "FAIL");
+});
+
+test("event consistency ignores valid session ledger markers but still checks answer events", () => {
+  const id = "answer-1";
+  const key = "answer:" + id;
+  const report = Rules.run({
+    localState: state(),
+    learningEvents: {
+      [key]: { eventId: id, wordId: "w1", correct: true }
+    },
+    adaptiveEventIds: {
+      [key]: 1700000000000,
+      "session:session-a": 1700000000001
+    }
+  });
+  assert.equal(report.checks.find(x => x.id === "event_consistency").status, "PASS");
+});
