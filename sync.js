@@ -25,7 +25,7 @@ if(!C.url||!C.publishableKey){setStatus('خدمة المزامنة غير مهي
 else if(!createClient){setStatus('تعذر تشغيل المزامنة: '+(initializationError?.message||'لم يتم تحميل مكتبة Supabase المحلية.'),'error');card$('mila-sync-retry').hidden=false}
 else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
-const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
+const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
 let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0,deferredCloudUpdate=null,deferredAccountSession=null;
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
@@ -193,6 +193,16 @@ if(!session||navigator.onLine===false||document.visibilityState==='hidden')retur
 if(recoveryPromise)return recoveryPromise;
 recoveryPromise=(async()=>{
 try{
+const{data:authData,error:authError}=await sb.auth.getSession();
+if(authError)throw authError;
+const refreshedSession=authData?.session||null;
+if(!refreshedSession){
+session=null;syncReady=false;setAuth(null);
+status('انتهت جلسة الدخول أو تعذر تجديدها. بيانات التعلم ما زالت محفوظة على هذا الجهاز؛ سجّل الدخول مجددًا لاستئناف المزامنة.','error');
+return;
+}
+if(refreshedSession.user?.id!==session?.user?.id)return;
+session=refreshedSession;setAuth(refreshedSession.user);
 if(!syncReady){await loginSync();syncReady=true;}
 await realtimeCleanup;
 subscribe();
@@ -247,6 +257,8 @@ sb.auth.onAuthStateChange((event,nextSession)=>{
     let shouldActivate=false;
     if(event==='INITIAL_SESSION'){
       if(activationVersion===0){next=nextSession;shouldActivate=true}
+    }else if(event==='TOKEN_REFRESHED'){
+      if(nextSession?.user?.id===session?.user?.id&&nextSession?.user?.id)session=nextSession;
     }else if(event==='SIGNED_OUT'){
       if(session?.user?.id){next=null;shouldActivate=true}
     }else if(nextSession?.user?.id!==session?.user?.id){
