@@ -51,7 +51,7 @@ let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=nu
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null,allowAccountSwitch=false)=>{const current=meta();if(current.userId&&userId&&current.userId!==userId&&!allowAccountSwitch)throw Error('Refusing to overwrite metadata for another account.');if(current.userId===userId&&Number.isInteger(current.revision)&&current.revision>r){revision=current.revision;baseline=current.baseline;return false}revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}));return true};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
-const clearConflict=()=>{conflict=null;card$('mila-sync-conflict').classList.remove('show')};
+const clearConflict=()=>{conflict=null;card$('mila-sync-conflict').classList.remove('show');if(!realtimeConnected)scheduleRealtimeFallback()};
 const showConflict=(l,c,r)=>{conflict={local:l,cloud:c,revision:r};card$('mila-sync-conflict').classList.add('show');status('اكتشفنا تعارضًا بين نسختين. اختر النسخة المعتمدة للمتابعة.','conflict')};
 const autoMerge=async(local,cloud,cloudRevision,baseOverride=null,attempt=0)=>{
 if(hasActiveLearningSession())return deferCloudUpdate(cloud,cloudRevision);
@@ -193,7 +193,7 @@ if(isSameSnapshot(l,data.state)){writeMeta(data.revision,data.state,userId);stat
 await autoMerge(l,data.state,data.revision);
 };
 const canRunRealtime=()=>navigator.onLine!==false&&document.visibilityState!=='hidden'&&!pageSuspended;
-let realtimeConnected=false,realtimeFallbackTimer=null,realtimeFallbackInFlight=false;
+let realtimeConnected=false,realtimeEverConnected=false,realtimeFallbackTimer=null,realtimeFallbackInFlight=false;
 const stopRealtimeFallback=()=>{
 if(realtimeFallbackTimer!==null){clearTimeout(realtimeFallbackTimer);realtimeFallbackTimer=null}
 };
@@ -234,8 +234,9 @@ canConnect:()=>Boolean(session?.user?.id)&&navigator.onLine!==false&&document.vi
 shouldDelegateStatus:(state,error)=>state==='CHANNEL_ERROR'&&isRealtimeTransportFailure(error),
 onStatus:(state,error,retryDelayMs)=>{
 if(state==='SUBSCRIBED'){
-const wasUnavailable=!realtimeConnected;
+const wasUnavailable=realtimeEverConnected&&!realtimeConnected;
 realtimeConnected=true;
+realtimeEverConnected=true;
 stopRealtimeFallback();
 if(wasUnavailable)status('عاد الاتصال الفوري؛ استؤنفت مزامنة التحديثات بين الأجهزة.','ok');
 return;
@@ -253,6 +254,7 @@ status('تعذر الاشتراك الفوري مؤقتًا؛ ستستمر ال�
 }
 });
 const pauseRealtime=()=>{
+if(heartbeatReconnectTimer!==null){clearTimeout(heartbeatReconnectTimer);heartbeatReconnectTimer=null}
 realtimeConnected=false;
 stopRealtimeFallback();
 realtimeCleanup=realtimeManager.stop();
