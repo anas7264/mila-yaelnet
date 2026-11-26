@@ -46,14 +46,14 @@ test("the service worker and document use fresh, matching sync module versions",
   const merge = read("sync-merge-core.mjs");
   const sw = read("static/sw.js");
 
-  assert.match(html, /\/sync\.js\?v=13/);
-  assert.match(sync, /\.\/sync-core\.mjs\?v=8/);
-  assert.match(sync, /\.\/sync-merge-core\.mjs\?v=3/);
-  assert.match(merge, /\.\/sync-core\.mjs\?v=8/);
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v44"/);
-  assert.ok(sw.includes('"/sync.js?v=13"'));
-  assert.ok(sw.includes('"/sync-core.mjs?v=8"'));
-  assert.ok(sw.includes('"/sync-merge-core.mjs?v=3"'));
+  assert.match(html, /\/sync\.js\?v=14/);
+  assert.match(sync, /\.\/sync-core\.mjs\?v=9/);
+  assert.match(sync, /\.\/sync-merge-core\.mjs\?v=4/);
+  assert.match(merge, /\.\/sync-core\.mjs\?v=9/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v45"/);
+  assert.ok(sw.includes('"/sync.js?v=14"'));
+  assert.ok(sw.includes('"/sync-core.mjs?v=9"'));
+  assert.ok(sw.includes('"/sync-merge-core.mjs?v=4"'));
 });
 
 test("Realtime failures remove their channel and retry with capped exponential backoff", async () => {
@@ -273,4 +273,67 @@ test("sync orchestration suspends Realtime and guards reconnect while BFCache is
   assert.match(sync, /onSuspend:\(\)=>\{\s*pageSuspended=true;\s*void pauseRealtime\(\)/);
   assert.match(sync, /onResume:\(\)=>\{\s*pageSuspended=false;\s*void recoverOnline\(\)/);
   assert.match(sync, /if\(!session\|\|!canRunRealtime\(\)\)return;/);
+});
+
+test("Realtime transport failures are delegated to the SDK and keep the channel alive for native reconnect", async () => {
+  const { createRealtimeRetryManager } = await import("../sync-core.mjs");
+  const timers = createFakeTimers();
+  const channels = [];
+  const removed = [];
+  const reported = [];
+  const manager = createRealtimeRetryManager({
+    createChannel(onStatus) {
+      const channel = { onStatus };
+      channels.push(channel);
+      return channel;
+    },
+    removeChannel(channel) { removed.push(channel); },
+    canConnect: () => true,
+    shouldDelegateStatus: (state, error) =>
+      state === "CHANNEL_ERROR" && /transport failure/i.test(error?.message || ""),
+    onStatus: (state, error, retryDelayMs) =>
+      reported.push({ state, message: error?.message, retryDelayMs }),
+    setTimeoutImpl: timers.setTimeoutImpl,
+    clearTimeoutImpl: timers.clearTimeoutImpl
+  });
+
+  manager.start();
+  const activeChannel = channels[0];
+  activeChannel.onStatus("CHANNEL_ERROR", new Error("channel error: transport failure"));
+
+  assert.equal(manager.getChannel(), activeChannel);
+  assert.deepEqual(removed, []);
+  assert.deepEqual(timers.delays, []);
+  assert.equal(manager.getRetryCount(), 0);
+  assert.equal(reported[0].state, "CHANNEL_ERROR");
+  assert.equal(reported[0].retryDelayMs, null);
+
+  // The underlying SDK can reconnect and re-join the same channel instance.
+  activeChannel.onStatus("SUBSCRIBED");
+  assert.equal(manager.getChannel(), activeChannel);
+  assert.equal(manager.getRetryCount(), 0);
+  await manager.stop();
+  assert.deepEqual(removed, [activeChannel]);
+});
+
+test("Realtime recovery config uses worker heartbeats and a bounded disconnected-heartbeat reconnect", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /heartbeatIntervalMs:20000/);
+  assert.match(sync, /worker:typeof window\.Worker==='function'/);
+  assert.match(sync, /heartbeatCallback:state=>/);
+  assert.match(sync, /state==='disconnected'/);
+  assert.match(sync, /realtime\.connect\(\)/);
+});
+
+test("Realtime outage fallback polls only the revision and loads the full snapshot only for a newer revision", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /select\('revision'\)\.eq\('user_id',owner\)\.maybeSingle\(\)/);
+  assert.match(sync, /cloudRevision>revision\)await loginSync\(\)/);
+  assert.match(sync, /scheduleRealtimeFallback\(delayMs=45000\)/);
+  assert.match(sync, /shouldDelegateStatus:\(state,error\)=>state==='CHANNEL_ERROR'&&isRealtimeTransportFailure\(error\)/);
+});
+
+test("manual sync reconciles remote state before flushing local changes", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /mila-sync-now'\)\.onclick=async\(\)=>\{try\{await loginSync\(\);await flush\(\)\}/);
 });
