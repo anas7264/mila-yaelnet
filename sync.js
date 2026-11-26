@@ -1,7 +1,7 @@
 import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=9';
 
 import{buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
-import{mergeSnapshots}from'./sync-merge-core.mjs?v=3';
+import{mergeSnapshots}from'./sync-merge-core.mjs?v=4';
 const C=window.__MILA_SYNC_CONFIG__||{},P='__mila_sync_',META=P+'meta_v1',PENDING=P+'pending_v1',ACCOUNT_BACKUP_PREFIX=P+'account_backup_v1_',$=id=>document.getElementById(id),parse=s=>{try{return JSON.parse(s)}catch{return null}},uuid=()=>crypto.randomUUID();
 const card$=id=>card.querySelector('#'+id);
 const statusController=createStatusController(()=>card$('mila-sync-status'));
