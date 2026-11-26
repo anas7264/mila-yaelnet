@@ -43,7 +43,11 @@ heartbeatIntervalMs:20000,
 worker:typeof window.Worker==='function',
 heartbeatCallback:state=>{
 if(state==='ok'&&heartbeatReconnectTimer!==null){clearTimeout(heartbeatReconnectTimer);heartbeatReconnectTimer=null}
-else if(state==='disconnected')scheduleHeartbeatReconnect();
+else if(state==='disconnected'||state==='timeout'){
+realtimeConnected=false;
+scheduleRealtimeFallback();
+scheduleHeartbeatReconnect();
+}
 }
 }});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
