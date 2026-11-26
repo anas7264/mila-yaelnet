@@ -66,7 +66,21 @@
     return rules.run(input);
   }
 
-  const api = Object.freeze({ create, inspectLocalStorage, inspectMilaStorage });
+  function createFromStorage(storage) {
+    const snapshot = inspectMilaStorage(storage);
+    if (!snapshot.available) {
+      throw new Error("LIM cannot inspect the adaptive state: " + snapshot.reason);
+    }
+    return rules.run({
+      localState: snapshot.localState,
+      ...(snapshot.eventSourceAvailable ? {
+        learningEvents: snapshot.learningEvents,
+        adaptiveEventIds: snapshot.adaptiveEventIds
+      } : {})
+    });
+  }
+
+  const api = Object.freeze({ create, createFromStorage, inspectLocalStorage, inspectMilaStorage });
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (root) root.MilaIntegrityMonitor = api;
 })(typeof globalThis !== "undefined" ? globalThis : this);
