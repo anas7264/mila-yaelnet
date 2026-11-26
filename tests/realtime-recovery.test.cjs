@@ -270,7 +270,7 @@ test("sync orchestration suspends Realtime and guards reconnect while BFCache is
   const sync = read("sync.js");
   assert.match(sync, /pageSuspended=document\.visibilityState==='hidden'/);
   assert.match(sync, /canConnect:[^,]*&&!pageSuspended/);
-  assert.match(sync, /onSuspend:\(\)=>\{\s*pageSuspended=true;\s*void pauseRealtime\(\)/);
+  assert.match(sync, /onSuspend:\(\)=>\{\s*pageSuspended=true;[\s\S]*?void pauseRealtime\(\)/);
   assert.match(sync, /onResume:\(\)=>\{\s*pageSuspended=false;\s*void recoverOnline\(\)/);
   assert.match(sync, /if\(!session\|\|!canRunRealtime\(\)\)return;/);
 });
@@ -329,7 +329,7 @@ test("Realtime outage fallback polls only the revision and loads the full snapsh
   const sync = read("sync.js");
   assert.match(sync, /select\('revision'\)\.eq\('user_id',owner\)\.maybeSingle\(\)/);
   assert.match(sync, /cloudRevision>revision\)await loginSync\(\)/);
-  assert.match(sync, /scheduleRealtimeFallback\(delayMs=45000\)/);
+  assert.match(sync, /scheduleRealtimeFallback=\(delayMs=45000\)=>/);
   assert.match(sync, /shouldDelegateStatus:\(state,error\)=>state==='CHANNEL_ERROR'&&isRealtimeTransportFailure\(error\)/);
 });
 
