@@ -183,3 +183,14 @@ test("retry policy outside adaptive-engine bounds fails closed", () => {
   });
   assert.equal(report.checks.find(x => x.id === "retry_limits").status, "FAIL");
 });
+
+test("overall report status gives confirmed failures precedence over unknown evidence", () => {
+  const report = Rules.run({
+    localState: state({ session: { attempts: 1, correct: 1, incorrect: 0 } })
+  });
+  assert.equal(report.checks.find(x => x.id === "answer_accounting").status, "PASS");
+  assert.equal(report.checks.find(x => x.id === "event_consistency").status, "UNKNOWN");
+  assert.equal(report.status, "UNKNOWN");
+  assert.equal(report.summary.total, 10);
+  assert.equal(report.summary.pass + report.summary.fail + report.summary.warn + report.summary.unknown, 10);
+});
