@@ -217,3 +217,13 @@ test("event consistency ignores valid session ledger markers but still checks an
   });
   assert.equal(report.checks.find(x => x.id === "event_consistency").status, "PASS");
 });
+
+
+test("legacy event-array checks also ignore session idempotency markers", () => {
+  const report = Rules.run({
+    localState: state(),
+    events: [{ eventId: "e1" }],
+    eventIds: { "answer:e1": true, "session:session-a": true }
+  });
+  assert.equal(report.checks.find(x => x.id === "event_consistency").status, "PASS");
+});
