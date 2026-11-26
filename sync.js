@@ -1,4 +1,4 @@
-import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=7';
+import{createSnapshot,hasSnapshotEntries,isSameSnapshot,isSnapshot,isInternalStorageKey,createSupabaseLoader,createTimeoutFetch,createStatusController,createRealtimeRetryManager,createNetworkLifecycle,withTimeout,createPendingMutation,normalizePendingMutation,isDifferentAccount,hasMeaningfulLearningData}from'./sync-core.mjs?v=8';
 
 import{buildEmailRedirect,isExpiredConfirmation}from'./sync-settings-core.mjs?v=3';
 import{mergeSnapshots}from'./sync-merge-core.mjs?v=3';
@@ -27,7 +27,7 @@ else{
 const timedFetch=createTimeoutFetch(window.fetch.bind(window),{timeoutMs:12000});
 const sb=createClient(C.url,C.publishableKey,{global:{fetch:timedFetch},auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:true},realtime:{params:{eventsPerSecond:5}}});
 let device=localStorage.getItem(P+'device_v1');if(!device){device=uuid();localStorage.setItem(P+'device_v1',device)}
-let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0,deferredCloudUpdate=null,deferredAccountSession=null;
+let session=null,revision=0,baseline=null,suppress=false,dirty=false,conflict=null,timer=null,pending=parse(localStorage.getItem(PENDING)),syncReady=false,recoveryPromise=null,realtimeCleanup=Promise.resolve(),activationVersion=0,pageSuspended=document.visibilityState==='hidden',deferredCloudUpdate=null,deferredAccountSession=null;
 const snap=()=>createSnapshot(Object.keys(localStorage).map(k=>[k,localStorage.getItem(k)])),meta=()=>parse(localStorage.getItem(META))||{},status=(m,s='info')=>statusController.set(m,s),emailRedirect=()=>buildEmailRedirect(location.origin),makeMutation=(v,r,id=uuid(),at=Date.now())=>createPendingMutation(v,r,id,at,session?.user?.id||null);
 const writeMeta=(r,v,userId=session?.user?.id||meta().userId||null,allowAccountSwitch=false)=>{const current=meta();if(current.userId&&userId&&current.userId!==userId&&!allowAccountSwitch)throw Error('Refusing to overwrite metadata for another account.');if(current.userId===userId&&Number.isInteger(current.revision)&&current.revision>r){revision=current.revision;baseline=current.baseline;return false}revision=r;baseline=v;localStorage.setItem(META,JSON.stringify({revision,baseline,userId,deviceId:device,updatedAt:new Date().toISOString()}));return true};
 const setAuth=u=>{card$('mila-sync-auth').hidden=!!u;card$('mila-sync-account').hidden=!u;card$('mila-sync-user').textContent=u?'متصل بالحساب: '+(u.email||'حسابك'):''};
@@ -178,7 +178,7 @@ const remote=r=>{if(!r||r.updated_by_device_id===device||r.revision<=revision)re
 const realtimeManager=createRealtimeRetryManager({
 createChannel:onStatus=>sb.channel('mila-learning-'+session.user.id).on('postgres_changes',{event:'*',schema:'public',table:'learning_state',filter:'user_id=eq.'+session.user.id},p=>remote(p.new)).subscribe(onStatus),
 removeChannel:active=>sb.removeChannel(active),
-canConnect:()=>Boolean(session?.user?.id)&&navigator.onLine!==false&&document.visibilityState!=='hidden',
+canConnect:()=>Boolean(session?.user?.id)&&navigator.onLine!==false&&document.visibilityState!=='hidden'&&!pageSuspended,
 onStatus:(state,error,retryDelayMs)=>{
 if(state!=='CHANNEL_ERROR'&&state!=='TIMED_OUT'&&state!=='CLOSED')return;
 const detail=error?.message||String(error||state);
@@ -188,15 +188,18 @@ status('انقطع الاتصال الفوري مؤقتًا؛ ستُعاد ال�
 });
 const pauseRealtime=()=>{realtimeCleanup=realtimeManager.stop();return realtimeCleanup};
 const subscribe=()=>{if(!session?.user?.id)return;realtimeManager.start()};
+const canRunRealtime=()=>navigator.onLine!==false&&document.visibilityState!=='hidden'&&!pageSuspended;
 const recoverOnline=async()=>{
-if(!session||navigator.onLine===false||document.visibilityState==='hidden')return;
+if(!session||!canRunRealtime())return;
 if(recoveryPromise)return recoveryPromise;
 recoveryPromise=(async()=>{
 try{
 if(!syncReady){await loginSync();syncReady=true;}
+if(!session||!canRunRealtime())return;
 await realtimeCleanup;
+if(!session||!canRunRealtime())return;
 subscribe();
-await flush();
+if(canRunRealtime())await flush();
 }catch(e){status('تعذر استئناف المزامنة: '+(e.message||e),'error')}
 })().finally(()=>{recoveryPromise=null});
 return recoveryPromise;
@@ -236,7 +239,15 @@ onOffline:()=>{
 void pauseRealtime();
 if(session)status('لا يوجد اتصال بالإنترنت. تقدمك محفوظ محليًا وستُستأنف المزامنة تلقائيًا.','info');
 },
-onOnline:()=>{void recoverOnline()}
+onOnline:()=>{void recoverOnline()},
+onSuspend:()=>{
+pageSuspended=true;
+void pauseRealtime();
+},
+onResume:()=>{
+pageSuspended=false;
+void recoverOnline();
+}
 });
 if(isExpiredConfirmation(location.search)){status('انتهت صلاحية رابط تأكيد البريد أو استُخدم سابقًا. أدخل بريدك واطلب رسالة جديدة.','error');card$('mila-sync-resend').hidden=false}else if(new URLSearchParams(location.search).has('error')){status(new URLSearchParams(location.search).get('error_description')||'تعذر تأكيد البريد. اطلب رابطًا جديدًا.','error');card$('mila-sync-resend').hidden=false}
 // Subscribe before getSession so INITIAL_SESSION can settle the UI even if
