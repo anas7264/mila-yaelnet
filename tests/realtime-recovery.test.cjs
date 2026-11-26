@@ -264,3 +264,13 @@ test("visibility transitions suspend and resume without misreporting network off
   assert.deepEqual(pageEvents, ["suspend", "resume"]);
   assert.deepEqual(networkEvents, []);
 });
+
+
+test("sync orchestration suspends Realtime and guards reconnect while BFCache is active", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /pageSuspended=document\.visibilityState==='hidden'/);
+  assert.match(sync, /canConnect:[^,]*&&!pageSuspended/);
+  assert.match(sync, /onSuspend:\(\)=>\{\s*pageSuspended=true;\s*void pauseRealtime\(\)/);
+  assert.match(sync, /onResume:\(\)=>\{\s*pageSuspended=false;\s*void recoverOnline\(\)/);
+  assert.match(sync, /if\(!session\|\|!canRunRealtime\(\)\)return;/);
+});
