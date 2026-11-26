@@ -45,6 +45,7 @@ export function createRealtimeRetryManager({
   removeChannel,
   canConnect = () => true,
   onStatus = () => {},
+  shouldDelegateStatus = () => false,
   setTimeoutImpl = globalThis.setTimeout,
   clearTimeoutImpl = globalThis.clearTimeout,
   baseDelayMs = 1000,
@@ -53,8 +54,8 @@ export function createRealtimeRetryManager({
   if (typeof createChannel !== "function" || typeof removeChannel !== "function") {
     throw new TypeError("createChannel and removeChannel must be functions");
   }
-  if (typeof canConnect !== "function" || typeof onStatus !== "function") {
-    throw new TypeError("canConnect and onStatus must be functions");
+  if (typeof canConnect !== "function" || typeof onStatus !== "function" || typeof shouldDelegateStatus !== "function") {
+    throw new TypeError("canConnect, onStatus, and shouldDelegateStatus must be functions");
   }
   if (typeof setTimeoutImpl !== "function" || typeof clearTimeoutImpl !== "function") {
     throw new TypeError("Timer implementations must be functions");
@@ -134,6 +135,18 @@ export function createRealtimeRetryManager({
     }
 
     if (state === "CHANNEL_ERROR" || state === "TIMED_OUT" || state === "CLOSED") {
+      let delegated = false;
+      try {
+        delegated = Boolean(shouldDelegateStatus(state, error));
+      } catch (decisionError) {
+        report("STATUS_POLICY_ERROR", decisionError);
+      }
+      if (delegated) {
+        // Supabase Realtime owns socket-level reconnect/rejoin. Do not remove
+        // the channel on a transient transport failure or we interrupt it.
+        report(state, error, null);
+        return;
+      }
       scheduleRetry(state, error, channel, token);
       return;
     }
