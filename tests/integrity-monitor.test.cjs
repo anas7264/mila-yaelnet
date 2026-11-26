@@ -186,7 +186,7 @@ test("retry policy outside adaptive-engine bounds fails closed", () => {
 
 test("overall report status gives confirmed failures precedence over unknown evidence", () => {
   const report = Rules.run({
-    localState: state({ session: { attempts: 1, correct: 1, incorrect: 0 } })
+    localState: state({ session: { attempts: 1, correct: 1, incorrect: 0, results: [{ questionId: "session-a:1:0:w1", wordId: "w1", correct: true }] } })
   });
   assert.equal(report.checks.find(x => x.id === "answer_accounting").status, "PASS");
   assert.equal(report.checks.find(x => x.id === "event_consistency").status, "UNKNOWN");
