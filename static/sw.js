@@ -1,4 +1,4 @@
-const CACHE_NAME = "mila-yaelnet-v44";
+const CACHE_NAME = "mila-yaelnet-v45";
 const CORE_ASSETS = [
   "/",
   "/health",
@@ -21,6 +21,7 @@ const CORE_ASSETS = [
   "/sync.js",
   "/sync-merge-core.mjs",
   "/sync-merge-core.mjs?v=3",
+  "/sync-merge-core.mjs?v=4",
   "/sync-core.mjs",
   "/sync-settings-core.mjs",
   "/static/vendor/supabase.umd.js",
@@ -31,8 +32,10 @@ const CORE_ASSETS = [
   "/sync.js?v=11",
   "/sync.js?v=12",
   "/sync.js?v=13",
+  "/sync.js?v=14",
   "/sync-core.mjs?v=7",
   "/sync-core.mjs?v=8",
+  "/sync-core.mjs?v=9",
   "/sync-settings-core.mjs?v=3"
 ];
 
