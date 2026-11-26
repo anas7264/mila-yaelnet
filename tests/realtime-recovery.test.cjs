@@ -46,13 +46,13 @@ test("the service worker and document use fresh, matching sync module versions",
   const merge = read("sync-merge-core.mjs");
   const sw = read("static/sw.js");
 
-  assert.match(html, /\/sync\.js\?v=12/);
-  assert.match(sync, /\.\/sync-core\.mjs\?v=7/);
+  assert.match(html, /\/sync\.js\?v=13/);
+  assert.match(sync, /\.\/sync-core\.mjs\?v=8/);
   assert.match(sync, /\.\/sync-merge-core\.mjs\?v=3/);
-  assert.match(merge, /\.\/sync-core\.mjs\?v=7/);
-  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v43"/);
-  assert.ok(sw.includes('"/sync.js?v=12"'));
-  assert.ok(sw.includes('"/sync-core.mjs?v=7"'));
+  assert.match(merge, /\.\/sync-core\.mjs\?v=8/);
+  assert.match(sw, /const CACHE_NAME = "mila-yaelnet-v44"/);
+  assert.ok(sw.includes('"/sync.js?v=13"'));
+  assert.ok(sw.includes('"/sync-core.mjs?v=8"'));
   assert.ok(sw.includes('"/sync-merge-core.mjs?v=3"'));
 });
 
@@ -139,7 +139,9 @@ test("stopping Realtime cancels pending retries and ignores late channel callbac
   staleChannel.onStatus("CHANNEL_ERROR");
   assert.deepEqual(timers.delays, [1000]);
 
-  await manager.stop();
+  const stopPromise = manager.stop();
+  assert.deepEqual(removed, [staleChannel]);
+  await stopPromise;
   assert.deepEqual(timers.delays, []);
   staleChannel.onStatus("SUBSCRIBED");
   assert.equal(manager.getChannel(), null);
@@ -167,4 +169,108 @@ test("Realtime does not connect while the page is ineligible and can resume late
   manager.start();
   assert.equal(channels.length, 1);
   await manager.stop();
+});
+
+
+function createEventTarget() {
+  const listeners = new Map();
+  return {
+    addEventListener(type, callback) {
+      if (!listeners.has(type)) listeners.set(type, new Set());
+      listeners.get(type).add(callback);
+    },
+    removeEventListener(type, callback) {
+      listeners.get(type)?.delete(callback);
+    },
+    dispatch(type, event = {}) {
+      for (const callback of [...(listeners.get(type) || [])]) callback(event);
+    },
+    listenerCount(type) {
+      return listeners.get(type)?.size || 0;
+    }
+  };
+}
+
+test("network lifecycle suspends on pagehide/freeze and resumes once after BFCache restore", async () => {
+  const { createNetworkLifecycle } = await import("../sync-core.mjs");
+  const windowRef = createEventTarget();
+  const documentRef = Object.assign(createEventTarget(), { visibilityState: "visible" });
+  const navigatorRef = { onLine: true };
+  const authCalls = [];
+  const pageEvents = [];
+  const lifecycle = createNetworkLifecycle({
+    auth: {
+      startAutoRefresh() { authCalls.push("start"); },
+      stopAutoRefresh() { authCalls.push("stop"); }
+    },
+    windowRef,
+    documentRef,
+    navigatorRef,
+    onSuspend: event => pageEvents.push(["suspend", event?.persisted ?? null]),
+    onResume: event => pageEvents.push(["resume", event?.persisted ?? null])
+  });
+
+  assert.equal(authCalls[0], "start");
+  windowRef.dispatch("pagehide", { persisted: true });
+  assert.equal(authCalls.at(-1), "stop");
+  assert.deepEqual(pageEvents, [["suspend", true]]);
+
+  // Chrome may emit both pagehide and freeze for a BFCache transition.
+  documentRef.dispatch("freeze", {});
+  assert.deepEqual(pageEvents, [["suspend", true]]);
+
+  windowRef.dispatch("pageshow", { persisted: true });
+  assert.equal(authCalls.at(-1), "start");
+  assert.deepEqual(pageEvents, [["suspend", true], ["resume", true]]);
+
+  documentRef.dispatch("resume", {});
+  assert.deepEqual(pageEvents, [["suspend", true], ["resume", true]]);
+
+  lifecycle.dispose();
+  assert.equal(windowRef.listenerCount("pagehide"), 0);
+  assert.equal(windowRef.listenerCount("pageshow"), 0);
+  assert.equal(documentRef.listenerCount("visibilitychange"), 0);
+  assert.equal(documentRef.listenerCount("freeze"), 0);
+  assert.equal(documentRef.listenerCount("resume"), 0);
+  assert.equal(authCalls.at(-1), "stop");
+});
+
+test("visibility transitions suspend and resume without misreporting network offline", async () => {
+  const { createNetworkLifecycle } = await import("../sync-core.mjs");
+  const windowRef = createEventTarget();
+  const documentRef = Object.assign(createEventTarget(), { visibilityState: "visible" });
+  const navigatorRef = { onLine: true };
+  const pageEvents = [];
+  const networkEvents = [];
+  createNetworkLifecycle({
+    auth: { startAutoRefresh() {}, stopAutoRefresh() {} },
+    windowRef,
+    documentRef,
+    navigatorRef,
+    onSuspend: () => pageEvents.push("suspend"),
+    onResume: () => pageEvents.push("resume"),
+    onOffline: () => networkEvents.push("offline")
+  });
+
+  documentRef.visibilityState = "hidden";
+  documentRef.dispatch("visibilitychange", {});
+  windowRef.dispatch("pagehide", { persisted: true });
+  assert.deepEqual(pageEvents, ["suspend"]);
+  assert.deepEqual(networkEvents, []);
+
+  documentRef.visibilityState = "visible";
+  windowRef.dispatch("pageshow", { persisted: true });
+  documentRef.dispatch("visibilitychange", {});
+  assert.deepEqual(pageEvents, ["suspend", "resume"]);
+  assert.deepEqual(networkEvents, []);
+});
+
+
+test("sync orchestration suspends Realtime and guards reconnect while BFCache is active", () => {
+  const sync = read("sync.js");
+  assert.match(sync, /pageSuspended=document\.visibilityState==='hidden'/);
+  assert.match(sync, /canConnect:[^,]*&&!pageSuspended/);
+  assert.match(sync, /onSuspend:\(\)=>\{\s*pageSuspended=true;\s*void pauseRealtime\(\)/);
+  assert.match(sync, /onResume:\(\)=>\{\s*pageSuspended=false;\s*void recoverOnline\(\)/);
+  assert.match(sync, /if\(!session\|\|!canRunRealtime\(\)\)return;/);
 });
